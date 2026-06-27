@@ -48,16 +48,11 @@ async function verifyPassword(plaintext, storedHash) {
 }
 
 function defaultState() {
-  return {
-    exchangeRate: 58,
-    products: [],
-    batches: [],
-    catalogItems: [],
-    sales: [],
-    purchaseRequests: [],
-    users: [],
-    sessions: [],
-  };
+  return { exchangeRate: 58, products: [], batches: [], catalogItems: [], sales: [], purchaseRequests: [], users: [], sessions: [] };
+}
+
+function publicState(state) {
+  return { ...state, sessions: [] };
 }
 
 function normalizeState(input) {
@@ -77,26 +72,15 @@ function normalizeState(input) {
 
 async function ensureSchema(env) {
   if (!env.DB) throw new Error('D1 binding DB is not available.');
-  await env.DB.prepare(`
-    CREATE TABLE IF NOT EXISTS app_state (
-      id TEXT PRIMARY KEY,
-      value TEXT NOT NULL,
-      updated_at TEXT NOT NULL
-    )
-  `).run();
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS app_state (id TEXT PRIMARY KEY, value TEXT NOT NULL, updated_at TEXT NOT NULL)`).run();
 }
 
 async function getState(env) {
   await ensureSchema(env);
   const row = await env.DB.prepare('SELECT value, updated_at FROM app_state WHERE id = ?').bind(STATE_ID).first();
   if (!row) return { exists: false, state: defaultState(), updatedAt: null };
-
   let parsed = defaultState();
-  try {
-    parsed = normalizeState(JSON.parse(row.value));
-  } catch (_error) {
-    parsed = defaultState();
-  }
+  try { parsed = normalizeState(JSON.parse(row.value)); } catch (_error) { parsed = defaultState(); }
   return { exists: true, state: parsed, updatedAt: row.updated_at };
 }
 
@@ -104,31 +88,17 @@ async function saveState(env, inputState) {
   await ensureSchema(env);
   const incomingState = inputState || {};
   const state = normalizeState(incomingState);
-
   const existing = await getState(env);
-  if (!Object.prototype.hasOwnProperty.call(incomingState, 'users')) {
-    state.users = Array.isArray(existing.state.users) ? existing.state.users : [];
-  }
-  if (!Object.prototype.hasOwnProperty.call(incomingState, 'sessions')) {
-    state.sessions = Array.isArray(existing.state.sessions) ? existing.state.sessions : [];
-  }
-
+  if (!Object.prototype.hasOwnProperty.call(incomingState, 'users')) state.users = Array.isArray(existing.state.users) ? existing.state.users : [];
+  if (!Object.prototype.hasOwnProperty.call(incomingState, 'sessions')) state.sessions = Array.isArray(existing.state.sessions) ? existing.state.sessions : [];
   const updatedAt = new Date().toISOString();
-  await env.DB.prepare(`
-    INSERT INTO app_state (id, value, updated_at)
-    VALUES (?, ?, ?)
-    ON CONFLICT(id) DO UPDATE SET
-      value = excluded.value,
-      updated_at = excluded.updated_at
-  `).bind(STATE_ID, JSON.stringify(state), updatedAt).run();
-
+  await env.DB.prepare(`INSERT INTO app_state (id, value, updated_at) VALUES (?, ?, ?) ON CONFLICT(id) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at`).bind(STATE_ID, JSON.stringify(state), updatedAt).run();
   return { state, updatedAt };
 }
 
 function getBearerToken(request) {
   const header = request.headers.get('Authorization') || '';
-  if (!header.startsWith('Bearer ')) return '';
-  return header.slice(7).trim();
+  return header.startsWith('Bearer ') ? header.slice(7).trim() : '';
 }
 
 function pruneExpiredSessions(sessions) {
@@ -139,8 +109,7 @@ function pruneExpiredSessions(sessions) {
 function validateToken(request, state) {
   const token = getBearerToken(request);
   if (!token) return false;
-  const activeSessions = pruneExpiredSessions(state.sessions || []);
-  return activeSessions.some(session => session.token === token);
+  return pruneExpiredSessions(state.sessions || []).some(session => session.token === token);
 }
 
 function unauthorized(corsHeaders) {
@@ -157,17 +126,11 @@ async function createSession(request, env, corsHeaders) {
   const body = await request.json();
   const username = String(body.username || '').trim();
   const password = String(body.password || '');
-
-  if (!username || !password) {
-    return json({ ok: false, error: 'Username and password are required.' }, { status: 400 }, corsHeaders);
-  }
-
+  if (!username || !password) return json({ ok: false, error: 'Username and password are required.' }, { status: 400 }, corsHeaders);
   const stateResult = await getState(env);
   const state = stateResult.state;
   const user = state.users.find(u => String(u.username || '').toLowerCase() === username.toLowerCase());
-  if (!user || !(await verifyPassword(password, user.password))) {
-    return json({ ok: false, error: 'Invalid username or password.' }, { status: 401 }, corsHeaders);
-  }
+  if (!user || !(await verifyPassword(password, user.password))) return json({ ok: false, error: 'Invalid username or password.' }, { status: 401 }, corsHeaders);
 
   let nextUser = user;
   let users = state.users;
@@ -181,7 +144,6 @@ async function createSession(request, env, corsHeaders) {
   const session = { userId: nextUser.id, token: createToken(), expiresAt };
   const sessions = [...pruneExpiredSessions(state.sessions || []).filter(s => s.userId !== nextUser.id), session];
   const saved = await saveState(env, { ...state, users, sessions });
-
   return json({ ok: true, user: nextUser, session, updatedAt: saved.updatedAt }, { status: 200 }, corsHeaders);
 }
 
@@ -198,31 +160,15 @@ async function deleteCurrentSession(request, env, corsHeaders) {
 async function createUser(request, env, corsHeaders) {
   const stateResult = await getState(env);
   const state = stateResult.state;
-
-  if (state.users.length > 0 && !validateToken(request, state)) {
-    return unauthorized(corsHeaders);
-  }
-
+  if (state.users.length > 0 && !validateToken(request, state)) return unauthorized(corsHeaders);
   const body = await request.json();
   const username = String(body.username || '').trim();
   const rawPassword = String(body.password || '');
   const role = String(body.role || 'Administrator');
-
-  if (!username || !rawPassword) {
-    return json({ ok: false, error: 'Username and password are required.' }, { status: 400 }, corsHeaders);
-  }
-
+  if (!username || !rawPassword) return json({ ok: false, error: 'Username and password are required.' }, { status: 400 }, corsHeaders);
   const exists = state.users.some(u => String(u.username || '').toLowerCase() === username.toLowerCase());
   if (exists) return json({ ok: false, error: 'Username already exists.' }, { status: 409 }, corsHeaders);
-
-  const newUser = {
-    id: body.id || `user-${Date.now()}`,
-    username,
-    password: await hashPassword(rawPassword),
-    role,
-    isDefault: !!body.isDefault,
-  };
-
+  const newUser = { id: body.id || `user-${Date.now()}`, username, password: await hashPassword(rawPassword), role, isDefault: !!body.isDefault };
   const saved = await saveState(env, { ...state, users: [...state.users, newUser] });
   return json({ ok: true, user: newUser, updatedAt: saved.updatedAt }, { status: 201 }, corsHeaders);
 }
@@ -231,11 +177,9 @@ async function deleteUser(request, path, env, corsHeaders) {
   const stateResult = await getState(env);
   const state = stateResult.state;
   if (!validateToken(request, state)) return unauthorized(corsHeaders);
-
   const userId = decodeURIComponent(path.slice('/api/users/'.length));
   if (!userId) return json({ ok: false, error: 'Missing user id.' }, { status: 400 }, corsHeaders);
   if (state.users.length <= 1) return json({ ok: false, error: 'Cannot delete the last user.' }, { status: 400 }, corsHeaders);
-
   const nextUsers = state.users.filter(u => String(u.id) !== userId);
   const nextSessions = pruneExpiredSessions(state.sessions || []).filter(session => String(session.userId) !== userId);
   const saved = await saveState(env, { ...state, users: nextUsers, sessions: nextSessions });
@@ -244,8 +188,7 @@ async function deleteUser(request, path, env, corsHeaders) {
 
 function getPhotoKeyFromPath(path) {
   const prefix = '/api/photos/';
-  if (!path.startsWith(prefix)) return '';
-  return decodeURIComponent(path.slice(prefix.length));
+  return path.startsWith(prefix) ? decodeURIComponent(path.slice(prefix.length)) : '';
 }
 
 function extensionFromContentType(contentType) {
@@ -261,11 +204,9 @@ async function handlePhotoUpload(request, env, corsHeaders) {
   if (!file || typeof file === 'string') return json({ ok: false, error: 'Missing image file field named file.' }, { status: 400 }, corsHeaders);
   const contentType = file.type || 'image/jpeg';
   if (!contentType.startsWith('image/')) return json({ ok: false, error: 'Only image uploads are allowed.' }, { status: 400 }, corsHeaders);
-
   const ext = extensionFromContentType(contentType);
   const key = `photos/${Date.now()}-${crypto.randomUUID()}.${ext}`;
   await env.PHOTOS.put(key, file.stream(), { httpMetadata: { contentType, cacheControl: 'public, max-age=31536000, immutable' } });
-
   const workerUrl = new URL(request.url);
   const photoPath = `/api/photos/${key}`;
   return json({ ok: true, key, url: photoPath, absoluteUrl: `${workerUrl.origin}${photoPath}` }, { status: 201 }, corsHeaders);
@@ -294,59 +235,31 @@ export default {
   async fetch(request, env) {
     const corsHeaders = buildCorsHeaders(request, env);
     if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: corsHeaders });
-
     const url = new URL(request.url);
     const path = url.pathname.replace(/\/$/, '') || '/';
-
     try {
-      if (path === '/' || path === '/api/health') {
-        return json({ ok: true, service: 'gfbaa', message: 'Cloudflare Worker is running.', bindings: { DB: Boolean(env.DB), PHOTOS: Boolean(env.PHOTOS), ASSETS: Boolean(env.ASSETS) } }, { status: 200 }, corsHeaders);
-      }
-
+      if (path === '/' || path === '/api/health') return json({ ok: true, service: 'gfbaa', message: 'Cloudflare Worker is running.', bindings: { DB: Boolean(env.DB), PHOTOS: Boolean(env.PHOTOS), ASSETS: Boolean(env.ASSETS) } }, { status: 200 }, corsHeaders);
       if (request.method === 'GET' && path === '/api/state') {
         const stateResult = await getState(env);
-        return json({ ok: true, ...stateResult }, { status: 200 }, corsHeaders);
+        return json({ ok: true, ...stateResult, state: publicState(stateResult.state) }, { status: 200 }, corsHeaders);
       }
-
       if (request.method === 'POST' && path === '/api/sessions') return createSession(request, env, corsHeaders);
       if (request.method === 'DELETE' && path === '/api/sessions/current') return deleteCurrentSession(request, env, corsHeaders);
-
       if ((request.method === 'PUT' || request.method === 'POST') && path === '/api/state') {
         const auth = await requireWriteAuth(request, env, corsHeaders);
         if (!auth.authorized) return auth.response;
         const body = await request.json();
         const saved = await saveState(env, body.state || body);
-        return json({ ok: true, ...saved }, { status: 200 }, corsHeaders);
+        return json({ ok: true, ...saved, state: publicState(saved.state) }, { status: 200 }, corsHeaders);
       }
-
-      if (request.method === 'GET' && path === '/api/products') {
-        const { state, updatedAt } = await getState(env);
-        return json({ ok: true, data: state.products, updatedAt }, { status: 200 }, corsHeaders);
-      }
-      if (request.method === 'GET' && path === '/api/batches') {
-        const { state, updatedAt } = await getState(env);
-        return json({ ok: true, data: state.batches, updatedAt }, { status: 200 }, corsHeaders);
-      }
-      if (request.method === 'GET' && path === '/api/catalog-items') {
-        const { state, updatedAt } = await getState(env);
-        return json({ ok: true, data: state.catalogItems, updatedAt }, { status: 200 }, corsHeaders);
-      }
-      if (request.method === 'GET' && path === '/api/sales') {
-        const { state, updatedAt } = await getState(env);
-        return json({ ok: true, data: state.sales, updatedAt }, { status: 200 }, corsHeaders);
-      }
-      if (request.method === 'GET' && path === '/api/requests') {
-        const { state, updatedAt } = await getState(env);
-        return json({ ok: true, data: state.purchaseRequests, updatedAt }, { status: 200 }, corsHeaders);
-      }
-      if (request.method === 'GET' && path === '/api/users') {
-        const { state, updatedAt } = await getState(env);
-        return json({ ok: true, data: state.users, updatedAt }, { status: 200 }, corsHeaders);
-      }
-
+      if (request.method === 'GET' && path === '/api/products') { const { state, updatedAt } = await getState(env); return json({ ok: true, data: state.products, updatedAt }, { status: 200 }, corsHeaders); }
+      if (request.method === 'GET' && path === '/api/batches') { const { state, updatedAt } = await getState(env); return json({ ok: true, data: state.batches, updatedAt }, { status: 200 }, corsHeaders); }
+      if (request.method === 'GET' && path === '/api/catalog-items') { const { state, updatedAt } = await getState(env); return json({ ok: true, data: state.catalogItems, updatedAt }, { status: 200 }, corsHeaders); }
+      if (request.method === 'GET' && path === '/api/sales') { const { state, updatedAt } = await getState(env); return json({ ok: true, data: state.sales, updatedAt }, { status: 200 }, corsHeaders); }
+      if (request.method === 'GET' && path === '/api/requests') { const { state, updatedAt } = await getState(env); return json({ ok: true, data: state.purchaseRequests, updatedAt }, { status: 200 }, corsHeaders); }
+      if (request.method === 'GET' && path === '/api/users') { const { state, updatedAt } = await getState(env); return json({ ok: true, data: state.users, updatedAt }, { status: 200 }, corsHeaders); }
       if (request.method === 'POST' && path === '/api/users') return createUser(request, env, corsHeaders);
       if (request.method === 'DELETE' && path.startsWith('/api/users/')) return deleteUser(request, path, env, corsHeaders);
-
       if (request.method === 'POST' && path === '/api/photos') {
         const auth = await requireWriteAuth(request, env, corsHeaders);
         if (!auth.authorized) return auth.response;
@@ -354,7 +267,6 @@ export default {
       }
       if (request.method === 'GET' && path.startsWith('/api/photos/')) return handlePhotoRead(path, env, corsHeaders);
       if (env.ASSETS && request.method === 'GET') return env.ASSETS.fetch(request);
-
       return json({ ok: false, error: 'Route not found.', path }, { status: 404 }, corsHeaders);
     } catch (error) {
       return json({ ok: false, error: 'Internal Server Error', details: error.message }, { status: 500 }, corsHeaders);
