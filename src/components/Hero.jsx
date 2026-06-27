@@ -8,13 +8,12 @@ export function Hero({ onCategoryClick }) {
           <span className={styles.badge}>Curated Pre-Loved Luxury</span>
           <h2 className={styles.title}>
             Timeless Classics. <br />
-            <em>Guaranteed Authenticity.</em>
+            <em>
+              100% Authentic Pre-loved and Brand-new luxury goods and 18k Gold Jewelries. Money back guaranteed.
+            </em>
           </h2>
-          <p className={styles.kicker}>
-            Good Finds by AA
-          </p>
           <p className={styles.subtitle}>
-            Discover our meticulously authenticated collection of pre-loved designer handbags and exquisite 18K gold jewelry. Handpicked treasures that define elegance.
+            Discover our meticulously selected collection of pre-loved designer handbags and exquisite selections of jewelry. Handpicked treasures that define elegance.
           </p>
           <div className={styles.actions}>
             <button
