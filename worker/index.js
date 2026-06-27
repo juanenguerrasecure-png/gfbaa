@@ -51,9 +51,22 @@ function defaultPaymentMethods() {
   return { zelle: { handle: '', instructions: '', qrUrl: '' }, venmo: { handle: '', instructions: '', qrUrl: '' } };
 }
 
+function defaultHeroImage() {
+  return { url: '', alt: 'Good Finds by AA Featured Collection' };
+}
+
 function normalizePaymentMethods(value) {
   const base = defaultPaymentMethods();
   return { zelle: { ...base.zelle, ...(value?.zelle || {}) }, venmo: { ...base.venmo, ...(value?.venmo || {}) } };
+}
+
+function normalizeHeroImage(value) {
+  const base = defaultHeroImage();
+  if (!value || typeof value !== 'object') return base;
+  return {
+    url: String(value.url || '').trim(),
+    alt: String(value.alt || base.alt).trim() || base.alt,
+  };
 }
 
 function defaultState() {
@@ -68,6 +81,7 @@ function defaultState() {
     sessions: [],
     socialLinks: {},
     paymentMethods: defaultPaymentMethods(),
+    heroImage: defaultHeroImage(),
   };
 }
 
@@ -89,6 +103,7 @@ function normalizeState(input) {
     sessions: Array.isArray(input.sessions) ? input.sessions : [],
     socialLinks: input.socialLinks && typeof input.socialLinks === 'object' ? input.socialLinks : {},
     paymentMethods: normalizePaymentMethods(input.paymentMethods),
+    heroImage: normalizeHeroImage(input.heroImage),
   };
 }
 
@@ -115,6 +130,7 @@ async function saveState(env, inputState) {
   if (!Object.prototype.hasOwnProperty.call(incomingState, 'sessions')) state.sessions = Array.isArray(existing.state.sessions) ? existing.state.sessions : [];
   if (!Object.prototype.hasOwnProperty.call(incomingState, 'socialLinks')) state.socialLinks = existing.state.socialLinks || {};
   if (!Object.prototype.hasOwnProperty.call(incomingState, 'paymentMethods')) state.paymentMethods = normalizePaymentMethods(existing.state.paymentMethods);
+  if (!Object.prototype.hasOwnProperty.call(incomingState, 'heroImage')) state.heroImage = normalizeHeroImage(existing.state.heroImage);
   const updatedAt = new Date().toISOString();
   await env.DB.prepare(`INSERT INTO app_state (id, value, updated_at) VALUES (?, ?, ?) ON CONFLICT(id) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at`).bind(STATE_ID, JSON.stringify(state), updatedAt).run();
   return { state, updatedAt };
