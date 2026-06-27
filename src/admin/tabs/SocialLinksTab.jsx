@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Instagram, Save, ShoppingBag, PhoneCall, Share2 } from 'lucide-react';
+import { Save, ShoppingBag, PhoneCall, Share2 } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
 
 const DEFAULT_SOCIAL_LINKS = {
@@ -104,7 +104,7 @@ export function SocialLinksTab() {
 
       <form onSubmit={handleSave} className="space-y-4 max-w-3xl">
         <InputRow icon={Share2} label="Facebook URL" value={form.facebook} onChange={value => setField('facebook', value)} placeholder="https://facebook.com/yourpage" />
-        <InputRow icon={Instagram} label="Instagram URL" value={form.instagram} onChange={value => setField('instagram', value)} placeholder="https://instagram.com/yourprofile" />
+        <InputRow icon={Share2} label="Instagram URL" value={form.instagram} onChange={value => setField('instagram', value)} placeholder="https://instagram.com/yourprofile" />
         <InputRow icon={ShoppingBag} label="Whatnot URL" value={form.whatnot} onChange={value => setField('whatnot', value)} placeholder="https://whatnot.com/user/yourshop" />
         <InputRow icon={PhoneCall} label="WhatsApp Number or URL" value={form.whatsapp} onChange={value => setField('whatsapp', value)} placeholder="15551234567 or https://wa.me/15551234567" helper="Numbers are saved as https://wa.me/<number>." />
         <InputRow icon={PhoneCall} label="Viber Number or URL" value={form.viber} onChange={value => setField('viber', value)} placeholder="+15551234567 or viber://chat?number=+15551234567" helper="Numbers are saved as viber://chat?number=<number>." />
