@@ -1,6 +1,6 @@
 import { useStore } from '../context/StoreContext';
 import ViberIcon from '../assets/icons/ViberIcon';
-import WIcon from '../assets/icons/WIcon';
+import WhatnotIcon from '../assets/icons/WhatnotIcon';
 import styles from './SocialLinks.module.css';
 
 function FacebookIcon({ size = 18, className }) {
@@ -33,7 +33,7 @@ function WhatsAppIcon({ size = 18, className }) {
 const SOCIAL_META = [
   { key: 'facebook', label: 'Facebook', icon: FacebookIcon },
   { key: 'instagram', label: 'Instagram', icon: InstagramIcon },
-  { key: 'whatnot', label: 'Whatnot', icon: WIcon },
+  { key: 'whatnot', label: 'Whatnot', icon: WhatnotIcon },
   { key: 'whatsapp', label: 'WhatsApp', icon: WhatsAppIcon },
   { key: 'viber', label: 'Viber', icon: ViberIcon },
 ];
