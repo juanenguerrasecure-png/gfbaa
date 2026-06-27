@@ -22,6 +22,30 @@ const NAV = [
   { key: 'design',    label: 'System Design', icon: Code,           tab: DesignTab },
 ];
 
+const GROUPS = [
+  {
+    title: "Operations & Stock",
+    items: [
+      { key: 'inventory', label: 'Products & Stock', icon: Package },
+      { key: 'add',       label: 'Add Batch / Purchase', icon: PlusCircle },
+    ]
+  },
+  {
+    title: "Customer Management",
+    items: [
+      { key: 'requests',  label: 'Buyer Requests',   icon: Bell },
+    ]
+  },
+  {
+    title: "System & Settings",
+    items: [
+      { key: 'reports',   label: 'Reports & Logs', icon: BarChart2 },
+      { key: 'users',     label: 'Users & Control', icon: Users },
+      { key: 'design',    label: 'System Design', icon: Code },
+    ]
+  }
+];
+
 export function AdminPanel({ onExitAdmin }) {
   const { logout, currentUser } = useAuth();
   const { purchaseRequests = [] } = useStore();
@@ -98,39 +122,47 @@ export function AdminPanel({ onExitAdmin }) {
       <div className={styles.body}>
         {/* Sidebar */}
         <aside className={`${styles.sidebar} ${sidebarOpen ? styles.sidebarOpen : ''}`}>
-          <nav className={styles.nav}>
-            {NAV.map(({ key, label, icon: Icon }) => {
-              const isRequests = key === 'requests';
-              return (
-                <button
-                  key={key}
-                  className={`${styles.navItem} ${activeKey === key ? styles.navActive : ''}`}
-                  onClick={() => handleNav(key)}
-                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', textAlign: 'left' }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    <Icon size={16} strokeWidth={1.5} />
-                    <span>{label}</span>
-                  </div>
-                  {isRequests && pendingCount > 0 && (
-                    <span 
-                      style={{
-                        backgroundColor: '#C9A84C',
-                        color: '#FAF8F5',
-                        fontSize: '0.7rem',
-                        fontWeight: '700',
-                        padding: '0.15rem 0.5rem',
-                        borderRadius: '9999px',
-                        minWidth: '1.5rem',
-                        textAlign: 'center'
-                      }}
-                    >
-                      {pendingCount}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
+          <nav className="flex flex-col gap-6 px-3">
+            {GROUPS.map(group => (
+              <div key={group.title} className="space-y-1.5" id={`admin_nav_group_${group.title.toLowerCase().replace(/[^a-z0-9]/g, '_')}`}>
+                <h4 className="px-3 text-[10px] uppercase tracking-widest text-stone-400 font-semibold font-sans mb-1">{group.title}</h4>
+                <div className="space-y-0.5">
+                  {group.items.map(({ key, label, icon: Icon }) => {
+                    const isRequests = key === 'requests';
+                    return (
+                      <button
+                        key={key}
+                        className={`${styles.navItem} ${activeKey === key ? styles.navActive : ''}`}
+                        onClick={() => handleNav(key)}
+                        style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', textAlign: 'left' }}
+                        id={`admin_nav_item_${key}`}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                          <Icon size={16} strokeWidth={1.5} />
+                          <span>{label}</span>
+                        </div>
+                        {isRequests && pendingCount > 0 && (
+                          <span 
+                            style={{
+                              backgroundColor: '#C9A84C',
+                              color: '#FAF8F5',
+                              fontSize: '0.7rem',
+                              fontWeight: '700',
+                              padding: '0.15rem 0.5rem',
+                              borderRadius: '9999px',
+                              minWidth: '1.5rem',
+                              textAlign: 'center'
+                            }}
+                          >
+                            {pendingCount}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
           </nav>
 
           <div className={styles.sidebarFooter}>

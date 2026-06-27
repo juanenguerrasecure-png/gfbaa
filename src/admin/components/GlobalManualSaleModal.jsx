@@ -140,12 +140,12 @@ export function GlobalManualSaleModal({ isOpen, onClose }) {
 
   return (
     <div 
-      className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-sm"
+      className="fixed inset-0 z-[110] flex items-center justify-center p-0 sm:p-4 bg-stone-900/60 backdrop-blur-sm"
       id="global_manual_sale_backdrop"
       onClick={onClose}
     >
       <div 
-        className="relative w-full max-w-2xl bg-white rounded-lg shadow-xl overflow-hidden flex flex-col max-h-[90vh] animate-fade-in"
+        className="relative w-full max-w-2xl bg-white rounded-none sm:rounded-lg shadow-xl overflow-hidden flex flex-col h-full sm:h-auto max-h-full sm:max-h-[90vh] animate-fade-in"
         id="global_manual_sale_container"
         onClick={e => e.stopPropagation()}
       >
@@ -449,12 +449,12 @@ export function GlobalManualSaleModal({ isOpen, onClose }) {
           )}
 
           {/* Action buttons */}
-          <div className="flex justify-end gap-3 pt-2 border-t border-stone-100" id="global_sale_form_actions">
+          <div className="sticky bottom-0 bg-white py-3 border-t border-stone-200 mt-auto z-10 flex justify-end gap-3" id="global_sale_form_actions">
             <button
               id="btn_global_sale_cancel"
               type="button"
               onClick={onClose}
-              className="px-4 py-2 border rounded text-xs text-stone-600 hover:bg-stone-50 font-semibold transition-colors"
+              className="px-4 py-2 border rounded text-xs text-stone-600 hover:bg-stone-50 font-semibold transition-colors bg-white cursor-pointer"
             >
               Cancel
             </button>
@@ -462,7 +462,7 @@ export function GlobalManualSaleModal({ isOpen, onClose }) {
               id="btn_global_sale_confirm"
               type="submit"
               disabled={!selectedBatchId || success !== ''}
-              className="px-5 py-2 bg-[#C9A84C] text-stone-950 font-bold hover:bg-[#b7963d] rounded text-xs transition-colors disabled:opacity-50"
+              className="px-5 py-2 bg-[#C9A84C] text-stone-950 font-bold hover:bg-[#b7963d] rounded text-xs transition-colors disabled:opacity-50 cursor-pointer"
             >
               Confirm and Deplete Stock
             </button>

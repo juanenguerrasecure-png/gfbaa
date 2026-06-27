@@ -3,7 +3,7 @@ import {
   AreaChart, Area, BarChart, Bar,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
 } from 'recharts';
-import { TrendingUp, ShoppingBag, Package, DollarSign, Trash2 } from 'lucide-react';
+import { TrendingUp, ShoppingBag, Package, DollarSign, Trash2, PlusCircle } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
 import styles from './ReportsTab.module.css';
 
@@ -17,7 +17,7 @@ function getMonthKey(dateStr) {
   return MONTHS[d.getMonth()] + ' ' + d.getFullYear().toString().slice(2);
 }
 
-export function ReportsTab() {
+export function ReportsTab({ onSwitchTab }) {
   const { sales, batches, products, catalogItems, recordManualSale, deleteSale, inventoryValuation } = useStore();
   const [activeSection, setActiveSection] = useState('overview');
 
@@ -523,7 +523,29 @@ export function ReportsTab() {
                   </td>
                 </tr>
               ))}
-              {sales.length === 0 && <tr><td colSpan={8} className={styles.empty}>No sales recorded yet.</td></tr>}
+              {sales.length === 0 && (
+                <tr>
+                  <td colSpan={8}>
+                    <div className="flex flex-col items-center justify-center text-center py-12 px-4 bg-stone-50/50 border border-dashed border-stone-200 rounded-lg m-4" id="empty_sales_state">
+                      <span className="text-3xl mb-3">📈</span>
+                      <h3 className="font-display text-lg font-medium text-stone-800 mb-1">No Sales Transactions Recorded</h3>
+                      <p className="text-stone-500 text-xs max-w-sm mb-5 font-sans">
+                        You haven't recorded any storefront sales or direct wholesale transactions yet. When sales are completed, they will appear here.
+                      </p>
+                      <div className="flex gap-3">
+                        <button
+                          onClick={() => onSwitchTab && onSwitchTab('inventory')}
+                          className="px-4 py-2 bg-stone-900 hover:bg-stone-800 text-stone-100 text-xs font-semibold rounded shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
+                          id="empty_sales_sell_btn"
+                        >
+                          <TrendingUp size={13} />
+                          Sell from Active Inventory
+                        </button>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
@@ -568,7 +590,27 @@ export function ReportsTab() {
                   </tr>
                 );
               })}
-              {batches.length === 0 && <tr><td colSpan={8} className={styles.empty}>No purchases/batches recorded.</td></tr>}
+              {batches.length === 0 && (
+                <tr>
+                  <td colSpan={8}>
+                    <div className="flex flex-col items-center justify-center text-center py-12 px-4 bg-stone-50/50 border border-dashed border-stone-200 rounded-lg m-4" id="empty_ledger_state">
+                      <span className="text-3xl mb-3">📂</span>
+                      <h3 className="font-display text-lg font-medium text-stone-800 mb-1">No Purchase Batches Logged</h3>
+                      <p className="text-stone-500 text-xs max-w-sm mb-5 font-sans">
+                        You have not imported or registered any acquisition batches. Ledger calculations and asset margins will update once registered.
+                      </p>
+                      <button
+                        onClick={() => onSwitchTab && onSwitchTab('add')}
+                        className="px-4 py-2 bg-[#C9A84C] text-stone-950 font-bold hover:bg-[#b7963d] rounded text-xs transition-colors shadow-sm flex items-center gap-1.5 cursor-pointer"
+                        id="empty_ledger_add_btn"
+                      >
+                        <PlusCircle size={13} />
+                        Register Your First Batch
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

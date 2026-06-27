@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Heart, ShoppingBag } from 'lucide-react';
+import { Heart, ShoppingBag, Eye } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
+import { QuickViewModal } from './QuickViewModal';
 import styles from './ProductCard.module.css';
 
 const BADGE = {
@@ -21,6 +22,7 @@ export function ProductCard({ item, onAddToCart }) {
   const [liked, setLiked]       = useState(false);
   const [imgError, setImgError] = useState(false);
   const [imgLoaded, setImgLoaded] = useState(false);
+  const [quickViewOpen, setQuickViewOpen] = useState(false);
   const { getCatalogItemStock } = useStore();
 
   const badge    = BADGE[item.condition] ?? BADGE.good;
@@ -29,75 +31,102 @@ export function ProductCard({ item, onAddToCart }) {
   const stock = getCatalogItemStock(item.id);
 
   return (
-    <article className={styles.card}>
-      {/* Image area */}
-      <div className={styles.imgWrap} style={{ background: `linear-gradient(135deg, ${bg1}, ${bg2})` }}>
-        {hasPhoto ? (
-          <>
-            {!imgLoaded && <div className={styles.skeleton} aria-hidden="true" />}
-            <img
-              src={item.photoUrl}
-              alt={`${item.brand} ${item.name}`}
-              className={`${styles.photo} ${imgLoaded ? styles.photoLoaded : ''}`}
-              onLoad={() => setImgLoaded(true)}
-              onError={() => setImgError(true)}
-              loading="lazy"
-              decoding="async"
-            />
-          </>
-        ) : (
-          <span className={styles.emoji} aria-hidden="true">
-            {item.emoji ?? FALLBACK_EMOJI[item.cat]}
-          </span>
-        )}
+    <>
+      <article 
+        className={styles.card} 
+        style={{ cursor: 'pointer' }}
+        onClick={() => setQuickViewOpen(true)}
+        id={`product_card_${item.id}`}
+      >
+        {/* Image area */}
+        <div className={styles.imgWrap} style={{ background: `linear-gradient(135deg, ${bg1}, ${bg2})` }}>
+          {hasPhoto ? (
+            <>
+              {!imgLoaded && <div className={styles.skeleton} aria-hidden="true" />}
+              <img
+                src={item.photoUrl}
+                alt={`${item.brand} ${item.name}`}
+                className={`${styles.photo} ${imgLoaded ? styles.photoLoaded : ''}`}
+                onLoad={() => setImgLoaded(true)}
+                onError={() => setImgError(true)}
+                loading="lazy"
+                decoding="async"
+              />
+            </>
+          ) : (
+            <span className={styles.emoji} aria-hidden="true">
+              {item.emoji ?? FALLBACK_EMOJI[item.cat]}
+            </span>
+          )}
 
-        {/* Condition badge */}
-        <span className={`${styles.badge} ${styles[badge.cls]}`} aria-label={`Condition: ${badge.label}`}>
-          {badge.label}
-        </span>
-
-        {/* Wishlist */}
-        <button
-          className={`${styles.wishlist} ${liked ? styles.liked : ''}`}
-          onClick={e => { e.stopPropagation(); setLiked(l => !l); }}
-          aria-label={liked ? 'Remove from wishlist' : 'Save to wishlist'}
-        >
-          <Heart
-            size={15}
-            strokeWidth={1.8}
-            fill={liked ? '#C9A84C' : 'none'}
-            stroke={liked ? '#C9A84C' : 'currentColor'}
-          />
-        </button>
-      </div>
-
-      {/* Body */}
-      <div className={styles.body}>
-        <div className="flex items-center justify-between">
-          <p className={styles.brand}>{item.brand}</p>
-          <span className="text-[10px] font-semibold text-stone-500 bg-stone-100 px-2 py-0.5 rounded-full">
-            {stock} left
-          </span>
-        </div>
-        <h2 className={styles.name}>{item.name}</h2>
-        {item.detail && <p className={styles.detail}>{item.detail}</p>}
-
-        <div className={styles.footer}>
-          <div className={styles.pricing}>
-            <span className={styles.price}>${(Number(item.price) || 0).toLocaleString()}</span>
-            {item.orig && (
-              <span className={styles.orig}>${(Number(item.orig) || 0).toLocaleString()}</span>
-            )}
-          </div>
+          {/* Quick View Button overlay on hover */}
           <button
-            className={styles.addBtn}
-            onClick={() => onAddToCart(item)}
-            aria-label={`Add ${item.name} to bag`}
+            className={styles.quickViewBtn}
+            onClick={(e) => { e.stopPropagation(); setQuickViewOpen(true); }}
+            id={`quick_view_btn_${item.id}`}
+            aria-label={`Quick view ${item.name}`}
           >
-            <ShoppingBag size={13} strokeWidth={1.8} />
+            <Eye size={12} className="inline mr-1" />
+            Quick View
+          </button>
+
+          {/* Condition badge */}
+          <span className={`${styles.badge} ${styles[badge.cls]}`} aria-label={`Condition: ${badge.label}`}>
+            {badge.label}
+          </span>
+
+          {/* Wishlist */}
+          <button
+            className={`${styles.wishlist} ${liked ? styles.liked : ''}`}
+            onClick={e => { e.stopPropagation(); setLiked(l => !l); }}
+            aria-label={liked ? 'Remove from wishlist' : 'Save to wishlist'}
+            id={`wishlist_btn_${item.id}`}
+          >
+            <Heart
+              size={15}
+              strokeWidth={1.8}
+              fill={liked ? '#C9A84C' : 'none'}
+              stroke={liked ? '#C9A84C' : 'currentColor'}
+            />
           </button>
         </div>
-      </div>
-    </article>
+
+        {/* Body */}
+        <div className={styles.body}>
+          <div className="flex items-center justify-between">
+            <p className={styles.brand}>{item.brand}</p>
+            <span className="text-[10px] font-semibold text-stone-500 bg-stone-100 px-2 py-0.5 rounded-full">
+              {stock} left
+            </span>
+          </div>
+          <h2 className={styles.name}>{item.name}</h2>
+          {item.detail && <p className={styles.detail}>{item.detail}</p>}
+
+          <div className={styles.footer}>
+            <div className={styles.pricing}>
+              <span className={styles.price}>${(Number(item.price) || 0).toLocaleString()}</span>
+              {item.orig && (
+                <span className={styles.orig}>${(Number(item.orig) || 0).toLocaleString()}</span>
+              )}
+            </div>
+            <button
+              id={`add_to_cart_btn_${item.id}`}
+              className={styles.addBtn}
+              onClick={(e) => { e.stopPropagation(); onAddToCart(item); }}
+              aria-label={`Add ${item.name} to bag`}
+            >
+              <ShoppingBag size={13} strokeWidth={1.8} />
+            </button>
+          </div>
+        </div>
+      </article>
+
+      <QuickViewModal
+        isOpen={quickViewOpen}
+        onClose={() => setQuickViewOpen(false)}
+        item={item}
+        onAddToCart={onAddToCart}
+      />
+    </>
   );
 }

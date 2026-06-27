@@ -110,6 +110,7 @@ export default function App() {
         items={visibleItems}
         activeFilter={activeFilter}
         onAddToCart={addToCart}
+        onClearFilter={() => setActiveFilter('all')}
       />
       <CartModal
         isOpen={isCartOpen}

@@ -588,7 +588,25 @@ export function InventoryTab({ onSwitchTab }) {
                 );
               })}
               {filteredCatalogItems.length === 0 && (
-                <tr><td colSpan={6} className={styles.empty}>No catalog items listed yet.</td></tr>
+                <tr>
+                  <td colSpan={6}>
+                    <div className="flex flex-col items-center justify-center text-center py-12 px-4 bg-stone-50/50 border border-dashed border-stone-200 rounded-lg m-4" id="empty_catalog_state">
+                      <span className="text-3xl mb-3">✨</span>
+                      <h3 className="font-display text-lg font-medium text-stone-800 mb-1">No Catalog Items Listed</h3>
+                      <p className="text-stone-500 text-xs max-w-sm mb-5 font-sans">
+                        You have not created any retail listing pages for the storefront yet. Direct your buyers to listed items or create one now.
+                      </p>
+                      <button
+                        onClick={() => onSwitchTab && onSwitchTab('add')}
+                        className="px-4 py-2 bg-stone-900 hover:bg-stone-800 text-stone-100 text-xs font-semibold rounded shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
+                        id="empty_catalog_add_btn"
+                      >
+                        <PlusCircle size={13} />
+                        Publish Your First Listing
+                      </button>
+                    </div>
+                  </td>
+                </tr>
               )}
             </tbody>
           </table>
@@ -653,7 +671,25 @@ export function InventoryTab({ onSwitchTab }) {
                 );
               })}
               {filteredBatches.length === 0 && (
-                <tr><td colSpan={9} className={styles.empty}>No batches registered yet.</td></tr>
+                <tr>
+                  <td colSpan={9}>
+                    <div className="flex flex-col items-center justify-center text-center py-12 px-4 bg-stone-50/50 border border-dashed border-stone-200 rounded-lg m-4" id="empty_batches_state">
+                      <span className="text-3xl mb-3">📦</span>
+                      <h3 className="font-display text-lg font-medium text-stone-800 mb-1">No Acquisition Batches Registered</h3>
+                      <p className="text-stone-500 text-xs max-w-sm mb-5 font-sans">
+                        To manage your gold jewelry or pre-loved designer bags inventory, register a wholesale acquisition batch first.
+                      </p>
+                      <button
+                        onClick={() => onSwitchTab && onSwitchTab('add')}
+                        className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-stone-100 text-xs font-semibold rounded shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
+                        id="empty_batches_add_btn"
+                      >
+                        <PlusCircle size={13} />
+                        Register New Wholesale Batch
+                      </button>
+                    </div>
+                  </td>
+                </tr>
               )}
             </tbody>
           </table>
