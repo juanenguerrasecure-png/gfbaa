@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { lazy, Suspense, useMemo, useState } from 'react';
 import { Navbar }       from './components/Navbar';
 import { Hero }         from './components/Hero';
 import { Filters }      from './components/Filters';
@@ -6,10 +6,22 @@ import { Catalog }      from './components/Catalog';
 import { Toast }        from './components/Toast';
 import { CartModal }    from './components/CartModal';
 import { AdminLogin }   from './admin/AdminLogin';
-import { AdminPanel }   from './admin/AdminPanel';
 import { useCart }      from './hooks/useCart';
 import { useStore }     from './context/StoreContext';
 import { useAuth }      from './context/AuthContext';
+
+const AdminPanel = lazy(() => import('./admin/AdminPanel').then(module => ({ default: module.AdminPanel })));
+
+function AdminLoadingFallback() {
+  return (
+    <div className="min-h-screen bg-[#FAF8F5] flex items-center justify-center">
+      <div className="flex flex-col items-center gap-3 text-stone-600">
+        <div className="h-8 w-8 rounded-full border-2 border-[#E5DFD8] border-t-[#C9A84C] animate-spin" />
+        <span className="text-xs uppercase tracking-[0.2em] font-semibold">Loading admin</span>
+      </div>
+    </div>
+  );
+}
 
 function applyFilter(items, filter) {
   if (filter && filter.startsWith('brand:')) {
@@ -88,7 +100,11 @@ export default function App() {
   // Admin panel
   if (view === 'admin') {
     if (!isAdmin) { setView('login'); return null; }
-    return <AdminPanel onExitAdmin={() => setView('store')} />;
+    return (
+      <Suspense fallback={<AdminLoadingFallback />}>
+        <AdminPanel onExitAdmin={() => setView('store')} />
+      </Suspense>
+    );
   }
 
   // Storefront
