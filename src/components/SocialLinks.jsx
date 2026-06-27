@@ -1,6 +1,7 @@
-import { Instagram, ShoppingBag } from 'lucide-react';
+import { Instagram } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import ViberIcon from '../assets/icons/ViberIcon';
+import WIcon from '../assets/icons/WIcon';
 import styles from './SocialLinks.module.css';
 
 function FacebookIcon({ size = 18, className }) {
@@ -21,11 +22,11 @@ function WhatsAppIcon({ size = 18, className }) {
 }
 
 const SOCIAL_META = [
-  { key: 'facebook', label: 'Facebook', icon: FacebookIcon, className: styles.facebook },
-  { key: 'instagram', label: 'Instagram', icon: Instagram, className: styles.instagram },
-  { key: 'whatnot', label: 'Whatnot', icon: ShoppingBag, className: styles.whatnot },
-  { key: 'whatsapp', label: 'WhatsApp', icon: WhatsAppIcon, className: styles.whatsapp },
-  { key: 'viber', label: 'Viber', icon: ViberIcon, className: styles.viber },
+  { key: 'facebook', label: 'Facebook', icon: FacebookIcon },
+  { key: 'instagram', label: 'Instagram', icon: Instagram },
+  { key: 'whatnot', label: 'Whatnot', icon: WIcon },
+  { key: 'whatsapp', label: 'WhatsApp', icon: WhatsAppIcon },
+  { key: 'viber', label: 'Viber', icon: ViberIcon },
 ];
 
 export function SocialLinks({ className = '' }) {
@@ -38,8 +39,8 @@ export function SocialLinks({ className = '' }) {
 
   return (
     <div className={`${styles.socialLinks} ${className}`} aria-label="Good Finds by AA social media links">
-      {links.map(({ key, label, url, icon: Icon, className: iconClass }) => (
-        <a key={key} href={url} target="_blank" rel="noreferrer" className={`${styles.socialIcon} ${iconClass}`} aria-label={label} title={label}>
+      {links.map(({ key, label, url, icon: Icon }) => (
+        <a key={key} href={url} target="_blank" rel="noreferrer" className={styles.socialIcon} aria-label={label} title={label}>
           <Icon size={22} className={styles.svgIcon} />
         </a>
       ))}
