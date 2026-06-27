@@ -1,6 +1,14 @@
-import { Facebook, Instagram, PhoneCall, ShoppingBag } from 'lucide-react';
+import { Instagram, PhoneCall, ShoppingBag } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import styles from './SocialLinks.module.css';
+
+function FacebookIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className={styles.svgIcon}>
+      <path d="M14 8.1h2V5h-2.5C10.8 5 9 6.7 9 9.4V12H7v3h2v6h3.2v-6h2.7l.5-3h-3.2V9.7c0-1 .4-1.6 1.8-1.6z" />
+    </svg>
+  );
+}
 
 function WhatsAppIcon() {
   return (
@@ -12,7 +20,7 @@ function WhatsAppIcon() {
 }
 
 const SOCIAL_META = [
-  { key: 'facebook', label: 'Facebook', icon: Facebook },
+  { key: 'facebook', label: 'Facebook', icon: FacebookIcon },
   { key: 'instagram', label: 'Instagram', icon: Instagram },
   { key: 'whatnot', label: 'Whatnot', icon: ShoppingBag },
   { key: 'whatsapp', label: 'WhatsApp', icon: WhatsAppIcon },
@@ -30,15 +38,7 @@ export function SocialLinks({ className = '' }) {
   return (
     <div className={`${styles.socialLinks} ${className}`} aria-label="Good Finds by AA social media links">
       {links.map(({ key, label, url, icon: Icon }) => (
-        <a
-          key={key}
-          href={url}
-          target="_blank"
-          rel="noreferrer"
-          className={styles.socialIcon}
-          aria-label={label}
-          title={label}
-        >
+        <a key={key} href={url} target="_blank" rel="noreferrer" className={styles.socialIcon} aria-label={label} title={label}>
           <Icon size={18} strokeWidth={1.7} />
         </a>
       ))}
