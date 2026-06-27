@@ -1,7 +1,11 @@
+import { useStore } from '../context/StoreContext';
 import { SocialLinks } from './SocialLinks';
 import styles from './Hero.module.css';
 
 export function Hero({ onCategoryClick }) {
+  const { heroImage } = useStore();
+  const hasHeroImage = Boolean(heroImage?.url && String(heroImage.url).trim());
+
   return (
     <section className={styles.hero} id="store_hero">
       <div className={styles.container}>
@@ -35,13 +39,22 @@ export function Hero({ onCategoryClick }) {
           </div>
         </div>
 
-        <div className={styles.visualCol} aria-hidden="true">
-          <div className={styles.featureFrame}>
-            <span className={styles.brandInitial}>GF</span>
-            <span className={styles.decorLine} />
-            <span className={styles.visualCaption}>Featured Curation</span>
+        {hasHeroImage ? (
+          <div className={styles.heroImageColumn}>
+            <img
+              src={heroImage.url}
+              alt={heroImage.alt || 'Good Finds by AA'}
+              className={styles.heroCrestImage}
+            />
           </div>
-        </div>
+        ) : (
+          <div className={styles.heroImageColumn}>
+            <div className={styles.heroPlaceholder}>
+              <span className={styles.heroPlaceholderInitials}>GF</span>
+              <span className={styles.heroPlaceholderLabel}>FEATURED CURATION</span>
+            </div>
+          </div>
+        )}
       </div>
     </section>
   );
