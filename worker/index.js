@@ -580,6 +580,72 @@ export default {
         }
       }
 
+      // --- PHOTOS R2 ENDPOINTS ---
+      if (resource === 'photos') {
+        if (request.method === 'GET' && resourceId) {
+          if (!env.PHOTOS) {
+            return json({ ok: false, error: 'R2 PHOTOS bucket binding not configured.' }, { status: 500 }, corsHeaders);
+          }
+          const object = await env.PHOTOS.get(resourceId);
+          if (!object) {
+            return json({ ok: false, error: 'Photo not found.' }, { status: 404 }, corsHeaders);
+          }
+          const headers = new Headers(corsHeaders);
+          headers.set('Content-Type', object.httpMetadata?.contentType || 'image/jpeg');
+          headers.set('Cache-Control', 'public, max-age=31536000');
+          return new Response(object.body, { headers });
+        }
+
+        if (request.method === 'POST') {
+          if (!env.PHOTOS) {
+            return json({ ok: false, error: 'R2 PHOTOS bucket binding not configured.' }, { status: 500 }, corsHeaders);
+          }
+          try {
+            const body = await request.json();
+            if (!body || !body.image) {
+              return json({ ok: false, error: 'Missing "image" field with base64 data.' }, { status: 400 }, corsHeaders);
+            }
+            
+            let imageBuffer;
+            let contentType = 'image/jpeg';
+            
+            if (body.image.startsWith('data:')) {
+              const parts = body.image.split(',');
+              const mimeMatch = parts[0].match(/:(.*?);/);
+              if (mimeMatch) {
+                contentType = mimeMatch[1];
+              }
+              const binaryString = atob(parts[1]);
+              const len = binaryString.length;
+              const bytes = new Uint8Array(len);
+              for (let i = 0; i < len; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+              }
+              imageBuffer = bytes;
+            } else {
+              // Try raw base64
+              const binaryString = atob(body.image);
+              const len = binaryString.length;
+              const bytes = new Uint8Array(len);
+              for (let i = 0; i < len; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+              }
+              imageBuffer = bytes;
+            }
+
+            const photoId = 'photo-' + Date.now() + '-' + Math.random().toString(36).substring(2, 8);
+            await env.PHOTOS.put(photoId, imageBuffer, {
+              httpMetadata: { contentType: contentType }
+            });
+
+            const photoUrl = `/api/photos/${photoId}`;
+            return json({ ok: true, url: photoUrl }, { status: 201 }, corsHeaders);
+          } catch (e) {
+            return json({ ok: false, error: 'Failed to process and store image.', details: e.message }, { status: 500 }, corsHeaders);
+          }
+        }
+      }
+
       return json(
         {
           ok: false,

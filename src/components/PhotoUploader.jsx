@@ -9,8 +9,36 @@ export function PhotoUploader({ value, onChange }) {
   const [cameraError, setCameraError] = useState('');
   const [compressStats, setCompressStats] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
   const videoRef = useRef(null);
+
+  const uploadPhotoToServer = async (compressedDataUrl) => {
+    setIsUploading(true);
+    try {
+      const response = await fetch('/api/photos', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ image: compressedDataUrl })
+      });
+      if (!response.ok) {
+        throw new Error('Upload failed');
+      }
+      const data = await response.json();
+      if (data.ok && data.url) {
+        onChange(data.url);
+      } else {
+        alert('Upload failed: ' + (data.error || 'unknown error'));
+      }
+    } catch (err) {
+      console.error('Error uploading photo:', err);
+      alert('Failed to save photo to cloud server.');
+    } finally {
+      setIsUploading(false);
+    }
+  };
   const streamRef = useRef(null);
   const fileInputRef = useRef(null);
 
@@ -108,7 +136,7 @@ export function PhotoUploader({ value, onChange }) {
         savings: `${Math.round(((originalSizeKb - compressedSizeKb) / originalSizeKb) * 100)}%`
       });
 
-      onChange(compressedDataUrl);
+      await uploadPhotoToServer(compressedDataUrl);
     } catch (err) {
       console.error('Compression failed:', err);
       alert('Failed to compress image.');
@@ -184,7 +212,7 @@ export function PhotoUploader({ value, onChange }) {
         savings: `${Math.round(((rawSizeKb - compressedSizeKb) / rawSizeKb) * 100)}%`
       });
 
-      onChange(compressedDataUrl);
+      await uploadPhotoToServer(compressedDataUrl);
       setIsCameraActive(false);
     } catch (err) {
       console.error('Capture and compression failed:', err);
@@ -222,7 +250,13 @@ export function PhotoUploader({ value, onChange }) {
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
-        {isCameraActive ? (
+        {isUploading ? (
+          <div className="w-full p-6 text-center flex flex-col items-center justify-center gap-2">
+            <RefreshCw className="animate-spin text-amber-600" size={32} />
+            <p className="text-xs font-semibold text-stone-700">Saving photo to secure R2 cloud...</p>
+            <p className="text-[10px] text-stone-400">This keeps listing sizes small and syncs instantly.</p>
+          </div>
+        ) : isCameraActive ? (
           /* Live Camera View */
           <div className="w-full relative flex flex-col items-center bg-black min-h-[260px]">
             <video 
