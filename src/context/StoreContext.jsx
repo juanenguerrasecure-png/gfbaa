@@ -11,25 +11,18 @@ function getAuthHeaders(extra = {}) {
 }
 
 function normalizePaymentMethods(value) {
-  return {
-    zelle: { ...DEFAULT_PAYMENT_METHODS.zelle, ...(value?.zelle || {}) },
-    venmo: { ...DEFAULT_PAYMENT_METHODS.venmo, ...(value?.venmo || {}) },
-  };
+  return { zelle: { ...DEFAULT_PAYMENT_METHODS.zelle, ...(value?.zelle || {}) }, venmo: { ...DEFAULT_PAYMENT_METHODS.venmo, ...(value?.venmo || {}) } };
 }
 
 function normalizeHeroImage(value) {
   if (!value || typeof value !== 'object') return DEFAULT_HERO_IMAGE;
-  return {
-    url: String(value.url || '').trim(),
-    alt: String(value.alt || DEFAULT_HERO_IMAGE.alt).trim() || DEFAULT_HERO_IMAGE.alt,
-  };
+  return { url: String(value.url || '').trim(), alt: String(value.alt || DEFAULT_HERO_IMAGE.alt).trim() || DEFAULT_HERO_IMAGE.alt };
 }
 
 export function StoreProvider({ children }) {
   const readLocalJson = (key, fallback) => {
     try { const saved = localStorage.getItem(key); return saved ? JSON.parse(saved) : fallback; } catch (_error) { return fallback; }
   };
-
   const readLocalNumber = (key, fallback) => {
     const saved = localStorage.getItem(key);
     const value = saved ? Number(saved) : fallback;
@@ -45,28 +38,17 @@ export function StoreProvider({ children }) {
   const [socialLinks, setSocialLinks] = useState(() => readLocalJson('gf_social_links', {}));
   const [paymentMethods, setPaymentMethods] = useState(() => normalizePaymentMethods(readLocalJson('gf_payment_methods', DEFAULT_PAYMENT_METHODS)));
   const [heroImage, setHeroImage] = useState(() => normalizeHeroImage(readLocalJson('gf_hero_image', DEFAULT_HERO_IMAGE)));
-
   const [cloudReady, setCloudReady] = useState(false);
+
   const applyingRemoteRef = useRef(false);
   const saveTimerRef = useRef(null);
   const savingRef = useRef(false);
   const lastCloudUpdatedAtRef = useRef(localStorage.getItem('gf_cloud_updated_at') || '');
+  const latestSnapshotRef = useRef(null);
 
-  const buildSnapshot = useCallback(() => ({
-    exchangeRate,
-    products,
-    batches,
-    sales,
-    purchaseRequests,
-    catalogItems,
-    socialLinks,
-    paymentMethods,
-    heroImage,
-  }), [exchangeRate, products, batches, sales, purchaseRequests, catalogItems, socialLinks, paymentMethods, heroImage]);
+  const buildSnapshot = useCallback(() => ({ exchangeRate, products, batches, sales, purchaseRequests, catalogItems, socialLinks, paymentMethods, heroImage }), [exchangeRate, products, batches, sales, purchaseRequests, catalogItems, socialLinks, paymentMethods, heroImage]);
 
-  const snapshotHasRecords = (snapshot) => Boolean(
-    snapshot?.products?.length || snapshot?.batches?.length || snapshot?.catalogItems?.length || snapshot?.sales?.length || snapshot?.purchaseRequests?.length
-  );
+  const snapshotHasRecords = (snapshot) => Boolean(snapshot?.products?.length || snapshot?.batches?.length || snapshot?.catalogItems?.length || snapshot?.sales?.length || snapshot?.purchaseRequests?.length);
 
   const writeLocalCache = useCallback((snapshot) => {
     localStorage.setItem('gf_exchange_rate', String(snapshot.exchangeRate ?? DEFAULT_EXCHANGE_RATE));
@@ -109,14 +91,20 @@ export function StoreProvider({ children }) {
         lastCloudUpdatedAtRef.current = result.updatedAt;
         localStorage.setItem('gf_cloud_updated_at', result.updatedAt);
       }
-      return result;
+      return { ok: true, ...result };
     } catch (error) {
       console.warn('D1 sync save failed; local cache still updated:', error);
-      return null;
+      return { ok: false, error: error?.message || 'Unable to save cloud state.' };
     } finally {
       savingRef.current = false;
     }
   }, []);
+
+  const syncCurrentState = useCallback(async () => {
+    const snapshot = latestSnapshotRef.current || buildSnapshot();
+    writeLocalCache(snapshot);
+    return saveCloudState(snapshot);
+  }, [buildSnapshot, saveCloudState, writeLocalCache]);
 
   const loadCloudState = useCallback(async ({ force = false } = {}) => {
     if (savingRef.current && !force) return;
@@ -146,6 +134,7 @@ export function StoreProvider({ children }) {
     }
   }, [applySnapshot, buildSnapshot, saveCloudState]);
 
+  useEffect(() => { latestSnapshotRef.current = buildSnapshot(); }, [buildSnapshot]);
   useEffect(() => { loadCloudState({ force: true }); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { writeLocalCache(buildSnapshot()); }, [buildSnapshot, writeLocalCache]);
 
@@ -164,34 +153,40 @@ export function StoreProvider({ children }) {
     window.addEventListener('focus', refresh);
     document.addEventListener('visibilitychange', handleVisibility);
     const intervalId = window.setInterval(refresh, 15000);
-    return () => {
-      window.removeEventListener('focus', refresh);
-      document.removeEventListener('visibilitychange', handleVisibility);
-      window.clearInterval(intervalId);
-    };
+    return () => { window.removeEventListener('focus', refresh); document.removeEventListener('visibilitychange', handleVisibility); window.clearInterval(intervalId); };
   }, [cloudReady, loadCloudState]);
 
   const saveSocialLinks = useCallback(async (nextSocialLinks) => {
     setSocialLinks(nextSocialLinks);
     const snapshot = { ...buildSnapshot(), socialLinks: nextSocialLinks };
+    latestSnapshotRef.current = snapshot;
     writeLocalCache(snapshot);
-    await saveCloudState(snapshot);
+    return saveCloudState(snapshot);
   }, [buildSnapshot, saveCloudState, writeLocalCache]);
 
   const savePaymentMethods = useCallback(async (nextPaymentMethods) => {
     const normalized = normalizePaymentMethods(nextPaymentMethods);
     setPaymentMethods(normalized);
     const snapshot = { ...buildSnapshot(), paymentMethods: normalized };
+    latestSnapshotRef.current = snapshot;
     writeLocalCache(snapshot);
-    await saveCloudState(snapshot);
+    return saveCloudState(snapshot);
   }, [buildSnapshot, saveCloudState, writeLocalCache]);
 
   const saveHeroImage = useCallback(async (nextHeroImage) => {
     const normalized = normalizeHeroImage(nextHeroImage);
     setHeroImage(normalized);
     const snapshot = { ...buildSnapshot(), heroImage: normalized };
+    latestSnapshotRef.current = snapshot;
     writeLocalCache(snapshot);
-    await saveCloudState(snapshot);
+    return saveCloudState(snapshot);
+  }, [buildSnapshot, saveCloudState, writeLocalCache]);
+
+  const syncAfterLocalChange = useCallback(async (snapshotOverride = null) => {
+    const snapshot = snapshotOverride || latestSnapshotRef.current || buildSnapshot();
+    latestSnapshotRef.current = snapshot;
+    writeLocalCache(snapshot);
+    return saveCloudState(snapshot);
   }, [buildSnapshot, saveCloudState, writeLocalCache]);
 
   const convertPhpToUsd = useCallback((phpAmount) => {
@@ -200,21 +195,19 @@ export function StoreProvider({ children }) {
   }, [exchangeRate]);
 
   const addProduct = useCallback((product) => {
-    const newProduct = { ...product, id: Date.now(), price: Number(product.price) || 0, orig: product.orig ? Number(product.orig) : null, emoji: product.emoji || (product.cat === 'bags' ? '👜' : '💍'), photoUrl: product.photoUrl || null };
+    const newProduct = { ...product, id: Date.now(), price: Number(product.price) || 0, orig: product.orig ? Number(product.orig) : null, emoji: product.emoji || (product.cat === 'bags' ? 'bag' : 'ring'), photoUrl: product.photoUrl || null };
     setProducts(prev => [newProduct, ...prev]);
     return newProduct;
   }, []);
-
   const updateProduct = useCallback((id, updates) => setProducts(prev => prev.map(p => p.id === id ? { ...p, ...updates } : p)), []);
   const deleteProduct = useCallback((id) => { setProducts(prev => prev.filter(p => p.id !== id)); setBatches(prev => prev.filter(b => b.productId !== id)); }, []);
 
   const addCatalogItem = useCallback((item) => {
     const qty = item.quantity !== undefined ? (Number(item.quantity) || 1) : 1;
-    const newItem = { ...item, id: `cat-${Date.now()}`, price: Number(item.price) || 0, orig: item.orig ? Number(item.orig) : null, emoji: item.emoji || '👜', photoUrl: item.photoUrl || null, quantity: qty, remainingQty: qty };
+    const newItem = { ...item, id: `cat-${Date.now()}`, price: Number(item.price) || 0, orig: item.orig ? Number(item.orig) : null, emoji: item.emoji || 'bag', photoUrl: item.photoUrl || null, quantity: qty, remainingQty: qty };
     setCatalogItems(prev => [newItem, ...prev]);
     return newItem;
   }, []);
-
   const updateCatalogItem = useCallback((id, updates) => setCatalogItems(prev => prev.map(item => item.id !== id ? item : { ...item, ...updates, ...(updates.quantity !== undefined ? { quantity: Number(updates.quantity) } : {}), ...(updates.remainingQty !== undefined ? { remainingQty: Number(updates.remainingQty) } : {}) })), []);
   const deleteCatalogItem = useCallback((id) => setCatalogItems(prev => prev.filter(item => item.id !== id)), []);
 
@@ -238,7 +231,6 @@ export function StoreProvider({ children }) {
     setBatches(prev => [newBatch, ...prev]);
     return newBatch;
   }, [exchangeRate, convertPhpToUsd]);
-
   const updateBatch = useCallback((id, updates) => setBatches(prev => prev.map(b => b.id === id ? { ...b, ...updates } : b)), []);
   const deleteBatch = useCallback((id) => setBatches(prev => prev.filter(b => b.id !== id)), []);
 
@@ -249,7 +241,6 @@ export function StoreProvider({ children }) {
     const updatedBatches = [...batches];
     const updatedCatalogItems = [...catalogItems];
     const saleItemsSummary = [];
-
     for (const item of items) {
       const prodIdStr = String(item.productId);
       const requestedQty = Number(item.qty);
@@ -293,8 +284,9 @@ export function StoreProvider({ children }) {
     setCatalogItems(updatedCatalogItems);
     const newSale = { id: `sale-${Date.now()}`, date: date || new Date().toISOString().split('T')[0], buyer: buyer || 'Walk-in customer', totalPrice, totalCogs: Math.round(totalCogs * 100) / 100, profit: Math.round((totalPrice - totalCogs) * 100) / 100, items: saleItemsSummary, selectionMethod: selectionMethod || 'Direct' };
     setSales(prev => [newSale, ...prev]);
+    latestSnapshotRef.current = { ...buildSnapshot(), batches: updatedBatches, catalogItems: updatedCatalogItems, sales: [newSale, ...sales] };
     return newSale;
-  }, [batches, products, catalogItems]);
+  }, [batches, products, catalogItems, buildSnapshot, sales]);
 
   const deleteSale = useCallback((saleId) => {
     const sale = sales.find(s => s.id === saleId);
@@ -306,10 +298,10 @@ export function StoreProvider({ children }) {
       if (catInState && catInState.remainingQty !== undefined) catInState.remainingQty += item.qty;
       item.batches.forEach(b => { const batchInState = updatedBatches.find(bs => bs.id === b.batchId); if (batchInState) batchInState.remainingQty += b.qty; });
     });
-    setBatches(updatedBatches);
-    setCatalogItems(updatedCatalogItems);
-    setSales(prev => prev.filter(s => s.id !== saleId));
-  }, [sales, batches, catalogItems]);
+    const nextSales = sales.filter(s => s.id !== saleId);
+    setBatches(updatedBatches); setCatalogItems(updatedCatalogItems); setSales(nextSales);
+    latestSnapshotRef.current = { ...buildSnapshot(), batches: updatedBatches, catalogItems: updatedCatalogItems, sales: nextSales };
+  }, [sales, batches, catalogItems, buildSnapshot]);
 
   const recordManualSale = useCallback((saleDetails) => {
     const { buyer, date, batchId, qty, pricePerItem } = saleDetails;
@@ -330,29 +322,39 @@ export function StoreProvider({ children }) {
     const totalCogs = requestedQty * batchInState.costPerItem;
     const totalPrice = requestedQty * price;
     const newSale = { id: `sale-${Date.now()}`, date: date || new Date().toISOString().split('T')[0], buyer: buyer || 'Walk-in customer', totalPrice, totalCogs: Math.round(totalCogs * 100) / 100, profit: Math.round((totalPrice - totalCogs) * 100) / 100, items: [{ productId: batchInState.productId, name: productObj.name, brand: productObj.brand, qty: requestedQty, pricePerItem: price, totalPrice, batches: [{ batchId: batchInState.id, batchNumber: batchInState.batchNumber, qty: requestedQty, costPerItem: batchInState.costPerItem }] }], selectionMethod: 'Manual Batch Entry' };
-    setBatches(updatedBatches);
-    setCatalogItems(updatedCatalogItems);
-    setSales(prev => [newSale, ...prev]);
+    setBatches(updatedBatches); setCatalogItems(updatedCatalogItems); setSales(prev => [newSale, ...prev]);
+    latestSnapshotRef.current = { ...buildSnapshot(), batches: updatedBatches, catalogItems: updatedCatalogItems, sales: [newSale, ...sales] };
     return newSale;
-  }, [batches, products, catalogItems]);
+  }, [batches, products, catalogItems, buildSnapshot, sales]);
 
   const getProductStock = useCallback((productId) => batches.filter(b => b.productId === productId).reduce((sum, b) => sum + b.remainingQty, 0), [batches]);
   const inventoryValuation = batches.reduce((sum, b) => sum + (b.remainingQty * b.costPerItem), 0);
 
   const addPurchaseRequest = useCallback((requestData) => {
     const newRequest = { id: `req-${Date.now()}`, date: new Date().toISOString().split('T')[0], buyerName: requestData.buyerName, buyerEmail: requestData.buyerEmail, buyerAddress: requestData.buyerAddress, items: requestData.items, status: 'pending', shippingCost: null, specialInstructions: requestData.specialInstructions || '' };
-    setPurchaseRequests(prev => [newRequest, ...prev]);
+    const nextRequests = [newRequest, ...purchaseRequests];
+    setPurchaseRequests(nextRequests);
+    latestSnapshotRef.current = { ...buildSnapshot(), purchaseRequests: nextRequests };
     return newRequest;
-  }, []);
-  const updatePurchaseRequest = useCallback((id, updates) => setPurchaseRequests(prev => prev.map(r => r.id === id ? { ...r, ...updates } : r)), []);
-  const deletePurchaseRequest = useCallback((id) => setPurchaseRequests(prev => prev.filter(r => r.id !== id)), []);
+  }, [buildSnapshot, purchaseRequests]);
+  const updatePurchaseRequest = useCallback((id, updates) => {
+    const nextRequests = purchaseRequests.map(r => r.id === id ? { ...r, ...updates } : r);
+    setPurchaseRequests(nextRequests);
+    latestSnapshotRef.current = { ...buildSnapshot(), purchaseRequests: nextRequests };
+  }, [buildSnapshot, purchaseRequests]);
+  const deletePurchaseRequest = useCallback((id) => {
+    const nextRequests = purchaseRequests.filter(r => r.id !== id);
+    setPurchaseRequests(nextRequests);
+    latestSnapshotRef.current = { ...buildSnapshot(), purchaseRequests: nextRequests };
+  }, [buildSnapshot, purchaseRequests]);
 
   const clearMockData = useCallback(() => {
     const emptySnapshot = { exchangeRate, products: [], batches: [], sales: [], purchaseRequests: [], catalogItems: [], socialLinks, paymentMethods, heroImage };
     localStorage.setItem('gf_cleared', 'true');
     setProducts([]); setBatches([]); setSales([]); setPurchaseRequests([]); setCatalogItems([]);
+    latestSnapshotRef.current = emptySnapshot;
     writeLocalCache(emptySnapshot);
-    saveCloudState(emptySnapshot);
+    return saveCloudState(emptySnapshot);
   }, [exchangeRate, socialLinks, paymentMethods, heroImage, saveCloudState, writeLocalCache]);
 
   return (
@@ -367,6 +369,7 @@ export function StoreProvider({ children }) {
       socialLinks, saveSocialLinks,
       paymentMethods, savePaymentMethods,
       heroImage, saveHeroImage,
+      saveCloudState, syncCurrentState, syncAfterLocalChange,
       clearMockData
     }}>
       {children}
