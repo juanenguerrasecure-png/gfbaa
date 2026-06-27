@@ -7,6 +7,18 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   build: {
     chunkSizeWarningLimit: 600,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            return 'vendor'
+          }
+          if (id.includes('/src/admin/')) {
+            return 'admin'
+          }
+        },
+      },
+    },
   },
   server: {
     // HMR is disabled in AI Studio via DISABLE_HMR env var.
