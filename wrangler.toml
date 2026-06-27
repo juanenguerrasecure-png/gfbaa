@@ -1,11 +1,6 @@
 name = "gfbaa-preloved-api"
-compatibility_date = "2026-06-27"
-
 main = "worker/index.js"
-
-[assets]
-directory = "./dist"
-binding = "ASSETS"
+compatibility_date = "2026-06-27"
 
 [[d1_databases]]
 binding = "DB"
@@ -16,9 +11,12 @@ database_id = "d8579840-dd69-46e6-9c96-2a627535c9ee"
 binding = "PHOTOS"
 bucket_name = "gfbaa-photos"
 
+[assets]
+directory = "./dist"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
+run_worker_first = ["/api/*"]
+
 [vars]
 ALLOWED_ORIGIN = "https://your-frontend.pages.dev"
 R2_PUBLIC_URL = "https://your-r2-custom-domain.com"
-
-[assets]
-directory = "./dist"

@@ -60,12 +60,8 @@ export default {
     // Serve the React frontend for non-API routes (SPA Routing)
     if (!path.startsWith('/api')) {
       if (env.ASSETS) {
-        const response = await env.ASSETS.fetch(request.clone());
-        if (response.status === 404) {
-          const indexUrl = new URL('/index.html', request.url);
-          return await env.ASSETS.fetch(new Request(indexUrl, request));
-        }
-        return response;
+        const indexUrl = new URL('/index.html', request.url);
+        return await env.ASSETS.fetch(new Request(indexUrl, request));
       }
       return new Response('Assets binding not found. Please deploy with assets configured.', { status: 500 });
     }
