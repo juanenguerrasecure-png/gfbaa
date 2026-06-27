@@ -61,24 +61,35 @@ export function AdminPanel({ onExitAdmin }) {
   return (
     <div className={styles.shell}>
       <header className={styles.topBar}>
-        <div className={styles.topLeft}>
-          <button className={styles.menuBtn} onClick={() => setSidebarOpen(v => !v)} aria-label="Toggle sidebar">
-            {sidebarOpen ? <X size={18} /> : <Menu size={18} />}
-          </button>
-          <div className={styles.brand}>
-            <span className={styles.brandName}>Good Finds by AA</span>
-            <span className={styles.brandBadge}>Admin</span>
+        <div className={styles.headerPrimaryRow}>
+          <div className={styles.topLeft}>
+            <button className={styles.menuBtn} onClick={() => setSidebarOpen(v => !v)} aria-label="Toggle sidebar">
+              {sidebarOpen ? <X size={18} /> : <Menu size={18} />}
+            </button>
+            <div className={styles.brand}>
+              <span className={styles.brandName}>Good Finds by AA</span>
+              <span className={`${styles.brandBadge} ${styles.desktopBadge}`}>Admin</span>
+            </div>
+          </div>
+
+          <div className={styles.topRight}>
+            <button id="nav_tool_manual_sale_btn" onClick={() => setShowGlobalManualSale(true)} className={styles.manualSaleBtn}>
+              <ShoppingCart size={13} strokeWidth={2} />
+              <span>Manual Sale Entry</span>
+            </button>
+            <button className={styles.storeLinkBtn} onClick={onExitAdmin}>← Back to store</button>
+            <button className={styles.logoutBtn} onClick={handleLogout}>
+              <LogOut size={14} strokeWidth={1.5} />
+              <span>Sign out</span>
+            </button>
           </div>
         </div>
-        <div className={styles.topRight}>
-          <button id="nav_tool_manual_sale_btn" onClick={() => setShowGlobalManualSale(true)} className="flex items-center gap-1.5 bg-[#C9A84C] text-stone-950 px-3 py-1.5 rounded text-xs font-semibold transition-colors hover:bg-[#b7963d]">
+
+        <div className={styles.mobileActionRow}>
+          <span className={styles.brandBadge}>Admin</span>
+          <button onClick={() => setShowGlobalManualSale(true)} className={styles.manualSaleBtn}>
             <ShoppingCart size={13} strokeWidth={2} />
             <span>Manual Sale Entry</span>
-          </button>
-          <button className={styles.storeLinkBtn} onClick={onExitAdmin}>← Back to store</button>
-          <button className={styles.logoutBtn} onClick={handleLogout}>
-            <LogOut size={14} strokeWidth={1.5} />
-            Sign out
           </button>
         </div>
       </header>
