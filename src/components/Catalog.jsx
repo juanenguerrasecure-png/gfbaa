@@ -10,10 +10,16 @@ const TITLES = {
 };
 
 export function Catalog({ items, activeFilter, onAddToCart }) {
+  let displayTitle = TITLES[activeFilter] ?? 'Collection';
+  if (activeFilter && activeFilter.startsWith('brand:')) {
+    const brandName = activeFilter.slice(6);
+    displayTitle = `${brandName} Collection`;
+  }
+
   return (
     <main className={styles.catalog}>
       <div className={styles.header}>
-        <h2 className={styles.sectionTitle}>{TITLES[activeFilter] ?? 'Collection'}</h2>
+        <h2 className={styles.sectionTitle}>{displayTitle}</h2>
         <span className={styles.count}>
           {items.length} piece{items.length !== 1 ? 's' : ''}
         </span>

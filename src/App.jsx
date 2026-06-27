@@ -12,6 +12,10 @@ import { useStore }     from './context/StoreContext';
 import { useAuth }      from './context/AuthContext';
 
 function applyFilter(items, filter) {
+  if (filter && filter.startsWith('brand:')) {
+    const brandName = filter.slice(6).trim().toLowerCase();
+    return items.filter(i => i.brand && i.brand.trim().toLowerCase() === brandName);
+  }
   switch (filter) {
     case 'bags':     return items.filter(i => i.cat === 'bags');
     case 'jewelry':  return items.filter(i => i.cat === 'jewelry');
@@ -58,6 +62,13 @@ export default function App() {
     [catalogItems, getCatalogItemStock]
   );
 
+  const availableBrands = useMemo(() => {
+    const brands = storeItems
+      .map(item => item.brand?.trim())
+      .filter(Boolean);
+    return Array.from(new Set(brands)).sort();
+  }, [storeItems]);
+
   const visibleItems = useMemo(
     () => applySort(applyFilter(storeItems, activeFilter), sort),
     [storeItems, activeFilter, sort]
@@ -93,6 +104,7 @@ export default function App() {
         activeFilter={activeFilter}
         onFilterChange={setActiveFilter}
         onSortChange={setSort}
+        availableBrands={availableBrands}
       />
       <Catalog
         items={visibleItems}
