@@ -1,3 +1,4 @@
+import { SocialLinks } from './SocialLinks';
 import styles from './Hero.module.css';
 
 export function Hero({ onCategoryClick }) {
@@ -15,6 +16,7 @@ export function Hero({ onCategoryClick }) {
           <p className={styles.subtitle}>
             Discover our meticulously selected collection of pre-loved designer handbags and exquisite selections of jewelry. Handpicked treasures that define elegance.
           </p>
+          <SocialLinks />
           <div className={styles.actions}>
             <button
               id="hero_btn_bags"
