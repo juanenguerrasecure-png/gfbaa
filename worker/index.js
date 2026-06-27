@@ -121,6 +121,11 @@ async function getState(env) {
   return { exists: true, state: parsed, updatedAt: row.updated_at };
 }
 
+function pruneExpiredSessions(sessions) {
+  const now = Date.now();
+  return (sessions || []).filter(session => session?.token && Date.parse(session.expiresAt) > now);
+}
+
 async function saveState(env, inputState) {
   await ensureSchema(env);
   const incomingState = inputState || {};
@@ -131,6 +136,7 @@ async function saveState(env, inputState) {
   if (!Object.prototype.hasOwnProperty.call(incomingState, 'socialLinks')) state.socialLinks = existing.state.socialLinks || {};
   if (!Object.prototype.hasOwnProperty.call(incomingState, 'paymentMethods')) state.paymentMethods = normalizePaymentMethods(existing.state.paymentMethods);
   if (!Object.prototype.hasOwnProperty.call(incomingState, 'heroImage')) state.heroImage = normalizeHeroImage(existing.state.heroImage);
+  state.sessions = pruneExpiredSessions(state.sessions);
   const updatedAt = new Date().toISOString();
   await env.DB.prepare(`INSERT INTO app_state (id, value, updated_at) VALUES (?, ?, ?) ON CONFLICT(id) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at`).bind(STATE_ID, JSON.stringify(state), updatedAt).run();
   return { state, updatedAt };
@@ -139,11 +145,6 @@ async function saveState(env, inputState) {
 function getBearerToken(request) {
   const header = request.headers.get('Authorization') || '';
   return header.startsWith('Bearer ') ? header.slice(7).trim() : '';
-}
-
-function pruneExpiredSessions(sessions) {
-  const now = Date.now();
-  return (sessions || []).filter(session => session?.token && Date.parse(session.expiresAt) > now);
 }
 
 function validateToken(request, state) {
@@ -162,6 +163,43 @@ function createToken() {
   return bufferToHex(bytes);
 }
 
+function normalizePublicRequest(body) {
+  const now = new Date().toISOString();
+  const items = Array.isArray(body.items) ? body.items : [];
+  const firstItem = items[0] || {};
+  const buyerName = String(body.buyerName || '').trim();
+  const buyerEmail = String(body.buyerEmail || body.buyerContact || '').trim();
+  const buyerAddress = String(body.buyerAddress || '').trim();
+  return {
+    id: body.id || `req-${Date.now()}`,
+    productId: body.productId || firstItem.productId || '',
+    productName: body.productName || firstItem.name || '',
+    buyerName,
+    buyerEmail,
+    buyerContact: String(body.buyerContact || buyerEmail || '').trim(),
+    buyerAddress,
+    message: String(body.message || body.specialInstructions || '').trim(),
+    items,
+    status: 'pending',
+    shippingCost: null,
+    specialInstructions: String(body.specialInstructions || body.message || '').trim(),
+    date: body.date || now.split('T')[0],
+    createdAt: body.createdAt || now,
+  };
+}
+
+async function createPurchaseRequest(request, env, corsHeaders) {
+  const body = await request.json();
+  const nextRequest = normalizePublicRequest(body);
+  if (!nextRequest.buyerName) return json({ ok: false, error: 'Buyer name is required.' }, { status: 400 }, corsHeaders);
+  if (!nextRequest.buyerEmail && !nextRequest.buyerContact) return json({ ok: false, error: 'Buyer contact is required.' }, { status: 400 }, corsHeaders);
+  if (!nextRequest.items.length && !nextRequest.productId) return json({ ok: false, error: 'At least one requested item is required.' }, { status: 400 }, corsHeaders);
+  const stateResult = await getState(env);
+  const state = stateResult.state;
+  const saved = await saveState(env, { ...state, purchaseRequests: [nextRequest, ...(state.purchaseRequests || [])] });
+  return json({ ok: true, request: nextRequest, updatedAt: saved.updatedAt }, { status: 200 }, corsHeaders);
+}
+
 async function createSession(request, env, corsHeaders) {
   const body = await request.json();
   const username = String(body.username || '').trim();
@@ -171,7 +209,6 @@ async function createSession(request, env, corsHeaders) {
   const state = stateResult.state;
   const user = state.users.find(u => String(u.username || '').toLowerCase() === username.toLowerCase());
   if (!user || !(await verifyPassword(password, user.password))) return json({ ok: false, error: 'Invalid username or password.' }, { status: 401 }, corsHeaders);
-
   let nextUser = user;
   let users = state.users;
   if (!isPasswordHash(user.password)) {
@@ -179,7 +216,6 @@ async function createSession(request, env, corsHeaders) {
     users = state.users.map(u => u.id === user.id ? { ...u, password: migratedPassword } : u);
     nextUser = { ...user, password: migratedPassword };
   }
-
   const expiresAt = new Date(Date.now() + SESSION_HOURS * 60 * 60 * 1000).toISOString();
   const session = { userId: nextUser.id, token: createToken(), expiresAt };
   const sessions = [...pruneExpiredSessions(state.sessions || []).filter(s => s.userId !== nextUser.id), session];
@@ -283,6 +319,7 @@ export default {
         const stateResult = await getState(env);
         return json({ ok: true, ...stateResult, state: publicState(stateResult.state) }, { status: 200 }, corsHeaders);
       }
+      if (request.method === 'POST' && path === '/api/requests') return createPurchaseRequest(request, env, corsHeaders);
       if (request.method === 'POST' && path === '/api/sessions') return createSession(request, env, corsHeaders);
       if (request.method === 'DELETE' && path === '/api/sessions/current') return deleteCurrentSession(request, env, corsHeaders);
       if ((request.method === 'PUT' || request.method === 'POST') && path === '/api/state') {
@@ -297,7 +334,12 @@ export default {
       if (request.method === 'GET' && path === '/api/catalog-items') { const { state, updatedAt } = await getState(env); return json({ ok: true, data: state.catalogItems, updatedAt }, { status: 200 }, corsHeaders); }
       if (request.method === 'GET' && path === '/api/sales') { const { state, updatedAt } = await getState(env); return json({ ok: true, data: state.sales, updatedAt }, { status: 200 }, corsHeaders); }
       if (request.method === 'GET' && path === '/api/requests') { const { state, updatedAt } = await getState(env); return json({ ok: true, data: state.purchaseRequests, updatedAt }, { status: 200 }, corsHeaders); }
-      if (request.method === 'GET' && path === '/api/users') { const { state, updatedAt } = await getState(env); return json({ ok: true, data: state.users, updatedAt }, { status: 200 }, corsHeaders); }
+      if (request.method === 'GET' && path === '/api/users') {
+        const auth = await requireWriteAuth(request, env, corsHeaders);
+        if (!auth.authorized) return auth.response;
+        const { state, updatedAt } = await getState(env);
+        return json({ ok: true, data: state.users, updatedAt }, { status: 200 }, corsHeaders);
+      }
       if (request.method === 'POST' && path === '/api/users') return createUser(request, env, corsHeaders);
       if (request.method === 'DELETE' && path.startsWith('/api/users/')) return deleteUser(request, path, env, corsHeaders);
       if (request.method === 'POST' && path === '/api/photos') {
