@@ -234,20 +234,22 @@ export function CartModal({ isOpen, onClose, cart, onRemove, onClear, showToast 
                       />
                     </div>
 
-                    <button
-                      type="submit"
-                      disabled={isSubmitting}
-                      className={styles.submitBtn}
-                    >
-                      {isSubmitting ? (
-                        <span className={styles.loader}>Sending Curation Request...</span>
-                      ) : (
-                        <>
-                          <Send size={14} />
-                          <span>Submit Curation Request</span>
-                        </>
-                      )}
-                    </button>
+                    <div className={styles.actionBar}>
+                      <button
+                        type="submit"
+                        disabled={isSubmitting}
+                        className={styles.submitBtn}
+                      >
+                        {isSubmitting ? (
+                          <span className={styles.loader}>Sending Curation Request...</span>
+                        ) : (
+                          <>
+                            <Send size={14} />
+                            <span>Submit Curation Request</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
                   </form>
                 </div>
               </div>
