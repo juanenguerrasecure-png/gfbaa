@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import {
-  Package, PlusCircle, BarChart2, LogOut, X, Menu, Code, Users, Bell
+  Package, PlusCircle, BarChart2, LogOut, X, Menu, Code, Users, Bell, ShoppingCart
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useStore } from '../context/StoreContext';
@@ -10,6 +10,7 @@ import { ReportsTab }   from './tabs/ReportsTab';
 import { DesignTab }    from './tabs/DesignTab';
 import { UsersTab }     from './tabs/UsersTab';
 import { RequestsTab }  from './tabs/RequestsTab';
+import { GlobalManualSaleModal } from './components/GlobalManualSaleModal';
 import styles from './AdminPanel.module.css';
 
 const NAV = [
@@ -26,6 +27,7 @@ export function AdminPanel({ onExitAdmin }) {
   const { purchaseRequests = [] } = useStore();
   const [activeKey, setActiveKey] = useState('inventory');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showGlobalManualSale, setShowGlobalManualSale] = useState(false);
 
   const pendingCount = purchaseRequests.filter(r => r.status === 'pending').length;
 
@@ -59,6 +61,30 @@ export function AdminPanel({ onExitAdmin }) {
           </div>
         </div>
         <div className={styles.topRight}>
+          <button 
+            id="nav_tool_manual_sale_btn"
+            onClick={() => setShowGlobalManualSale(true)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              backgroundColor: '#C9A84C',
+              color: '#1C1410',
+              border: 'none',
+              padding: '0.4rem 0.8rem',
+              borderRadius: '4px',
+              fontWeight: '600',
+              fontSize: '0.75rem',
+              cursor: 'pointer',
+              transition: 'background-color 0.2s',
+              fontFamily: "'Inter', sans-serif"
+            }}
+            onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#b59540'}
+            onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#C9A84C'}
+          >
+            <ShoppingCart size={13} strokeWidth={2} />
+            <span>Manual Sale Entry</span>
+          </button>
           <button className={styles.storeLinkBtn} onClick={onExitAdmin}>
             ← Back to store
           </button>
@@ -140,6 +166,11 @@ export function AdminPanel({ onExitAdmin }) {
           </div>
         </main>
       </div>
+
+      <GlobalManualSaleModal 
+        isOpen={showGlobalManualSale} 
+        onClose={() => setShowGlobalManualSale(false)} 
+      />
     </div>
   );
 }

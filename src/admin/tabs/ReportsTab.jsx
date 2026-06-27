@@ -18,8 +18,107 @@ function getMonthKey(dateStr) {
 }
 
 export function ReportsTab() {
-  const { sales, batches, products, deleteSale, inventoryValuation } = useStore();
+  const { sales, batches, products, catalogItems, recordManualSale, deleteSale, inventoryValuation } = useStore();
   const [activeSection, setActiveSection] = useState('overview');
+
+  // --- Manual Sale Entry States ---
+  const [showManualForm, setShowManualForm] = useState(false);
+  const [manualBuyer, setManualBuyer] = useState('');
+  const [manualDate, setManualDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [manualBatchId, setManualBatchId] = useState('');
+  const [manualQty, setManualQty] = useState(1);
+  const [manualPrice, setManualPrice] = useState('');
+  const [manualPriceType, setManualPriceType] = useState('bulk'); // 'unit' | 'bulk'
+  const [formError, setFormError] = useState('');
+  const [formSuccess, setFormSuccess] = useState('');
+
+  const handleBatchChange = (batchId) => {
+    setManualBatchId(batchId);
+    setFormError('');
+    setFormSuccess('');
+    
+    if (!batchId) {
+      setManualPrice('');
+      return;
+    }
+    
+    // Find if there is a catalog item linked to this batch
+    const linkedCatalogItem = catalogItems.find(c => c.batchId === batchId);
+    if (linkedCatalogItem && linkedCatalogItem.price) {
+      setManualPrice(linkedCatalogItem.price);
+    } else {
+      setManualPrice('');
+    }
+  };
+
+  const handleManualQtyChange = (val) => {
+    const nextQty = Number(val) || 1;
+    if (manualPriceType === 'bulk' && manualPrice && manualQty) {
+      const perUnit = Number(manualPrice) / manualQty;
+      setManualPrice(String(Math.round(perUnit * nextQty * 100) / 100));
+    }
+    setManualQty(nextQty);
+  };
+
+  const handleManualSaleSubmit = (e) => {
+    e.preventDefault();
+    setFormError('');
+    setFormSuccess('');
+
+    if (!manualBatchId) {
+      setFormError('Please select a batch from inventory.');
+      return;
+    }
+
+    const qty = Number(manualQty);
+    if (isNaN(qty) || qty <= 0) {
+      setFormError('Quantity must be a positive number.');
+      return;
+    }
+
+    const price = Number(manualPrice);
+    if (isNaN(price) || price < 0 || manualPrice === '') {
+      setFormError('Price cannot be negative or empty.');
+      return;
+    }
+
+    const batch = batches.find(b => b.id === manualBatchId);
+    if (!batch) {
+      setFormError('Selected batch was not found.');
+      return;
+    }
+
+    if (batch.remainingQty < qty) {
+      setFormError(`Insufficient stock in Batch "${batch.batchNumber}". Requested: ${qty}, Available: ${batch.remainingQty}`);
+      return;
+    }
+
+    const calculatedPricePerItem = manualPriceType === 'unit' ? price : (price / qty);
+
+    try {
+      recordManualSale({
+        buyer: manualBuyer.trim() || 'Offline Customer',
+        date: manualDate,
+        batchId: manualBatchId,
+        qty: qty,
+        pricePerItem: calculatedPricePerItem
+      });
+
+      setFormSuccess(`Successfully recorded manual sale of ${qty} item(s)!`);
+      // Reset form fields
+      setManualBuyer('');
+      setManualBatchId('');
+      setManualQty(1);
+      setManualPrice('');
+      // Keep form open or close after some delay
+      setTimeout(() => {
+        setShowManualForm(false);
+        setFormSuccess('');
+      }, 2000);
+    } catch (err) {
+      setFormError(err.message || 'Failed to record manual sale.');
+    }
+  };
 
   const totalRevenue  = sales.reduce((s, x) => s + x.totalPrice, 0);
   const totalCogs     = sales.reduce((s, x) => s + (x.totalCogs || 0), 0);
@@ -175,7 +274,202 @@ export function ReportsTab() {
       )}
 
       {activeSection === 'sales' && (
-        <div className={styles.tableWrap}>
+        <div className="space-y-6" id="reports_tab_sales_section">
+          {/* Direct Sales Header / Toggle Button */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-stone-50 p-4 rounded-lg border border-stone-200" id="reports_manual_sales_header">
+            <div>
+              <h3 className="text-sm font-semibold text-stone-800" id="reports_manual_sales_title">Direct Sales Manual Entry</h3>
+              <p className="text-xs text-stone-500" id="reports_manual_sales_desc">Record offline/direct sales and immediately deplete inventory of the chosen batch.</p>
+            </div>
+            <button
+              id="btn_toggle_manual_sales_form"
+              onClick={() => {
+                setShowManualForm(!showManualForm);
+                setFormError('');
+                setFormSuccess('');
+              }}
+              className="px-4 py-2 text-xs font-semibold rounded bg-stone-900 text-stone-50 hover:bg-stone-800 transition-colors flex items-center gap-1.5 self-start sm:self-auto"
+            >
+              {showManualForm ? 'Close Manual Form' : '➕ Record Manual Sale'}
+            </button>
+          </div>
+
+          {/* Collapsible Form */}
+          {showManualForm && (
+            <form onSubmit={handleManualSaleSubmit} className="bg-stone-50 p-6 rounded-lg border border-stone-200 space-y-4 max-w-3xl animate-fade-in" id="manual_sale_entry_form">
+              <h4 className="text-xs uppercase tracking-wider font-semibold text-stone-500" id="form_subtitle">New Direct Sales Entry</h4>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Batch Selection */}
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] uppercase font-semibold text-stone-500 tracking-wider">Select Stock Batch *</label>
+                  <select
+                    id="manual_sale_batch_select"
+                    value={manualBatchId}
+                    onChange={(e) => handleBatchChange(e.target.value)}
+                    className="w-full p-2 border border-stone-300 rounded text-xs bg-white h-11"
+                    required
+                  >
+                    <option value="">-- Choose active batch --</option>
+                    {batches.filter(b => b.remainingQty > 0).map(b => {
+                      const prod = products.find(p => p.id === b.productId) || { name: 'Unknown', brand: 'Unknown' };
+                      return (
+                        <option key={b.id} value={b.id}>
+                          {b.batchNumber} — {prod.brand} {prod.name} ({b.remainingQty} available — cost ${b.costPerItem}/ea)
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
+
+                {/* Pricing Method Selector */}
+                <div className="flex flex-col gap-1 md:col-span-2">
+                  <label className="text-[10px] uppercase font-semibold text-stone-500 tracking-wider">Pricing Method</label>
+                  <div className="grid grid-cols-2 gap-1.5 bg-stone-200/50 p-1 rounded border border-stone-200 max-w-sm">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (manualPriceType === 'unit') return;
+                        setManualPriceType('unit');
+                        if (manualPrice && manualQty) {
+                          setManualPrice(String(Math.round((Number(manualPrice) / manualQty) * 100) / 100));
+                        }
+                      }}
+                      className={`py-1.5 text-[11px] font-semibold rounded text-center transition-all ${
+                        manualPriceType === 'unit' 
+                          ? 'bg-stone-900 text-white shadow-sm' 
+                          : 'text-stone-600 hover:text-stone-900'
+                      }`}
+                    >
+                      Per Unit Price
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (manualPriceType === 'bulk') return;
+                        setManualPriceType('bulk');
+                        if (manualPrice && manualQty) {
+                          setManualPrice(String(Math.round(Number(manualPrice) * manualQty * 100) / 100));
+                        }
+                      }}
+                      className={`py-1.5 text-[11px] font-semibold rounded text-center transition-all ${
+                        manualPriceType === 'bulk' 
+                          ? 'bg-stone-900 text-white shadow-sm' 
+                          : 'text-stone-600 hover:text-stone-900'
+                      }`}
+                    >
+                      Bulk / Total Price
+                    </button>
+                  </div>
+                </div>
+
+                {/* Price input */}
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] uppercase font-semibold text-stone-500 tracking-wider">
+                    {manualPriceType === 'unit' ? 'Selling Price (USD per unit) *' : 'Total Selling Price (Bulk/Total USD) *'}
+                  </label>
+                  <input
+                    id="manual_sale_price_input"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={manualPrice}
+                    onChange={(e) => setManualPrice(e.target.value)}
+                    placeholder={manualPriceType === 'unit' ? 'Enter sale price per unit' : 'Enter total bulk sale price'}
+                    className="w-full p-2 border border-stone-300 rounded text-xs bg-white h-11"
+                    required
+                  />
+                  {manualBatchId && (
+                    <div className="flex justify-between text-[10px] text-stone-500 mt-0.5">
+                      <span>Acquisition cost: ${batches.find(b => b.id === manualBatchId)?.costPerItem}/ea</span>
+                      {manualPriceType === 'bulk' && manualPrice && (
+                        <span className="font-semibold text-stone-600">
+                          Computed: ${(Number(manualPrice) / manualQty).toFixed(2)}/ea
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Quantity */}
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] uppercase font-semibold text-stone-500 tracking-wider">Quantity Sold *</label>
+                  <input
+                    id="manual_sale_qty_input"
+                    type="number"
+                    min="1"
+                    max={manualBatchId ? (batches.find(b => b.id === manualBatchId)?.remainingQty || 1) : undefined}
+                    value={manualQty}
+                    onChange={(e) => handleManualQtyChange(e.target.value)}
+                    className="w-full p-2 border border-stone-300 rounded text-xs bg-white h-11"
+                    required
+                  />
+                </div>
+
+                {/* Buyer / Client */}
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] uppercase font-semibold text-stone-500 tracking-wider">Buyer Name / Client</label>
+                  <input
+                    id="manual_sale_buyer_input"
+                    type="text"
+                    value={manualBuyer}
+                    onChange={(e) => setManualBuyer(e.target.value)}
+                    placeholder="e.g. Walk-in customer, Boutique wholesale"
+                    className="w-full p-2 border border-stone-300 rounded text-xs bg-white h-11"
+                  />
+                </div>
+
+                {/* Date */}
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] uppercase font-semibold text-stone-500 tracking-wider">Transaction Date</label>
+                  <input
+                    id="manual_sale_date_input"
+                    type="date"
+                    value={manualDate}
+                    onChange={(e) => setManualDate(e.target.value)}
+                    className="w-full p-2 border border-stone-300 rounded text-xs bg-white h-11"
+                    required
+                  />
+                </div>
+              </div>
+
+              {formError && (
+                <div className="text-xs font-semibold text-red-600 bg-red-50 p-2.5 rounded border border-red-200" id="manual_sale_form_error">
+                  ⚠️ {formError}
+                </div>
+              )}
+
+              {formSuccess && (
+                <div className="text-xs font-semibold text-green-700 bg-green-50 p-2.5 rounded border border-green-200" id="manual_sale_form_success">
+                  ✓ {formSuccess}
+                </div>
+              )}
+
+              <div className="flex justify-end gap-2 pt-2" id="manual_sale_form_actions">
+                <button
+                  id="btn_manual_sale_cancel"
+                  type="button"
+                  onClick={() => {
+                    setShowManualForm(false);
+                    setFormError('');
+                    setFormSuccess('');
+                  }}
+                  className="px-4 py-2 border border-stone-300 hover:bg-stone-100 rounded text-xs font-semibold text-stone-700 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  id="btn_manual_sale_confirm"
+                  type="submit"
+                  className="px-5 py-2 bg-[#C9A84C] text-stone-950 font-bold hover:bg-[#b7963d] rounded text-xs transition-colors"
+                >
+                  Confirm and Deplete Stock
+                </button>
+              </div>
+            </form>
+          )}
+
+          <div className={styles.tableWrap} id="manual_sales_table_wrap">
           <table className={styles.table}>
             <thead><tr>
               <th>Date</th>
@@ -233,6 +527,7 @@ export function ReportsTab() {
             </tbody>
           </table>
         </div>
+      </div>
       )}
 
       {activeSection === 'purchases' && (

@@ -503,6 +503,83 @@ export function StoreProvider({ children }) {
     setSales(prev => prev.filter(s => s.id !== saleId));
   }, [sales, batches, catalogItems]);
 
+  const recordManualSale = useCallback((saleDetails) => {
+    const { buyer, date, batchId, qty, pricePerItem } = saleDetails;
+    const requestedQty = Number(qty);
+    const price = Number(pricePerItem);
+
+    if (!batchId) {
+      throw new Error("Please select a batch from inventory.");
+    }
+    if (isNaN(requestedQty) || requestedQty <= 0) {
+      throw new Error("Quantity must be a positive number.");
+    }
+    if (isNaN(price) || price < 0) {
+      throw new Error("Price cannot be negative.");
+    }
+
+    const updatedBatches = [...batches];
+    const updatedCatalogItems = [...catalogItems];
+
+    const batchInState = updatedBatches.find(b => b.id === batchId);
+    if (!batchInState) {
+      throw new Error("Selected batch was not found in inventory.");
+    }
+
+    if (batchInState.remainingQty < requestedQty) {
+      throw new Error(`Insufficient stock in Batch "${batchInState.batchNumber}". Requested: ${requestedQty}, Available: ${batchInState.remainingQty}`);
+    }
+
+    // Find the product linked to this batch
+    const productObj = products.find(p => p.id === batchInState.productId);
+    if (!productObj) {
+      throw new Error("Product specs not found for this batch.");
+    }
+
+    // Deplete from the batch
+    batchInState.remainingQty -= requestedQty;
+
+    // Deduct from any catalog items linked to this same batch, if they exist and track remainingQty
+    updatedCatalogItems.forEach(c => {
+      if (c.batchId === batchId && c.remainingQty !== undefined) {
+        c.remainingQty = Math.max(0, c.remainingQty - requestedQty);
+      }
+    });
+
+    const totalCogs = requestedQty * batchInState.costPerItem;
+    const totalPrice = requestedQty * price;
+
+    const newSale = {
+      id: `sale-${Date.now()}`,
+      date: date || new Date().toISOString().split('T')[0],
+      buyer: buyer || 'Walk-in customer',
+      totalPrice: totalPrice,
+      totalCogs: Math.round(totalCogs * 100) / 100,
+      profit: Math.round((totalPrice - totalCogs) * 100) / 100,
+      items: [{
+        productId: batchInState.productId,
+        name: productObj.name,
+        brand: productObj.brand,
+        qty: requestedQty,
+        pricePerItem: price,
+        totalPrice: totalPrice,
+        batches: [{
+          batchId: batchInState.id,
+          batchNumber: batchInState.batchNumber,
+          qty: requestedQty,
+          costPerItem: batchInState.costPerItem
+        }]
+      }],
+      selectionMethod: 'Manual Batch Entry'
+    };
+
+    setBatches(updatedBatches);
+    setCatalogItems(updatedCatalogItems);
+    setSales(prev => [newSale, ...prev]);
+
+    return newSale;
+  }, [batches, products, catalogItems]);
+
   // --- Dynamic Inventory Calculations ---
   // A product is "in stock" if it has any active batches with remainingQty > 0
   const getProductStock = useCallback((productId) => {
@@ -578,6 +655,7 @@ export function StoreProvider({ children }) {
       deleteBatch,
       sales,
       recordSale,
+      recordManualSale,
       deleteSale,
       getProductStock,
       convertPhpToUsd,

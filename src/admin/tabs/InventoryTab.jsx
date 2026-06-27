@@ -139,6 +139,210 @@ function SellCatalogItemModal({ item, onClose, onConfirm }) {
   );
 }
 
+function SellBatchModal({ batch, onClose, onConfirm }) {
+  const { products } = useStore();
+  const productObj = products.find(p => p.id === batch.productId) || { name: 'Unknown Product', brand: 'Unknown Brand' };
+
+  const [buyer, setBuyer] = useState('');
+  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [qty, setQty] = useState(1);
+  const [priceInput, setPriceInput] = useState('');
+  const [priceType, setPriceType] = useState('bulk'); // 'unit' | 'bulk'
+
+  const currentCogs = qty * batch.costPerItem;
+  const currentRevenue = priceType === 'unit' ? qty * (Number(priceInput) || 0) : (Number(priceInput) || 0);
+  const currentProfit = currentRevenue - currentCogs;
+
+  const handleQtyChange = (val) => {
+    const nextQty = Math.max(1, Math.min(batch.remainingQty, Number(val) || 1));
+    if (priceType === 'bulk' && priceInput && qty) {
+      const perUnit = Number(priceInput) / qty;
+      setPriceInput(String(Math.round(perUnit * nextQty * 100) / 100));
+    }
+    setQty(nextQty);
+  };
+
+  const handleConfirm = () => {
+    if (!buyer.trim()) {
+      alert('Please specify the buyer name.');
+      return;
+    }
+    const enteredPrice = Number(priceInput);
+    if (isNaN(enteredPrice) || enteredPrice < 0 || priceInput === '') {
+      alert('Please enter a valid price.');
+      return;
+    }
+    if (qty > batch.remainingQty) {
+      alert(`Cannot sell more than available batch stock (${batch.remainingQty} items).`);
+      return;
+    }
+
+    const calculatedPricePerItem = priceType === 'unit' ? enteredPrice : (enteredPrice / qty);
+
+    onConfirm({
+      buyer,
+      date,
+      batchId: batch.id,
+      qty: Number(qty),
+      pricePerItem: calculatedPricePerItem
+    });
+  };
+
+  return (
+    <div className={styles.overlay} onClick={onClose} id="sell_batch_modal_overlay">
+      <div className={`${styles.modal} w-full max-w-lg bg-white p-6 rounded-lg`} onClick={(e) => e.stopPropagation()} id="sell_batch_modal_container">
+        <h3 className="font-display text-xl text-stone-900 border-b pb-2 mb-4" id="sell_batch_modal_title">Record Direct/Manual Sale</h3>
+        
+        <div className="space-y-4">
+          <div className="p-3 bg-stone-50 rounded border border-stone-100 flex items-center justify-between" id="sell_batch_info">
+            <div>
+              <p className="text-xs uppercase font-bold text-amber-700 tracking-wider font-mono">Batch: {batch.batchNumber}</p>
+              <p className="text-sm font-semibold text-stone-800">{productObj.brand} {productObj.name}</p>
+              <p className="text-xs text-stone-400">Condition: {batch.condition}</p>
+            </div>
+            <div className="text-right">
+              <p className="text-xs text-stone-500">Unit Cost: ${batch.costPerItem}</p>
+              <p className="text-xs font-semibold text-emerald-700">Available: {batch.remainingQty}</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 font-sans" id="sell_batch_form_fields">
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] font-bold uppercase text-stone-500">Buyer Name *</label>
+              <input
+                id="sell_batch_buyer_input"
+                type="text"
+                className="p-2 border border-stone-200 rounded text-sm focus:border-amber-500 outline-none h-11"
+                placeholder="e.g. Walk-in Customer"
+                value={buyer}
+                onChange={e => setBuyer(e.target.value)}
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] font-bold uppercase text-stone-500">Date of Sale</label>
+              <input
+                id="sell_batch_date_input"
+                type="date"
+                className="p-2 border border-stone-200 rounded text-sm focus:border-amber-500 outline-none h-11"
+                value={date}
+                onChange={e => setDate(e.target.value)}
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] font-bold uppercase text-stone-500">Quantity Sold *</label>
+              <input
+                id="sell_batch_qty_input"
+                type="number"
+                min="1"
+                max={batch.remainingQty}
+                className="p-2 border border-stone-200 rounded text-sm focus:border-amber-500 outline-none h-11"
+                value={qty}
+                onChange={e => handleQtyChange(e.target.value)}
+              />
+            </div>
+            
+            {/* Pricing Method Selector */}
+            <div className="flex flex-col gap-1 sm:col-span-2">
+              <label className="text-[10px] font-bold uppercase text-stone-500">Pricing Method</label>
+              <div className="grid grid-cols-2 gap-1.5 bg-stone-100 p-1 rounded border border-stone-200">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (priceType === 'unit') return;
+                    setPriceType('unit');
+                    if (priceInput && qty) {
+                      setPriceInput(String(Math.round((Number(priceInput) / qty) * 100) / 100));
+                    }
+                  }}
+                  className={`py-1.5 text-[11px] font-semibold rounded text-center transition-all ${
+                    priceType === 'unit' 
+                      ? 'bg-stone-900 text-white shadow-sm' 
+                      : 'text-stone-600 hover:text-stone-900'
+                  }`}
+                >
+                  Per Unit Price
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (priceType === 'bulk') return;
+                    setPriceType('bulk');
+                    if (priceInput && qty) {
+                      setPriceInput(String(Math.round(Number(priceInput) * qty * 100) / 100));
+                    }
+                  }}
+                  className={`py-1.5 text-[11px] font-semibold rounded text-center transition-all ${
+                    priceType === 'bulk' 
+                      ? 'bg-stone-900 text-white shadow-sm' 
+                      : 'text-stone-600 hover:text-stone-900'
+                  }`}
+                >
+                  Bulk / Total Price
+                </button>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-1 sm:col-span-2">
+              <label className="text-[10px] font-bold uppercase text-stone-500">
+                {priceType === 'unit' ? 'Selling Price (USD per unit) *' : 'Total Selling Price (Bulk/Total USD) *'}
+              </label>
+              <input
+                id="sell_batch_price_input"
+                type="number"
+                step="0.01"
+                className="p-2 border border-stone-200 rounded text-sm focus:border-amber-500 outline-none h-11"
+                placeholder={priceType === 'unit' ? 'Enter sale price per unit' : 'Enter total bulk sale price'}
+                value={priceInput}
+                onChange={e => setPriceInput(e.target.value)}
+              />
+              {priceType === 'bulk' && priceInput && (
+                <span className="text-[10px] text-stone-500 mt-0.5 font-semibold">
+                  Computed per-unit: ${(Number(priceInput) / qty).toFixed(2)}/ea
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Financial summary */}
+          <div className="bg-stone-900 text-stone-100 p-4 rounded border font-mono text-xs space-y-2" id="sell_batch_financial_summary">
+            <div className="flex justify-between">
+              <span>Total Revenue:</span>
+              <span>${currentRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+            </div>
+            <div className="flex justify-between text-stone-400">
+              <span>Total COGS Cost:</span>
+              <span>-${currentCogs.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+            </div>
+            <div className="flex justify-between border-t border-stone-800 pt-2 font-semibold text-sm text-emerald-400">
+              <span>Estimated Profit:</span>
+              <span>${currentProfit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-3 pt-2" id="sell_batch_modal_actions">
+            <button
+              id="btn_sell_batch_cancel"
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 border rounded text-xs text-stone-600 hover:bg-stone-50 font-medium transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              id="btn_sell_batch_confirm"
+              type="button"
+              onClick={handleConfirm}
+              className="px-4 py-2 bg-[#C9A84C] text-stone-950 font-bold hover:bg-[#b7963d] rounded text-xs transition-colors"
+            >
+              Confirm and Deplete Stock
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function CatalogItemEditModal({ item, onSave, onClose }) {
   const [form, setForm] = useState({ ...item });
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
@@ -211,10 +415,11 @@ const COND_COLORS = { new: '#3B6D11', mint: '#3B6D11', good: '#854F0B', fair: '#
 const COND_BG    = { new: '#F0F7F0',  mint: '#F0F7F0',  good: '#FFF8E8', fair: '#FDF0EE' };
 
 export function InventoryTab({ onSwitchTab }) {
-  const { catalogItems, products, batches, getCatalogItemStock, deleteCatalogItem, updateCatalogItem, recordSale, deleteBatch } = useStore();
+  const { catalogItems, products, batches, getCatalogItemStock, deleteCatalogItem, updateCatalogItem, recordSale, recordManualSale, deleteBatch } = useStore();
   
   const [search, setSearch] = useState('');
   const [sellTarget, setSellTarget] = useState(null);
+  const [sellBatchTarget, setSellBatchTarget] = useState(null);
   const [editTarget, setEditTarget] = useState(null);
   const [activeSubView, setActiveSubView] = useState('catalog'); // 'catalog' | 'batches'
 
@@ -244,6 +449,16 @@ export function InventoryTab({ onSwitchTab }) {
       setSellTarget(null);
     } catch (err) {
       alert(`Error recording sale: ${err.message}`);
+    }
+  };
+
+  const handleManualSaleConfirm = (saleDetails) => {
+    try {
+      recordManualSale(saleDetails);
+      setSellBatchTarget(null);
+      alert('Manual direct sale successfully recorded! Stock has been depleted.');
+    } catch (err) {
+      alert(`Error recording manual sale: ${err.message}`);
     }
   };
 
@@ -418,9 +633,21 @@ export function InventoryTab({ onSwitchTab }) {
                     <td className={styles.numCell}>${batch.costPerItem.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
                     <td className={styles.numCell}>${batch.totalCost.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
                     <td>
-                      <button className={`${styles.iconBtn} ${styles.deleteBtn} border-stone-200 hover:border-red-500`} title="Delete Batch" onClick={() => deleteBatch(batch.id)}>
-                        <Trash2 size={13} strokeWidth={1.5} />
-                      </button>
+                      <div className="flex gap-1.5 justify-center">
+                        <button
+                          className={`${styles.iconBtn} bg-stone-900 text-white border-stone-900 hover:bg-stone-800`}
+                          title="Record Direct Manual Sale"
+                          id={`btn_record_direct_sale_batch_${batch.batchNumber}`}
+                          disabled={batch.remainingQty <= 0}
+                          style={{ opacity: batch.remainingQty <= 0 ? 0.4 : 1 }}
+                          onClick={() => setSellBatchTarget(batch)}
+                        >
+                          <ShoppingCart size={13} strokeWidth={1.8} />
+                        </button>
+                        <button className={`${styles.iconBtn} ${styles.deleteBtn} border-stone-200 hover:border-red-500`} title="Delete Batch" onClick={() => deleteBatch(batch.id)}>
+                          <Trash2 size={13} strokeWidth={1.5} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );
@@ -438,6 +665,13 @@ export function InventoryTab({ onSwitchTab }) {
           item={sellTarget}
           onConfirm={handleSaleConfirm}
           onClose={() => setSellTarget(null)}
+        />
+      )}
+      {sellBatchTarget && (
+        <SellBatchModal
+          batch={sellBatchTarget}
+          onConfirm={handleManualSaleConfirm}
+          onClose={() => setSellBatchTarget(null)}
         />
       )}
       {editTarget && (
