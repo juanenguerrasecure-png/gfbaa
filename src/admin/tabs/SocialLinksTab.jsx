@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Facebook, Instagram, Save, ShoppingBag, PhoneCall } from 'lucide-react';
+import { Instagram, Save, ShoppingBag, PhoneCall, Share2 } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
 
 const DEFAULT_SOCIAL_LINKS = {
@@ -88,12 +88,7 @@ export function SocialLinksTab() {
         <Icon size={14} className="text-[#C9A84C]" />
         {label}
       </label>
-      <input
-        value={value}
-        onChange={event => onChange(event.target.value)}
-        placeholder={placeholder}
-        className="w-full border border-stone-300 rounded px-3 py-2 text-sm text-stone-900 outline-none focus:border-[#C9A84C]"
-      />
+      <input value={value} onChange={event => onChange(event.target.value)} placeholder={placeholder} className="w-full border border-stone-300 rounded px-3 py-2 text-sm text-stone-900 outline-none focus:border-[#C9A84C]" />
       {helper && <p className="text-[11px] text-stone-400">{helper}</p>}
     </div>
   );
@@ -105,14 +100,10 @@ export function SocialLinksTab() {
         <p className="text-sm text-stone-500">Configure the storefront social media icon links. Empty fields are hidden from the storefront.</p>
       </div>
 
-      {status && (
-        <div className="text-sm px-4 py-3 rounded border border-[#E5DFD8] bg-white text-stone-700">
-          {status}
-        </div>
-      )}
+      {status && <div className="text-sm px-4 py-3 rounded border border-[#E5DFD8] bg-white text-stone-700">{status}</div>}
 
       <form onSubmit={handleSave} className="space-y-4 max-w-3xl">
-        <InputRow icon={Facebook} label="Facebook URL" value={form.facebook} onChange={value => setField('facebook', value)} placeholder="https://facebook.com/yourpage" />
+        <InputRow icon={Share2} label="Facebook URL" value={form.facebook} onChange={value => setField('facebook', value)} placeholder="https://facebook.com/yourpage" />
         <InputRow icon={Instagram} label="Instagram URL" value={form.instagram} onChange={value => setField('instagram', value)} placeholder="https://instagram.com/yourprofile" />
         <InputRow icon={ShoppingBag} label="Whatnot URL" value={form.whatnot} onChange={value => setField('whatnot', value)} placeholder="https://whatnot.com/user/yourshop" />
         <InputRow icon={PhoneCall} label="WhatsApp Number or URL" value={form.whatsapp} onChange={value => setField('whatsapp', value)} placeholder="15551234567 or https://wa.me/15551234567" helper="Numbers are saved as https://wa.me/<number>." />
