@@ -1,5 +1,5 @@
 import { lazy, Suspense, useState } from 'react';
-import { Package, PlusCircle, BarChart2, LogOut, X, Menu, Code, Users, Bell, ShoppingCart } from 'lucide-react';
+import { Package, PlusCircle, BarChart2, LogOut, X, Menu, Code, Users, Bell, ShoppingCart, Share2, CreditCard } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useStore } from '../context/StoreContext';
 import styles from './AdminPanel.module.css';
@@ -10,6 +10,8 @@ const ReportsTab = lazy(() => import('./tabs/ReportsTab').then(m => ({ default: 
 const DesignTab = lazy(() => import('./tabs/DesignTab').then(m => ({ default: m.DesignTab })));
 const UsersTab = lazy(() => import('./tabs/UsersTab').then(m => ({ default: m.UsersTab })));
 const RequestsTab = lazy(() => import('./tabs/RequestsTab').then(m => ({ default: m.RequestsTab })));
+const SocialLinksTab = lazy(() => import('./tabs/SocialLinksTab').then(m => ({ default: m.SocialLinksTab })));
+const PaymentMethodsTab = lazy(() => import('./tabs/PaymentMethodsTab').then(m => ({ default: m.PaymentMethodsTab })));
 const GlobalManualSaleModal = lazy(() => import('./components/GlobalManualSaleModal').then(m => ({ default: m.GlobalManualSaleModal })));
 
 function AdminContentFallback() {
@@ -29,13 +31,15 @@ const NAV = [
   { key: 'add', label: 'Add Batch / Purchase', icon: PlusCircle, tab: AddItemTab },
   { key: 'reports', label: 'Reports & Logs', icon: BarChart2, tab: ReportsTab },
   { key: 'users', label: 'Users & Control', icon: Users, tab: UsersTab },
+  { key: 'social', label: 'Social Links', icon: Share2, tab: SocialLinksTab },
+  { key: 'payments', label: 'Payment Setup', icon: CreditCard, tab: PaymentMethodsTab },
   { key: 'design', label: 'System Design', icon: Code, tab: DesignTab },
 ];
 
 const GROUPS = [
   { title: 'Operations & Stock', items: ['inventory', 'add'] },
   { title: 'Customer Management', items: ['requests'] },
-  { title: 'System & Settings', items: ['reports', 'users', 'design'] },
+  { title: 'System & Settings', items: ['reports', 'users', 'social', 'payments', 'design'] },
 ];
 
 export function AdminPanel({ onExitAdmin }) {
