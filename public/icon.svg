@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Good Finds by AA">
+  <defs>
+    <radialGradient id="gold" cx="35%" cy="25%" r="75%">
+      <stop offset="0" stop-color="#fff2a8"/>
+      <stop offset="0.45" stop-color="#f3bd3c"/>
+      <stop offset="1" stop-color="#9f6b12"/>
+    </radialGradient>
+    <linearGradient id="softGold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fff0a6"/>
+      <stop offset="0.5" stop-color="#d89b25"/>
+      <stop offset="1" stop-color="#6d4308"/>
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="2.2" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <rect width="512" height="512" rx="96" fill="#050403"/>
+  <circle cx="256" cy="256" r="188" fill="none" stroke="url(#softGold)" stroke-width="10" opacity="0.92"/>
+  <circle cx="256" cy="256" r="168" fill="none" stroke="#f6c85d" stroke-width="3" opacity="0.65"/>
+
+  <g filter="url(#glow)" fill="url(#gold)">
+    <g transform="translate(112 96)">
+      <circle cx="0" cy="0" r="28"/>
+      <g>
+        <ellipse cx="0" cy="-44" rx="14" ry="40" transform="rotate(0)"/>
+        <ellipse cx="0" cy="-44" rx="14" ry="40" transform="rotate(45)"/>
+        <ellipse cx="0" cy="-44" rx="14" ry="40" transform="rotate(90)"/>
+        <ellipse cx="0" cy="-44" rx="14" ry="40" transform="rotate(135)"/>
+        <ellipse cx="0" cy="-44" rx="14" ry="40" transform="rotate(180)"/>
+        <ellipse cx="0" cy="-44" rx="14" ry="40" transform="rotate(225)"/>
+        <ellipse cx="0" cy="-44" rx="14" ry="40" transform="rotate(270)"/>
+        <ellipse cx="0" cy="-44" rx="14" ry="40" transform="rotate(315)"/>
+      </g>
+    </g>
+    <g transform="translate(400 96)">
+      <circle cx="0" cy="0" r="28"/>
+      <g>
+        <ellipse cx="0" cy="-44" rx="14" ry="40" transform="rotate(0)"/>
+        <ellipse cx="0" cy="-44" rx="14" ry="40" transform="rotate(45)"/>
+        <ellipse cx="0" cy="-44" rx="14" ry="40" transform="rotate(90)"/>
+        <ellipse cx="0" cy="-44" rx="14" ry="40" transform="rotate(135)"/>
+        <ellipse cx="0" cy="-44" rx="14" ry="40" transform="rotate(180)"/>
+        <ellipse cx="0" cy="-44" rx="14" ry="40" transform="rotate(225)"/>
+        <ellipse cx="0" cy="-44" rx="14" ry="40" transform="rotate(270)"/>
+        <ellipse cx="0" cy="-44" rx="14" ry="40" transform="rotate(315)"/>
+      </g>
+    </g>
+  </g>
+
+  <path d="M115 172 C162 124 209 121 256 154 C303 121 350 124 397 172" fill="none" stroke="url(#gold)" stroke-width="9" stroke-linecap="round"/>
+  <path d="M104 340 C154 392 211 403 256 368 C301 403 358 392 408 340" fill="none" stroke="url(#gold)" stroke-width="9" stroke-linecap="round"/>
+  <path d="M112 177 C92 236 93 295 130 352" fill="none" stroke="url(#softGold)" stroke-width="7" stroke-linecap="round"/>
+  <path d="M400 177 C420 236 419 295 382 352" fill="none" stroke="url(#softGold)" stroke-width="7" stroke-linecap="round"/>
+
+  <text x="256" y="244" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="50" letter-spacing="7" fill="url(#gold)">GOOD FINDS</text>
+  <text x="256" y="297" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="48" fill="url(#gold)">by AA</text>
+  <path d="M256 342 C239 325 208 339 223 367 C232 383 256 399 256 399 C256 399 280 383 289 367 C304 339 273 325 256 342Z" fill="url(#gold)"/>
+</svg>
