@@ -61,22 +61,16 @@ export function AdminPanel({ onExitAdmin }) {
   return (
     <div className={styles.shell}>
       <header className={styles.topBar}>
-        <div className={styles.headerPrimaryRow}>
+        <div className={styles.headerRow1}>
           <div className={styles.topLeft}>
             <button className={styles.menuBtn} onClick={() => setSidebarOpen(v => !v)} aria-label="Toggle sidebar">
               {sidebarOpen ? <X size={18} /> : <Menu size={18} />}
             </button>
-            <div className={styles.brand}>
-              <span className={styles.brandName}>Good Finds by AA</span>
-              <span className={`${styles.brandBadge} ${styles.desktopBadge}`}>Admin</span>
-            </div>
+            <span className={styles.brandName}>Good Finds by AA</span>
           </div>
 
-          <div className={styles.topRight}>
-            <button id="nav_tool_manual_sale_btn" onClick={() => setShowGlobalManualSale(true)} className={styles.manualSaleBtn}>
-              <ShoppingCart size={13} strokeWidth={2} />
-              <span>Manual Sale Entry</span>
-            </button>
+          <div className={styles.headerActions}>
+            <span className={styles.brandBadge}>Admin</span>
             <button className={styles.storeLinkBtn} onClick={onExitAdmin}>← Back to store</button>
             <button className={styles.logoutBtn} onClick={handleLogout}>
               <LogOut size={14} strokeWidth={1.5} />
@@ -85,9 +79,8 @@ export function AdminPanel({ onExitAdmin }) {
           </div>
         </div>
 
-        <div className={styles.mobileActionRow}>
-          <span className={styles.brandBadge}>Admin</span>
-          <button onClick={() => setShowGlobalManualSale(true)} className={styles.manualSaleBtn}>
+        <div className={styles.headerRow2}>
+          <button id="nav_tool_manual_sale_btn" onClick={() => setShowGlobalManualSale(true)} className={styles.manualSaleBtn}>
             <ShoppingCart size={13} strokeWidth={2} />
             <span>Manual Sale Entry</span>
           </button>
