@@ -57,37 +57,58 @@ export function StoreProvider({ children }) {
     return [];
   });
 
+  // --- Real-time Sync and Polling Implementation ---
+  const syncWithDatabase = useCallback(async () => {
+    try {
+      const res = await fetch('/api/sync');
+      if (!res.ok) throw new Error('Database sync request failed.');
+      const data = await res.json();
+      if (data.ok) {
+        setProducts(data.products || []);
+        setBatches(data.batches || []);
+        setCatalogItems(data.catalogItems || []);
+        setSales(data.sales || []);
+        setPurchaseRequests(data.purchaseRequests || []);
+        setExchangeRate(data.exchangeRate || DEFAULT_EXCHANGE_RATE);
 
-  // Save to LocalStorage whenever state changes
-  useEffect(() => {
-    localStorage.setItem('gf_exchange_rate', exchangeRate.toString());
-  }, [exchangeRate]);
+        // Save local cache backup
+        localStorage.setItem('gf_products', JSON.stringify(data.products || []));
+        localStorage.setItem('gf_batches', JSON.stringify(data.batches || []));
+        localStorage.setItem('gf_catalog_items', JSON.stringify(data.catalogItems || []));
+        localStorage.setItem('gf_sales', JSON.stringify(data.sales || []));
+        localStorage.setItem('gf_purchase_requests', JSON.stringify(data.purchaseRequests || []));
+        localStorage.setItem('gf_exchange_rate', String(data.exchangeRate || DEFAULT_EXCHANGE_RATE));
+      }
+    } catch (err) {
+      console.warn('Real-time database sync failed (offline fallback active):', err);
+    }
+  }, []);
 
+  // Fetch immediately and poll every 6 seconds to synchronize across all devices and tabs
   useEffect(() => {
-    localStorage.setItem('gf_products', JSON.stringify(products));
-  }, [products]);
-
-  useEffect(() => {
-    localStorage.setItem('gf_batches', JSON.stringify(batches));
-  }, [batches]);
-
-  useEffect(() => {
-    localStorage.setItem('gf_catalog_items', JSON.stringify(catalogItems));
-  }, [catalogItems]);
-
-  useEffect(() => {
-    localStorage.setItem('gf_sales', JSON.stringify(sales));
-  }, [sales]);
-
-  useEffect(() => {
-    localStorage.setItem('gf_purchase_requests', JSON.stringify(purchaseRequests));
-  }, [purchaseRequests]);
+    syncWithDatabase();
+    const interval = setInterval(syncWithDatabase, 6000);
+    return () => clearInterval(interval);
+  }, [syncWithDatabase]);
 
   // --- Exchange Rate Converter helper ---
   const convertPhpToUsd = useCallback((phpAmount) => {
     if (!phpAmount || isNaN(Number(phpAmount))) return 0;
     return Math.round((Number(phpAmount) / exchangeRate) * 100) / 100;
   }, [exchangeRate]);
+
+  // --- Exchange Rate Setter wrapper ---
+  const updateExchangeRate = useCallback((rate) => {
+    const numericRate = Math.max(1, Number(rate)) || DEFAULT_EXCHANGE_RATE;
+    setExchangeRate(numericRate);
+    localStorage.setItem('gf_exchange_rate', String(numericRate));
+
+    fetch('/api/settings/exchange_rate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ value: numericRate })
+    }).catch(err => console.error('Failed to sync exchange rate setting:', err));
+  }, []);
 
   // --- Product Management ---
   const addProduct = useCallback((product) => {
@@ -99,18 +120,58 @@ export function StoreProvider({ children }) {
       emoji: product.emoji || (product.cat === 'bags' ? '👜' : '💍'),
       photoUrl: product.photoUrl || null
     };
-    setProducts(prev => [newProduct, ...prev]);
+
+    setProducts(prev => {
+      const next = [newProduct, ...prev];
+      localStorage.setItem('gf_products', JSON.stringify(next));
+      return next;
+    });
+
+    fetch('/api/products', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newProduct)
+    }).catch(err => console.error('addProduct server sync failed:', err));
+
     return newProduct;
   }, []);
 
   const updateProduct = useCallback((id, updates) => {
-    setProducts(prev => prev.map(p => p.id === id ? { ...p, ...updates } : p));
+    setProducts(prev => {
+      const next = prev.map(p => p.id === id ? { ...p, ...updates } : p);
+      localStorage.setItem('gf_products', JSON.stringify(next));
+      return next;
+    });
+
+    fetch(`/api/products/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updates)
+    }).catch(err => console.error('updateProduct server sync failed:', err));
   }, []);
 
   const deleteProduct = useCallback((id) => {
-    setProducts(prev => prev.filter(p => p.id !== id));
+    setProducts(prev => {
+      const next = prev.filter(p => p.id !== id);
+      localStorage.setItem('gf_products', JSON.stringify(next));
+      return next;
+    });
+
     // Also delete any batches of this product
-    setBatches(prev => prev.filter(b => b.productId !== id));
+    setBatches(prev => {
+      const next = prev.filter(b => b.productId !== id);
+      localStorage.setItem('gf_batches', JSON.stringify(next));
+      // Trigger deletion of linked batches on the server too
+      prev.forEach(b => {
+        if (b.productId === id) {
+          fetch(`/api/batches/${b.id}`, { method: 'DELETE' }).catch(() => {});
+        }
+      });
+      return next;
+    });
+
+    fetch(`/api/products/${id}`, { method: 'DELETE' })
+      .catch(err => console.error('deleteProduct server sync failed:', err));
   }, []);
 
   // --- Catalog (Storefront Listings) Management ---
@@ -126,25 +187,53 @@ export function StoreProvider({ children }) {
       quantity: qty,
       remainingQty: qty
     };
-    setCatalogItems(prev => [newItem, ...prev]);
+
+    setCatalogItems(prev => {
+      const next = [newItem, ...prev];
+      localStorage.setItem('gf_catalog_items', JSON.stringify(next));
+      return next;
+    });
+
+    fetch('/api/catalog_items', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newItem)
+    }).catch(err => console.error('addCatalogItem server sync failed:', err));
+
     return newItem;
   }, []);
 
   const updateCatalogItem = useCallback((id, updates) => {
-    setCatalogItems(prev => prev.map(item => {
-      if (item.id === id) {
-        const nextItem = { ...item, ...updates };
-        // Ensure numbers are properly typed
-        if (updates.quantity !== undefined) nextItem.quantity = Number(updates.quantity);
-        if (updates.remainingQty !== undefined) nextItem.remainingQty = Number(updates.remainingQty);
-        return nextItem;
-      }
-      return item;
-    }));
+    setCatalogItems(prev => {
+      const next = prev.map(item => {
+        if (item.id === id) {
+          const nextItem = { ...item, ...updates };
+          if (updates.quantity !== undefined) nextItem.quantity = Number(updates.quantity);
+          if (updates.remainingQty !== undefined) nextItem.remainingQty = Number(updates.remainingQty);
+          return nextItem;
+        }
+        return item;
+      });
+      localStorage.setItem('gf_catalog_items', JSON.stringify(next));
+      return next;
+    });
+
+    fetch(`/api/catalog_items/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updates)
+    }).catch(err => console.error('updateCatalogItem server sync failed:', err));
   }, []);
 
   const deleteCatalogItem = useCallback((id) => {
-    setCatalogItems(prev => prev.filter(item => item.id !== id));
+    setCatalogItems(prev => {
+      const next = prev.filter(item => item.id !== id);
+      localStorage.setItem('gf_catalog_items', JSON.stringify(next));
+      return next;
+    });
+
+    fetch(`/api/catalog_items/${id}`, { method: 'DELETE' })
+      .catch(err => console.error('deleteCatalogItem server sync failed:', err));
   }, []);
 
   const getCatalogItemStock = useCallback((catalogItemId) => {
@@ -191,16 +280,44 @@ export function StoreProvider({ children }) {
       enteredInPhp: !!batchData.enteredInPhp
     };
 
-    setBatches(prev => [newBatch, ...prev]);
+    setBatches(prev => {
+      const next = [newBatch, ...prev];
+      localStorage.setItem('gf_batches', JSON.stringify(next));
+      return next;
+    });
+
+    fetch('/api/batches', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newBatch)
+    }).catch(err => console.error('addBatch server sync failed:', err));
+
     return newBatch;
   }, [exchangeRate, convertPhpToUsd]);
 
   const updateBatch = useCallback((id, updates) => {
-    setBatches(prev => prev.map(b => b.id === id ? { ...b, ...updates } : b));
+    setBatches(prev => {
+      const next = prev.map(b => b.id === id ? { ...b, ...updates } : b);
+      localStorage.setItem('gf_batches', JSON.stringify(next));
+      return next;
+    });
+
+    fetch(`/api/batches/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updates)
+    }).catch(err => console.error('updateBatch server sync failed:', err));
   }, []);
 
   const deleteBatch = useCallback((id) => {
-    setBatches(prev => prev.filter(b => b.id !== id));
+    setBatches(prev => {
+      const next = prev.filter(b => b.id !== id);
+      localStorage.setItem('gf_batches', JSON.stringify(next));
+      return next;
+    });
+
+    fetch(`/api/batches/${id}`, { method: 'DELETE' })
+      .catch(err => console.error('deleteBatch server sync failed:', err));
   }, []);
 
   // --- Sales Record (with FIFO and Manual Selection) ---
@@ -348,6 +465,8 @@ export function StoreProvider({ children }) {
     // All deductions validated and processed! Save the updated batches and register the sale.
     setBatches(updatedBatches);
     setCatalogItems(updatedCatalogItems);
+    localStorage.setItem('gf_batches', JSON.stringify(updatedBatches));
+    localStorage.setItem('gf_catalog_items', JSON.stringify(updatedCatalogItems));
 
     const newSale = {
       id: `sale-${Date.now()}`,
@@ -360,7 +479,52 @@ export function StoreProvider({ children }) {
       selectionMethod: batchIdToDeduct ? 'Direct' : selectionMethod
     };
 
-    setSales(prev => [newSale, ...prev]);
+    setSales(prev => {
+      const next = [newSale, ...prev];
+      localStorage.setItem('gf_sales', JSON.stringify(next));
+      return next;
+    });
+
+    // Sync all modified entities to backend in background
+    fetch('/api/sales', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newSale)
+    }).catch(err => console.error('recordSale API save failed:', err));
+
+    // Update modified batches and catalog items on database
+    items.forEach(item => {
+      const prodIdStr = String(item.productId);
+      const catalogItemObj = updatedCatalogItems.find(c => String(c.id) === prodIdStr);
+      if (catalogItemObj) {
+        fetch(`/api/catalog_items/${catalogItemObj.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ remainingQty: catalogItemObj.remainingQty })
+        }).catch(() => {});
+
+        const batchInState = updatedBatches.find(b => b.id === catalogItemObj.batchId);
+        if (batchInState) {
+          fetch(`/api/batches/${batchInState.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ remainingQty: batchInState.remainingQty })
+          }).catch(() => {});
+        }
+      } else {
+        item.batches?.forEach(b => {
+          const batchInState = updatedBatches.find(bs => bs.id === b.batchId);
+          if (batchInState) {
+            fetch(`/api/batches/${batchInState.id}`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ remainingQty: batchInState.remainingQty })
+            }).catch(() => {});
+          }
+        });
+      }
+    });
+
     return newSale;
   }, [batches, products, catalogItems]);
 
@@ -377,19 +541,39 @@ export function StoreProvider({ children }) {
       const catInState = updatedCatalogItems.find(c => String(c.id) === String(item.productId));
       if (catInState && catInState.remainingQty !== undefined) {
         catInState.remainingQty += item.qty;
+        fetch(`/api/catalog_items/${catInState.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ remainingQty: catInState.remainingQty })
+        }).catch(() => {});
       }
 
       item.batches.forEach(b => {
         const batchInState = updatedBatches.find(bs => bs.id === b.batchId);
         if (batchInState) {
           batchInState.remainingQty += b.qty;
+          fetch(`/api/batches/${batchInState.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ remainingQty: batchInState.remainingQty })
+          }).catch(() => {});
         }
       });
     });
 
     setBatches(updatedBatches);
     setCatalogItems(updatedCatalogItems);
-    setSales(prev => prev.filter(s => s.id !== saleId));
+    setSales(prev => {
+      const next = prev.filter(s => s.id !== saleId);
+      localStorage.setItem('gf_sales', JSON.stringify(next));
+      return next;
+    });
+    localStorage.setItem('gf_batches', JSON.stringify(updatedBatches));
+    localStorage.setItem('gf_catalog_items', JSON.stringify(updatedCatalogItems));
+
+    // Delete sale from database
+    fetch(`/api/sales/${saleId}`, { method: 'DELETE' })
+      .catch(err => console.error('deleteSale server sync failed:', err));
   }, [sales, batches, catalogItems]);
 
   // --- Dynamic Inventory Calculations ---
@@ -416,16 +600,45 @@ export function StoreProvider({ children }) {
       shippingCost: null,
       specialInstructions: requestData.specialInstructions || ''
     };
-    setPurchaseRequests(prev => [newRequest, ...prev]);
+
+    setPurchaseRequests(prev => {
+      const next = [newRequest, ...prev];
+      localStorage.setItem('gf_purchase_requests', JSON.stringify(next));
+      return next;
+    });
+
+    fetch('/api/requests', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newRequest)
+    }).catch(err => console.error('addPurchaseRequest server sync failed:', err));
+
     return newRequest;
   }, []);
 
   const updatePurchaseRequest = useCallback((id, updates) => {
-    setPurchaseRequests(prev => prev.map(r => r.id === id ? { ...r, ...updates } : r));
+    setPurchaseRequests(prev => {
+      const next = prev.map(r => r.id === id ? { ...r, ...updates } : r);
+      localStorage.setItem('gf_purchase_requests', JSON.stringify(next));
+      return next;
+    });
+
+    fetch(`/api/requests/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updates)
+    }).catch(err => console.error('updatePurchaseRequest server sync failed:', err));
   }, []);
 
   const deletePurchaseRequest = useCallback((id) => {
-    setPurchaseRequests(prev => prev.filter(r => r.id !== id));
+    setPurchaseRequests(prev => {
+      const next = prev.filter(r => r.id !== id);
+      localStorage.setItem('gf_purchase_requests', JSON.stringify(next));
+      return next;
+    });
+
+    fetch(`/api/requests/${id}`, { method: 'DELETE' })
+      .catch(err => console.error('deletePurchaseRequest server sync failed:', err));
   }, []);
 
   const clearMockData = useCallback(() => {
@@ -435,12 +648,20 @@ export function StoreProvider({ children }) {
     setSales([]);
     setPurchaseRequests([]);
     setCatalogItems([]);
+    localStorage.removeItem('gf_products');
+    localStorage.removeItem('gf_batches');
+    localStorage.removeItem('gf_sales');
+    localStorage.removeItem('gf_purchase_requests');
+    localStorage.removeItem('gf_catalog_items');
+
+    fetch('/api/clear', { method: 'POST' })
+      .catch(err => console.error('clearMockData server sync failed:', err));
   }, []);
 
   return (
     <StoreContext.Provider value={{
       exchangeRate,
-      setExchangeRate,
+      setExchangeRate: updateExchangeRate,
       products,
       addProduct,
       updateProduct,
