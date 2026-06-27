@@ -3,6 +3,7 @@ import { createContext, useCallback, useContext, useEffect, useRef, useState } f
 const StoreContext = createContext(null);
 const DEFAULT_EXCHANGE_RATE = 58.0;
 const DEFAULT_PAYMENT_METHODS = { zelle: { handle: '', instructions: '', qrUrl: '' }, venmo: { handle: '', instructions: '', qrUrl: '' } };
+const DEFAULT_HERO_IMAGE = { url: '', alt: 'Good Finds by AA Featured Collection' };
 
 function getAuthHeaders(extra = {}) {
   const token = localStorage.getItem('gf_session_token') || '';
@@ -13,6 +14,14 @@ function normalizePaymentMethods(value) {
   return {
     zelle: { ...DEFAULT_PAYMENT_METHODS.zelle, ...(value?.zelle || {}) },
     venmo: { ...DEFAULT_PAYMENT_METHODS.venmo, ...(value?.venmo || {}) },
+  };
+}
+
+function normalizeHeroImage(value) {
+  if (!value || typeof value !== 'object') return DEFAULT_HERO_IMAGE;
+  return {
+    url: String(value.url || '').trim(),
+    alt: String(value.alt || DEFAULT_HERO_IMAGE.alt).trim() || DEFAULT_HERO_IMAGE.alt,
   };
 }
 
@@ -35,6 +44,7 @@ export function StoreProvider({ children }) {
   const [catalogItems, setCatalogItems] = useState(() => readLocalJson('gf_catalog_items', []));
   const [socialLinks, setSocialLinks] = useState(() => readLocalJson('gf_social_links', {}));
   const [paymentMethods, setPaymentMethods] = useState(() => normalizePaymentMethods(readLocalJson('gf_payment_methods', DEFAULT_PAYMENT_METHODS)));
+  const [heroImage, setHeroImage] = useState(() => normalizeHeroImage(readLocalJson('gf_hero_image', DEFAULT_HERO_IMAGE)));
 
   const [cloudReady, setCloudReady] = useState(false);
   const applyingRemoteRef = useRef(false);
@@ -51,7 +61,8 @@ export function StoreProvider({ children }) {
     catalogItems,
     socialLinks,
     paymentMethods,
-  }), [exchangeRate, products, batches, sales, purchaseRequests, catalogItems, socialLinks, paymentMethods]);
+    heroImage,
+  }), [exchangeRate, products, batches, sales, purchaseRequests, catalogItems, socialLinks, paymentMethods, heroImage]);
 
   const snapshotHasRecords = (snapshot) => Boolean(
     snapshot?.products?.length || snapshot?.batches?.length || snapshot?.catalogItems?.length || snapshot?.sales?.length || snapshot?.purchaseRequests?.length
@@ -66,6 +77,7 @@ export function StoreProvider({ children }) {
     localStorage.setItem('gf_catalog_items', JSON.stringify(snapshot.catalogItems || []));
     localStorage.setItem('gf_social_links', JSON.stringify(snapshot.socialLinks || {}));
     localStorage.setItem('gf_payment_methods', JSON.stringify(normalizePaymentMethods(snapshot.paymentMethods)));
+    localStorage.setItem('gf_hero_image', JSON.stringify(normalizeHeroImage(snapshot.heroImage)));
   }, []);
 
   const applySnapshot = useCallback((snapshot) => {
@@ -78,6 +90,7 @@ export function StoreProvider({ children }) {
     setCatalogItems(Array.isArray(snapshot.catalogItems) ? snapshot.catalogItems : []);
     setSocialLinks(snapshot.socialLinks && typeof snapshot.socialLinks === 'object' ? snapshot.socialLinks : {});
     setPaymentMethods(normalizePaymentMethods(snapshot.paymentMethods));
+    setHeroImage(normalizeHeroImage(snapshot.heroImage));
     writeLocalCache(snapshot);
     window.setTimeout(() => { applyingRemoteRef.current = false; }, 0);
   }, [writeLocalCache]);
@@ -169,6 +182,14 @@ export function StoreProvider({ children }) {
     const normalized = normalizePaymentMethods(nextPaymentMethods);
     setPaymentMethods(normalized);
     const snapshot = { ...buildSnapshot(), paymentMethods: normalized };
+    writeLocalCache(snapshot);
+    await saveCloudState(snapshot);
+  }, [buildSnapshot, saveCloudState, writeLocalCache]);
+
+  const saveHeroImage = useCallback(async (nextHeroImage) => {
+    const normalized = normalizeHeroImage(nextHeroImage);
+    setHeroImage(normalized);
+    const snapshot = { ...buildSnapshot(), heroImage: normalized };
     writeLocalCache(snapshot);
     await saveCloudState(snapshot);
   }, [buildSnapshot, saveCloudState, writeLocalCache]);
@@ -327,12 +348,12 @@ export function StoreProvider({ children }) {
   const deletePurchaseRequest = useCallback((id) => setPurchaseRequests(prev => prev.filter(r => r.id !== id)), []);
 
   const clearMockData = useCallback(() => {
-    const emptySnapshot = { exchangeRate, products: [], batches: [], sales: [], purchaseRequests: [], catalogItems: [], socialLinks, paymentMethods };
+    const emptySnapshot = { exchangeRate, products: [], batches: [], sales: [], purchaseRequests: [], catalogItems: [], socialLinks, paymentMethods, heroImage };
     localStorage.setItem('gf_cleared', 'true');
     setProducts([]); setBatches([]); setSales([]); setPurchaseRequests([]); setCatalogItems([]);
     writeLocalCache(emptySnapshot);
     saveCloudState(emptySnapshot);
-  }, [exchangeRate, socialLinks, paymentMethods, saveCloudState, writeLocalCache]);
+  }, [exchangeRate, socialLinks, paymentMethods, heroImage, saveCloudState, writeLocalCache]);
 
   return (
     <StoreContext.Provider value={{
@@ -345,6 +366,7 @@ export function StoreProvider({ children }) {
       purchaseRequests, addPurchaseRequest, updatePurchaseRequest, deletePurchaseRequest,
       socialLinks, saveSocialLinks,
       paymentMethods, savePaymentMethods,
+      heroImage, saveHeroImage,
       clearMockData
     }}>
       {children}
