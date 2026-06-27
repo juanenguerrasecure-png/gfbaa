@@ -57,6 +57,19 @@ export default {
     const url = new URL(request.url);
     const path = url.pathname.replace(/\/$/, '') || '/';
 
+    // Serve the React frontend for non-API routes (SPA Routing)
+    if (!path.startsWith('/api')) {
+      if (env.ASSETS) {
+        const response = await env.ASSETS.fetch(request.clone());
+        if (response.status === 404) {
+          const indexUrl = new URL('/index.html', request.url);
+          return await env.ASSETS.fetch(new Request(indexUrl, request));
+        }
+        return response;
+      }
+      return new Response('Assets binding not found. Please deploy with assets configured.', { status: 500 });
+    }
+
     try {
       if (path === '/' || path === '/api/health') {
         return json(

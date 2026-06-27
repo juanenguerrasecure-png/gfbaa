@@ -3,6 +3,10 @@ compatibility_date = "2026-06-27"
 
 main = "worker/index.js"
 
+[assets]
+directory = "./dist"
+binding = "ASSETS"
+
 [[d1_databases]]
 binding = "DB"
 database_name = "gfbaa-preloved"
@@ -15,3 +19,6 @@ bucket_name = "gfbaa-photos"
 [vars]
 ALLOWED_ORIGIN = "https://your-frontend.pages.dev"
 R2_PUBLIC_URL = "https://your-r2-custom-domain.com"
+
+[assets]
+directory = "./dist"
