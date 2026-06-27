@@ -1,91 +1,8 @@
-let schemaEnsured = false;
-
-async function ensureSchema(env) {
-  if (schemaEnsured) return;
-  if (!env.DB) {
-    throw new Error('D1 binding DB is not available.');
-  }
-
-  await env.DB.exec(`
-    CREATE TABLE IF NOT EXISTS products (
-      id TEXT PRIMARY KEY,
-      name TEXT,
-      brand TEXT,
-      cat TEXT,
-      price REAL,
-      orig REAL,
-      emoji TEXT,
-      photoUrl TEXT
-    );
-
-    CREATE TABLE IF NOT EXISTS batches (
-      id TEXT PRIMARY KEY,
-      productId TEXT,
-      batchNumber TEXT,
-      date TEXT,
-      quantity INTEGER,
-      remainingQty INTEGER,
-      productCost REAL,
-      shipping REAL,
-      tariff REAL,
-      totalCost REAL,
-      costPerItem REAL,
-      condition TEXT,
-      exchangeRateUsed REAL,
-      enteredInPhp INTEGER
-    );
-
-    CREATE TABLE IF NOT EXISTS catalog_items (
-      id TEXT PRIMARY KEY,
-      productId TEXT,
-      name TEXT,
-      brand TEXT,
-      cat TEXT,
-      price REAL,
-      orig REAL,
-      emoji TEXT,
-      photoUrl TEXT,
-      quantity INTEGER,
-      remainingQty INTEGER,
-      batchId TEXT
-    );
-
-    CREATE TABLE IF NOT EXISTS sales (
-      id TEXT PRIMARY KEY,
-      date TEXT,
-      buyer TEXT,
-      totalPrice REAL,
-      totalCogs REAL,
-      profit REAL,
-      items TEXT,
-      selectionMethod TEXT
-    );
-
-    CREATE TABLE IF NOT EXISTS purchase_requests (
-      id TEXT PRIMARY KEY,
-      date TEXT,
-      buyerName TEXT,
-      buyerEmail TEXT,
-      buyerAddress TEXT,
-      items TEXT,
-      status TEXT,
-      shippingCost REAL,
-      specialInstructions TEXT
-    );
-
-    CREATE TABLE IF NOT EXISTS settings (
-      key TEXT PRIMARY KEY,
-      value TEXT
-    );
-  `);
-
-  schemaEnsured = true;
-}
+const STATE_ID = 'main';
 
 function buildCorsHeaders(request, env) {
   const requestOrigin = request.headers.get('Origin') || '';
   const configuredOrigin = env.ALLOWED_ORIGIN || '*';
-
   const allowOrigin =
     configuredOrigin.includes('your-frontend.pages.dev') || configuredOrigin === '*'
       ? '*'
@@ -98,7 +15,6 @@ function buildCorsHeaders(request, env) {
     'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     'Access-Control-Max-Age': '86400',
-    'Content-Type': 'application/json; charset=utf-8',
   };
 }
 
@@ -106,10 +22,175 @@ function json(data, init = {}, corsHeaders = {}) {
   return new Response(JSON.stringify(data, null, 2), {
     ...init,
     headers: {
+      'Content-Type': 'application/json; charset=utf-8',
       ...corsHeaders,
       ...(init.headers || {}),
     },
   });
+}
+
+function defaultState() {
+  return {
+    exchangeRate: 58,
+    products: [],
+    batches: [],
+    catalogItems: [],
+    sales: [],
+    purchaseRequests: [],
+  };
+}
+
+function normalizeState(input) {
+  const base = defaultState();
+  if (!input || typeof input !== 'object') return base;
+
+  return {
+    exchangeRate: Number(input.exchangeRate) || base.exchangeRate,
+    products: Array.isArray(input.products) ? input.products : [],
+    batches: Array.isArray(input.batches) ? input.batches : [],
+    catalogItems: Array.isArray(input.catalogItems) ? input.catalogItems : [],
+    sales: Array.isArray(input.sales) ? input.sales : [],
+    purchaseRequests: Array.isArray(input.purchaseRequests) ? input.purchaseRequests : [],
+  };
+}
+
+async function ensureSchema(env) {
+  if (!env.DB) throw new Error('D1 binding DB is not available.');
+
+  await env.DB.prepare(`
+    CREATE TABLE IF NOT EXISTS app_state (
+      id TEXT PRIMARY KEY,
+      value TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    )
+  `).run();
+}
+
+async function getState(env) {
+  await ensureSchema(env);
+
+  const row = await env.DB
+    .prepare('SELECT value, updated_at FROM app_state WHERE id = ?')
+    .bind(STATE_ID)
+    .first();
+
+  if (!row) {
+    return {
+      exists: false,
+      state: defaultState(),
+      updatedAt: null,
+    };
+  }
+
+  let parsed = defaultState();
+  try {
+    parsed = normalizeState(JSON.parse(row.value));
+  } catch (_error) {
+    parsed = defaultState();
+  }
+
+  return {
+    exists: true,
+    state: parsed,
+    updatedAt: row.updated_at,
+  };
+}
+
+async function saveState(env, inputState) {
+  await ensureSchema(env);
+
+  const state = normalizeState(inputState);
+  const updatedAt = new Date().toISOString();
+
+  await env.DB
+    .prepare(`
+      INSERT INTO app_state (id, value, updated_at)
+      VALUES (?, ?, ?)
+      ON CONFLICT(id) DO UPDATE SET
+        value = excluded.value,
+        updated_at = excluded.updated_at
+    `)
+    .bind(STATE_ID, JSON.stringify(state), updatedAt)
+    .run();
+
+  return { state, updatedAt };
+}
+
+function getPhotoKeyFromPath(path) {
+  const prefix = '/api/photos/';
+  if (!path.startsWith(prefix)) return '';
+  return decodeURIComponent(path.slice(prefix.length));
+}
+
+function extensionFromContentType(contentType) {
+  if (contentType.includes('png')) return 'png';
+  if (contentType.includes('webp')) return 'webp';
+  return 'jpg';
+}
+
+async function handlePhotoUpload(request, env, corsHeaders) {
+  if (!env.PHOTOS) {
+    return json({ ok: false, error: 'R2 binding PHOTOS is not available.' }, { status: 500 }, corsHeaders);
+  }
+
+  const formData = await request.formData();
+  const file = formData.get('file');
+
+  if (!file || typeof file === 'string') {
+    return json({ ok: false, error: 'Missing image file field named file.' }, { status: 400 }, corsHeaders);
+  }
+
+  const contentType = file.type || 'image/jpeg';
+  if (!contentType.startsWith('image/')) {
+    return json({ ok: false, error: 'Only image uploads are allowed.' }, { status: 400 }, corsHeaders);
+  }
+
+  const ext = extensionFromContentType(contentType);
+  const key = `photos/${Date.now()}-${crypto.randomUUID()}.${ext}`;
+
+  await env.PHOTOS.put(key, file.stream(), {
+    httpMetadata: {
+      contentType,
+      cacheControl: 'public, max-age=31536000, immutable',
+    },
+  });
+
+  const workerUrl = new URL(request.url);
+  const photoPath = `/api/photos/${key}`;
+
+  return json(
+    {
+      ok: true,
+      key,
+      url: photoPath,
+      absoluteUrl: `${workerUrl.origin}${photoPath}`,
+    },
+    { status: 201 },
+    corsHeaders
+  );
+}
+
+async function handlePhotoRead(path, env, corsHeaders) {
+  if (!env.PHOTOS) {
+    return json({ ok: false, error: 'R2 binding PHOTOS is not available.' }, { status: 500 }, corsHeaders);
+  }
+
+  const key = getPhotoKeyFromPath(path);
+  if (!key) {
+    return json({ ok: false, error: 'Missing photo key.' }, { status: 400 }, corsHeaders);
+  }
+
+  const object = await env.PHOTOS.get(key);
+  if (!object) {
+    return json({ ok: false, error: 'Photo not found.' }, { status: 404 }, corsHeaders);
+  }
+
+  const headers = new Headers(corsHeaders);
+  object.writeHttpMetadata(headers);
+  headers.set('etag', object.httpEtag);
+  headers.set('Cache-Control', 'public, max-age=31536000, immutable');
+
+  return new Response(object.body, { headers });
 }
 
 export default {
@@ -123,36 +204,17 @@ export default {
     const url = new URL(request.url);
     const path = url.pathname.replace(/\/$/, '') || '/';
 
-    // Serve the React frontend for non-API routes (SPA Routing)
-    if (!path.startsWith('/api')) {
-      if (env.ASSETS) {
-        const response = await env.ASSETS.fetch(request.clone());
-        if (response.status === 404) {
-          const indexUrl = new URL('/index.html', request.url);
-          return await env.ASSETS.fetch(new Request(indexUrl, request));
-        }
-        return response;
-      }
-      return new Response('Assets binding not found. Please deploy with assets configured.', { status: 500 });
-    }
-
     try {
-      // Ensure DB tables are ready on any api call
-      await ensureSchema(env);
-
-      const pathParts = path.split('/').filter(Boolean); // e.g. ['api', 'products'] or ['api', 'products', '123']
-      const resource = pathParts[1];
-      const resourceId = pathParts[2];
-
       if (path === '/' || path === '/api/health') {
         return json(
           {
             ok: true,
-            service: 'gfbaa-preloved-api',
+            service: 'gfbaa',
             message: 'Cloudflare Worker is running.',
             bindings: {
               DB: Boolean(env.DB),
               PHOTOS: Boolean(env.PHOTOS),
+              ASSETS: Boolean(env.ASSETS),
             },
           },
           { status: 200 },
@@ -160,490 +222,52 @@ export default {
         );
       }
 
-      // --- AGGREGATED SYNC ENDPOINT ---
-      if (request.method === 'GET' && path === '/api/sync') {
-        const productsRes = await env.DB.prepare("SELECT * FROM products").all();
-        const batchesRes = await env.DB.prepare("SELECT * FROM batches").all();
-        const catalogRes = await env.DB.prepare("SELECT * FROM catalog_items").all();
-        const salesRes = await env.DB.prepare("SELECT * FROM sales").all();
-        const requestsRes = await env.DB.prepare("SELECT * FROM purchase_requests").all();
-        const settingsRes = await env.DB.prepare("SELECT * FROM settings").all();
-
-        const products = productsRes.results || [];
-        const batches = (batchesRes.results || []).map(b => ({
-          ...b,
-          productId: isNaN(Number(b.productId)) ? b.productId : Number(b.productId),
-          quantity: Number(b.quantity),
-          remainingQty: Number(b.remainingQty),
-          productCost: Number(b.productCost),
-          shipping: Number(b.shipping),
-          tariff: Number(b.tariff),
-          totalCost: Number(b.totalCost),
-          costPerItem: Number(b.costPerItem),
-          exchangeRateUsed: Number(b.exchangeRateUsed),
-          enteredInPhp: Boolean(b.enteredInPhp)
-        }));
-        const catalogItems = (catalogRes.results || []).map(c => ({
-          ...c,
-          productId: isNaN(Number(c.productId)) ? c.productId : Number(c.productId),
-          price: Number(c.price),
-          orig: c.orig !== null ? Number(c.orig) : null,
-          quantity: Number(c.quantity),
-          remainingQty: Number(c.remainingQty)
-        }));
-        const sales = (salesRes.results || []).map(s => ({
-          ...s,
-          totalPrice: Number(s.totalPrice),
-          totalCogs: Number(s.totalCogs),
-          profit: Number(s.profit),
-          items: JSON.parse(s.items || '[]')
-        }));
-        const purchaseRequests = (requestsRes.results || []).map(r => ({
-          ...r,
-          items: JSON.parse(r.items || '[]'),
-          shippingCost: r.shippingCost !== null ? Number(r.shippingCost) : null
-        }));
-
-        const exchangeRateSetting = (settingsRes.results || []).find(s => s.key === 'exchange_rate');
-        const exchangeRate = exchangeRateSetting ? Number(exchangeRateSetting.value) : 58.0;
-
-        return json({
-          ok: true,
-          products,
-          batches,
-          catalogItems,
-          sales,
-          purchaseRequests,
-          exchangeRate
-        }, { status: 200 }, corsHeaders);
+      if (request.method === 'GET' && path === '/api/state') {
+        const stateResult = await getState(env);
+        return json({ ok: true, ...stateResult }, { status: 200 }, corsHeaders);
       }
 
-      // --- CLEAR ENDPOINT ---
-      if (request.method === 'POST' && path === '/api/clear') {
-        await env.DB.exec(`
-          DELETE FROM products;
-          DELETE FROM batches;
-          DELETE FROM catalog_items;
-          DELETE FROM sales;
-          DELETE FROM purchase_requests;
-          DELETE FROM settings;
-        `);
-        return json({ ok: true, message: 'All tables cleared successfully.' }, { status: 200 }, corsHeaders);
+      if ((request.method === 'PUT' || request.method === 'POST') && path === '/api/state') {
+        const body = await request.json();
+        const saved = await saveState(env, body.state || body);
+        return json({ ok: true, ...saved }, { status: 200 }, corsHeaders);
       }
 
-      // --- PRODUCTS ENDPOINTS ---
-      if (resource === 'products') {
-        if (!resourceId) {
-          if (request.method === 'GET') {
-            const result = await env.DB.prepare("SELECT * FROM products ORDER BY rowid DESC").all();
-            return json({ ok: true, data: result.results || [] }, { status: 200 }, corsHeaders);
-          }
-          if (request.method === 'POST') {
-            const p = await request.json();
-            await env.DB.prepare(`
-              INSERT INTO products (id, name, brand, cat, price, orig, emoji, photoUrl)
-              VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-              ON CONFLICT(id) DO UPDATE SET
-                name=excluded.name,
-                brand=excluded.brand,
-                cat=excluded.cat,
-                price=excluded.price,
-                orig=excluded.orig,
-                emoji=excluded.emoji,
-                photoUrl=excluded.photoUrl
-            `).bind(
-              String(p.id),
-              p.name,
-              p.brand,
-              p.cat,
-              Number(p.price) || 0,
-              p.orig !== undefined && p.orig !== null ? Number(p.orig) : null,
-              p.emoji || null,
-              p.photoUrl || null
-            ).run();
-            return json({ ok: true, data: p }, { status: 201 }, corsHeaders);
-          }
-        } else {
-          if (request.method === 'PUT') {
-            const p = await request.json();
-            await env.DB.prepare(`
-              UPDATE products SET
-                name = COALESCE(?, name),
-                brand = COALESCE(?, brand),
-                cat = COALESCE(?, cat),
-                price = COALESCE(?, price),
-                orig = COALESCE(?, orig),
-                emoji = COALESCE(?, emoji),
-                photoUrl = COALESCE(?, photoUrl)
-              WHERE id = ?
-            `).bind(
-              p.name,
-              p.brand,
-              p.cat,
-              p.price !== undefined ? Number(p.price) : null,
-              p.orig !== undefined ? Number(p.orig) : null,
-              p.emoji,
-              p.photoUrl,
-              resourceId
-            ).run();
-            return json({ ok: true, message: 'Product updated.' }, { status: 200 }, corsHeaders);
-          }
-          if (request.method === 'DELETE') {
-            await env.DB.prepare("DELETE FROM products WHERE id = ?").bind(resourceId).run();
-            return json({ ok: true, message: 'Product deleted.' }, { status: 200 }, corsHeaders);
-          }
-        }
+      if (request.method === 'GET' && path === '/api/products') {
+        const { state, updatedAt } = await getState(env);
+        return json({ ok: true, data: state.products, updatedAt }, { status: 200 }, corsHeaders);
       }
 
-      // --- BATCHES ENDPOINTS ---
-      if (resource === 'batches') {
-        if (!resourceId) {
-          if (request.method === 'GET') {
-            const result = await env.DB.prepare("SELECT * FROM batches ORDER BY rowid DESC").all();
-            return json({ ok: true, data: result.results || [] }, { status: 200 }, corsHeaders);
-          }
-          if (request.method === 'POST') {
-            const b = await request.json();
-            await env.DB.prepare(`
-              INSERT INTO batches (id, productId, batchNumber, date, quantity, remainingQty, productCost, shipping, tariff, totalCost, costPerItem, condition, exchangeRateUsed, enteredInPhp)
-              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-              ON CONFLICT(id) DO UPDATE SET
-                productId=excluded.productId,
-                batchNumber=excluded.batchNumber,
-                date=excluded.date,
-                quantity=excluded.quantity,
-                remainingQty=excluded.remainingQty,
-                productCost=excluded.productCost,
-                shipping=excluded.shipping,
-                tariff=excluded.tariff,
-                totalCost=excluded.totalCost,
-                costPerItem=excluded.costPerItem,
-                condition=excluded.condition,
-                exchangeRateUsed=excluded.exchangeRateUsed,
-                enteredInPhp=excluded.enteredInPhp
-            `).bind(
-              String(b.id),
-              String(b.productId),
-              b.batchNumber || null,
-              b.date || null,
-              Number(b.quantity) || 0,
-              Number(b.remainingQty) || 0,
-              Number(b.productCost) || 0,
-              Number(b.shipping) || 0,
-              Number(b.tariff) || 0,
-              Number(b.totalCost) || 0,
-              Number(b.costPerItem) || 0,
-              b.condition || null,
-              Number(b.exchangeRateUsed) || 58.0,
-              b.enteredInPhp ? 1 : 0
-            ).run();
-            return json({ ok: true, data: b }, { status: 201 }, corsHeaders);
-          }
-        } else {
-          if (request.method === 'PUT') {
-            const b = await request.json();
-            await env.DB.prepare(`
-              UPDATE batches SET
-                productId = COALESCE(?, productId),
-                batchNumber = COALESCE(?, batchNumber),
-                date = COALESCE(?, date),
-                quantity = COALESCE(?, quantity),
-                remainingQty = COALESCE(?, remainingQty),
-                productCost = COALESCE(?, productCost),
-                shipping = COALESCE(?, shipping),
-                tariff = COALESCE(?, tariff),
-                totalCost = COALESCE(?, totalCost),
-                costPerItem = COALESCE(?, costPerItem),
-                condition = COALESCE(?, condition),
-                exchangeRateUsed = COALESCE(?, exchangeRateUsed),
-                enteredInPhp = COALESCE(?, enteredInPhp)
-              WHERE id = ?
-            `).bind(
-              b.productId !== undefined ? String(b.productId) : null,
-              b.batchNumber,
-              b.date,
-              b.quantity !== undefined ? Number(b.quantity) : null,
-              b.remainingQty !== undefined ? Number(b.remainingQty) : null,
-              b.productCost !== undefined ? Number(b.productCost) : null,
-              b.shipping !== undefined ? Number(b.shipping) : null,
-              b.tariff !== undefined ? Number(b.tariff) : null,
-              b.totalCost !== undefined ? Number(b.totalCost) : null,
-              b.costPerItem !== undefined ? Number(b.costPerItem) : null,
-              b.condition,
-              b.exchangeRateUsed !== undefined ? Number(b.exchangeRateUsed) : null,
-              b.enteredInPhp !== undefined ? (b.enteredInPhp ? 1 : 0) : null,
-              resourceId
-            ).run();
-            return json({ ok: true, message: 'Batch updated.' }, { status: 200 }, corsHeaders);
-          }
-          if (request.method === 'DELETE') {
-            await env.DB.prepare("DELETE FROM batches WHERE id = ?").bind(resourceId).run();
-            return json({ ok: true, message: 'Batch deleted.' }, { status: 200 }, corsHeaders);
-          }
-        }
+      if (request.method === 'GET' && path === '/api/batches') {
+        const { state, updatedAt } = await getState(env);
+        return json({ ok: true, data: state.batches, updatedAt }, { status: 200 }, corsHeaders);
       }
 
-      // --- CATALOG ITEMS ENDPOINTS ---
-      if (resource === 'catalog_items') {
-        if (!resourceId) {
-          if (request.method === 'GET') {
-            const result = await env.DB.prepare("SELECT * FROM catalog_items ORDER BY rowid DESC").all();
-            return json({ ok: true, data: result.results || [] }, { status: 200 }, corsHeaders);
-          }
-          if (request.method === 'POST') {
-            const c = await request.json();
-            await env.DB.prepare(`
-              INSERT INTO catalog_items (id, productId, name, brand, cat, price, orig, emoji, photoUrl, quantity, remainingQty, batchId)
-              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-              ON CONFLICT(id) DO UPDATE SET
-                productId=excluded.productId,
-                name=excluded.name,
-                brand=excluded.brand,
-                cat=excluded.cat,
-                price=excluded.price,
-                orig=excluded.orig,
-                emoji=excluded.emoji,
-                photoUrl=excluded.photoUrl,
-                quantity=excluded.quantity,
-                remainingQty=excluded.remainingQty,
-                batchId=excluded.batchId
-            `).bind(
-              String(c.id),
-              c.productId !== undefined && c.productId !== null ? String(c.productId) : null,
-              c.name || null,
-              c.brand || null,
-              c.cat || null,
-              Number(c.price) || 0,
-              c.orig !== undefined && c.orig !== null ? Number(c.orig) : null,
-              c.emoji || null,
-              c.photoUrl || null,
-              Number(c.quantity) || 1,
-              Number(c.remainingQty) || 1,
-              c.batchId || null
-            ).run();
-            return json({ ok: true, data: c }, { status: 201 }, corsHeaders);
-          }
-        } else {
-          if (request.method === 'PUT') {
-            const c = await request.json();
-            await env.DB.prepare(`
-              UPDATE catalog_items SET
-                productId = COALESCE(?, productId),
-                name = COALESCE(?, name),
-                brand = COALESCE(?, brand),
-                cat = COALESCE(?, cat),
-                price = COALESCE(?, price),
-                orig = COALESCE(?, orig),
-                emoji = COALESCE(?, emoji),
-                photoUrl = COALESCE(?, photoUrl),
-                quantity = COALESCE(?, quantity),
-                remainingQty = COALESCE(?, remainingQty),
-                batchId = COALESCE(?, batchId)
-              WHERE id = ?
-            `).bind(
-              c.productId !== undefined ? String(c.productId) : null,
-              c.name,
-              c.brand,
-              c.cat,
-              c.price !== undefined ? Number(c.price) : null,
-              c.orig !== undefined ? Number(c.orig) : null,
-              c.emoji,
-              c.photoUrl,
-              c.quantity !== undefined ? Number(c.quantity) : null,
-              c.remainingQty !== undefined ? Number(c.remainingQty) : null,
-              c.batchId,
-              resourceId
-            ).run();
-            return json({ ok: true, message: 'Catalog item updated.' }, { status: 200 }, corsHeaders);
-          }
-          if (request.method === 'DELETE') {
-            await env.DB.prepare("DELETE FROM catalog_items WHERE id = ?").bind(resourceId).run();
-            return json({ ok: true, message: 'Catalog item deleted.' }, { status: 200 }, corsHeaders);
-          }
-        }
+      if (request.method === 'GET' && path === '/api/catalog-items') {
+        const { state, updatedAt } = await getState(env);
+        return json({ ok: true, data: state.catalogItems, updatedAt }, { status: 200 }, corsHeaders);
       }
 
-      // --- SALES ENDPOINTS ---
-      if (resource === 'sales') {
-        if (!resourceId) {
-          if (request.method === 'GET') {
-            const result = await env.DB.prepare("SELECT * FROM sales ORDER BY rowid DESC").all();
-            return json({ ok: true, data: result.results || [] }, { status: 200 }, corsHeaders);
-          }
-          if (request.method === 'POST') {
-            const s = await request.json();
-            await env.DB.prepare(`
-              INSERT INTO sales (id, date, buyer, totalPrice, totalCogs, profit, items, selectionMethod)
-              VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-              ON CONFLICT(id) DO UPDATE SET
-                date=excluded.date,
-                buyer=excluded.buyer,
-                totalPrice=excluded.totalPrice,
-                totalCogs=excluded.totalCogs,
-                profit=excluded.profit,
-                items=excluded.items,
-                selectionMethod=excluded.selectionMethod
-            `).bind(
-              String(s.id),
-              s.date || null,
-              s.buyer || null,
-              Number(s.totalPrice) || 0,
-              Number(s.totalCogs) || 0,
-              Number(s.profit) || 0,
-              JSON.stringify(s.items || []),
-              s.selectionMethod || null
-            ).run();
-            return json({ ok: true, data: s }, { status: 201 }, corsHeaders);
-          }
-        } else {
-          if (request.method === 'DELETE') {
-            await env.DB.prepare("DELETE FROM sales WHERE id = ?").bind(resourceId).run();
-            return json({ ok: true, message: 'Sale deleted.' }, { status: 200 }, corsHeaders);
-          }
-        }
+      if (request.method === 'GET' && path === '/api/sales') {
+        const { state, updatedAt } = await getState(env);
+        return json({ ok: true, data: state.sales, updatedAt }, { status: 200 }, corsHeaders);
       }
 
-      // --- PURCHASE REQUESTS ENDPOINTS ---
-      if (resource === 'requests' || resource === 'purchase_requests') {
-        if (!resourceId) {
-          if (request.method === 'GET') {
-            const result = await env.DB.prepare("SELECT * FROM purchase_requests ORDER BY rowid DESC").all();
-            return json({ ok: true, data: result.results || [] }, { status: 200 }, corsHeaders);
-          }
-          if (request.method === 'POST') {
-            const r = await request.json();
-            await env.DB.prepare(`
-              INSERT INTO purchase_requests (id, date, buyerName, buyerEmail, buyerAddress, items, status, shippingCost, specialInstructions)
-              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-              ON CONFLICT(id) DO UPDATE SET
-                date=excluded.date,
-                buyerName=excluded.buyerName,
-                buyerEmail=excluded.buyerEmail,
-                buyerAddress=excluded.buyerAddress,
-                items=excluded.items,
-                status=excluded.status,
-                shippingCost=excluded.shippingCost,
-                specialInstructions=excluded.specialInstructions
-            `).bind(
-              String(r.id),
-              r.date || null,
-              r.buyerName || null,
-              r.buyerEmail || null,
-              r.buyerAddress || null,
-              JSON.stringify(r.items || []),
-              r.status || 'pending',
-              r.shippingCost !== undefined && r.shippingCost !== null ? Number(r.shippingCost) : null,
-              r.specialInstructions || null
-            ).run();
-            return json({ ok: true, data: r }, { status: 201 }, corsHeaders);
-          }
-        } else {
-          if (request.method === 'PUT') {
-            const r = await request.json();
-            await env.DB.prepare(`
-              UPDATE purchase_requests SET
-                buyerName = COALESCE(?, buyerName),
-                buyerEmail = COALESCE(?, buyerEmail),
-                buyerAddress = COALESCE(?, buyerAddress),
-                status = COALESCE(?, status),
-                shippingCost = COALESCE(?, shippingCost),
-                specialInstructions = COALESCE(?, specialInstructions)
-              WHERE id = ?
-            `).bind(
-              r.buyerName,
-              r.buyerEmail,
-              r.buyerAddress,
-              r.status,
-              r.shippingCost !== undefined && r.shippingCost !== null ? Number(r.shippingCost) : null,
-              r.specialInstructions,
-              resourceId
-            ).run();
-            return json({ ok: true, message: 'Request updated.' }, { status: 200 }, corsHeaders);
-          }
-          if (request.method === 'DELETE') {
-            await env.DB.prepare("DELETE FROM purchase_requests WHERE id = ?").bind(resourceId).run();
-            return json({ ok: true, message: 'Request deleted.' }, { status: 200 }, corsHeaders);
-          }
-        }
+      if (request.method === 'GET' && path === '/api/requests') {
+        const { state, updatedAt } = await getState(env);
+        return json({ ok: true, data: state.purchaseRequests, updatedAt }, { status: 200 }, corsHeaders);
       }
 
-      // --- EXCHANGE RATE SETTING ENDPOINT ---
-      if (resource === 'settings' && resourceId === 'exchange_rate') {
-        if (request.method === 'POST' || request.method === 'PUT') {
-          const body = await request.json();
-          await env.DB.prepare(`
-            INSERT INTO settings (key, value)
-            VALUES ('exchange_rate', ?)
-            ON CONFLICT(key) DO UPDATE SET value=excluded.value
-          `).bind(String(body.value)).run();
-          return json({ ok: true, value: body.value }, { status: 200 }, corsHeaders);
-        }
+      if (request.method === 'POST' && path === '/api/photos') {
+        return handlePhotoUpload(request, env, corsHeaders);
       }
 
-      // --- PHOTOS R2 ENDPOINTS ---
-      if (resource === 'photos') {
-        if (request.method === 'GET' && resourceId) {
-          if (!env.PHOTOS) {
-            return json({ ok: false, error: 'R2 PHOTOS bucket binding not configured.' }, { status: 500 }, corsHeaders);
-          }
-          const object = await env.PHOTOS.get(resourceId);
-          if (!object) {
-            return json({ ok: false, error: 'Photo not found.' }, { status: 404 }, corsHeaders);
-          }
-          const headers = new Headers(corsHeaders);
-          headers.set('Content-Type', object.httpMetadata?.contentType || 'image/jpeg');
-          headers.set('Cache-Control', 'public, max-age=31536000');
-          return new Response(object.body, { headers });
-        }
+      if (request.method === 'GET' && path.startsWith('/api/photos/')) {
+        return handlePhotoRead(path, env, corsHeaders);
+      }
 
-        if (request.method === 'POST') {
-          if (!env.PHOTOS) {
-            return json({ ok: false, error: 'R2 PHOTOS bucket binding not configured.' }, { status: 500 }, corsHeaders);
-          }
-          try {
-            const body = await request.json();
-            if (!body || !body.image) {
-              return json({ ok: false, error: 'Missing "image" field with base64 data.' }, { status: 400 }, corsHeaders);
-            }
-            
-            let imageBuffer;
-            let contentType = 'image/jpeg';
-            
-            if (body.image.startsWith('data:')) {
-              const parts = body.image.split(',');
-              const mimeMatch = parts[0].match(/:(.*?);/);
-              if (mimeMatch) {
-                contentType = mimeMatch[1];
-              }
-              const binaryString = atob(parts[1]);
-              const len = binaryString.length;
-              const bytes = new Uint8Array(len);
-              for (let i = 0; i < len; i++) {
-                bytes[i] = binaryString.charCodeAt(i);
-              }
-              imageBuffer = bytes;
-            } else {
-              // Try raw base64
-              const binaryString = atob(body.image);
-              const len = binaryString.length;
-              const bytes = new Uint8Array(len);
-              for (let i = 0; i < len; i++) {
-                bytes[i] = binaryString.charCodeAt(i);
-              }
-              imageBuffer = bytes;
-            }
-
-            const photoId = 'photo-' + Date.now() + '-' + Math.random().toString(36).substring(2, 8);
-            await env.PHOTOS.put(photoId, imageBuffer, {
-              httpMetadata: { contentType: contentType }
-            });
-
-            const photoUrl = `/api/photos/${photoId}`;
-            return json({ ok: true, url: photoUrl }, { status: 201 }, corsHeaders);
-          } catch (e) {
-            return json({ ok: false, error: 'Failed to process and store image.', details: e.message }, { status: 500 }, corsHeaders);
-          }
-        }
+      if (env.ASSETS && request.method === 'GET') {
+        return env.ASSETS.fetch(request);
       }
 
       return json(

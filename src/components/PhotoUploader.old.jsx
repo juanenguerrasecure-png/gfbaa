@@ -9,7 +9,6 @@ export function PhotoUploader({ value, onChange }) {
   const [cameraError, setCameraError] = useState('');
   const [compressStats, setCompressStats] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
 
   const videoRef = useRef(null);
   const streamRef = useRef(null);
@@ -80,37 +79,6 @@ export function PhotoUploader({ value, onChange }) {
     return () => stopCamera();
   }, [isCameraActive, selectedDeviceId, startCamera, stopCamera]);
 
-  const dataUrlToBlob = async (dataUrl) => {
-    const response = await fetch(dataUrl);
-    return response.blob();
-  };
-
-  const uploadCompressedDataUrl = async (dataUrl) => {
-    setIsUploading(true);
-    try {
-      const blob = await dataUrlToBlob(dataUrl);
-      const formData = new FormData();
-      formData.append('file', blob, `product-${Date.now()}.jpg`);
-
-      const response = await fetch('/api/photos', {
-        method: 'POST',
-        body: formData,
-      });
-
-      const result = await response.json();
-      if (!response.ok || !result.ok) {
-        throw new Error(result.error || 'Photo upload failed.');
-      }
-
-      return result.url;
-    } catch (error) {
-      console.warn('R2 photo upload failed. Falling back to local data URL:', error);
-      return dataUrl;
-    } finally {
-      setIsUploading(false);
-    }
-  };
-
   // Process and compress file
   const handleFileProcess = async (file) => {
     if (!file) return;
@@ -140,8 +108,7 @@ export function PhotoUploader({ value, onChange }) {
         savings: `${Math.round(((originalSizeKb - compressedSizeKb) / originalSizeKb) * 100)}%`
       });
 
-      const uploadedUrl = await uploadCompressedDataUrl(compressedDataUrl);
-      onChange(uploadedUrl);
+      onChange(compressedDataUrl);
     } catch (err) {
       console.error('Compression failed:', err);
       alert('Failed to compress image.');
@@ -217,8 +184,7 @@ export function PhotoUploader({ value, onChange }) {
         savings: `${Math.round(((rawSizeKb - compressedSizeKb) / rawSizeKb) * 100)}%`
       });
 
-      const uploadedUrl = await uploadCompressedDataUrl(compressedDataUrl);
-      onChange(uploadedUrl);
+      onChange(compressedDataUrl);
       setIsCameraActive(false);
     } catch (err) {
       console.error('Capture and compression failed:', err);
@@ -246,12 +212,6 @@ export function PhotoUploader({ value, onChange }) {
       <label className="text-xs font-semibold tracking-wider text-stone-500 uppercase block">
         Product Listing Photo
       </label>
-
-      {isUploading && (
-        <div className="text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded px-3 py-2">
-          Uploading photo to cloud storage...
-        </div>
-      )}
 
       {/* Main Image Showcase or Camera Container */}
       <div 
