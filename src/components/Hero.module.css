@@ -1,8 +1,7 @@
 .hero {
-  background-color: #FAF8F5; /* Warm elegant off-white */
-  border-bottom: 1px solid #EAE5DF;
+  background-color: #FAF8F5;
+  border-bottom: 1px solid #E5DFD8;
   padding: 5rem 1.5rem;
-  text-align: center;
   position: relative;
   overflow: hidden;
 }
@@ -10,30 +9,35 @@
 .hero::before {
   content: '';
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: radial-gradient(circle at 50% 50%, rgba(201, 168, 76, 0.05) 0%, rgba(255, 255, 255, 0) 70%);
+  inset: 0;
+  background: radial-gradient(circle at 74% 42%, rgba(201, 168, 76, 0.08) 0%, rgba(255, 255, 255, 0) 56%);
   pointer-events: none;
 }
 
 .container {
-  max-width: 800px;
+  width: min(1180px, 100%);
   margin: 0 auto;
   position: relative;
   z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(280px, 2fr);
+  gap: clamp(2rem, 5vw, 4.5rem);
+  align-items: center;
+}
+
+.copyCol {
+  max-width: 720px;
 }
 
 .badge {
   display: inline-block;
   font-family: 'Inter', sans-serif;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   text-transform: uppercase;
-  letter-spacing: 0.15em;
-  color: #C9A84C; /* Gold accent */
+  letter-spacing: 0.18em;
+  color: #C9A84C;
   font-weight: 500;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
   background: rgba(201, 168, 76, 0.08);
   padding: 0.35rem 1rem;
   border-radius: 9999px;
@@ -42,43 +46,47 @@
 
 .title {
   font-family: 'Cormorant Garamond', serif;
-  font-size: 3rem;
-  line-height: 1.15;
-  color: #1C1410; /* Deep warm charcoal */
+  font-size: clamp(3rem, 7vw, 5.75rem);
+  line-height: 1.1;
+  color: #1C1410;
   font-weight: 300;
-  margin-bottom: 1.5rem;
-  letter-spacing: -0.01em;
+  margin: 0 0 1.25rem 0;
+  letter-spacing: -0.035em;
 }
 
-.title em {
-  font-family: 'Cormorant Garamond', serif;
-  font-style: italic;
-  font-weight: 400;
+.kicker {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.78rem;
+  line-height: 1.6;
   color: #8C7B6E;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  margin: 0 0 0.9rem 0;
+  font-weight: 400;
 }
 
 .subtitle {
   font-family: 'Inter', sans-serif;
   font-size: 1rem;
-  line-height: 1.6;
+  line-height: 1.7;
   color: #61554A;
-  max-width: 600px;
-  margin: 0 auto 2.5rem auto;
+  max-width: 570px;
+  margin: 0 0 2.25rem 0;
   font-weight: 300;
 }
 
 .actions {
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 1rem;
   flex-wrap: wrap;
 }
 
 .btn {
   font-family: 'Inter', sans-serif;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   font-weight: 500;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   padding: 0.9rem 2rem;
   border-radius: 4px;
@@ -100,10 +108,6 @@
   box-shadow: 0 4px 12px rgba(28, 20, 16, 0.1);
 }
 
-.btnPrimary:active {
-  transform: translateY(0);
-}
-
 .btnSecondary {
   background-color: transparent;
   color: #1C1410;
@@ -111,30 +115,105 @@
 }
 
 .btnSecondary:hover {
-  background-color: rgba(201, 168, 76, 0.05);
+  background-color: rgba(201, 168, 76, 0.06);
   transform: translateY(-1px);
 }
 
-.btnSecondary:active {
-  transform: translateY(0);
+.visualCol {
+  min-height: 420px;
+  display: flex;
 }
 
-@media (max-width: 640px) {
+.featureFrame {
+  width: 100%;
+  min-height: 420px;
+  background: linear-gradient(135deg, #E5DFD8, #F4EFE8);
+  border: 1px solid #E5DFD8;
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.featureFrame::before,
+.featureFrame::after {
+  content: '';
+  position: absolute;
+  border: 1px solid rgba(201, 168, 76, 0.32);
+  pointer-events: none;
+}
+
+.featureFrame::before {
+  inset: 1.25rem;
+}
+
+.featureFrame::after {
+  width: 12rem;
+  height: 12rem;
+  border-radius: 9999px;
+  transform: rotate(22deg);
+}
+
+.brandInitial {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 4.5rem;
+  line-height: 1;
+  color: #1C1410;
+  font-weight: 300;
+  letter-spacing: -0.04em;
+  z-index: 1;
+}
+
+.decorLine {
+  width: 4rem;
+  height: 1px;
+  background: #C9A84C;
+  margin: 1rem 0;
+  z-index: 1;
+}
+
+.visualCaption {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #8C7B6E;
+  z-index: 1;
+}
+
+@media (max-width: 760px) {
+  .hero {
+    padding: 3.5rem 1.25rem;
+  }
+
+  .container {
+    grid-template-columns: 1fr;
+    gap: 2.25rem;
+  }
+
   .title {
-    font-size: 2.25rem;
+    font-size: clamp(2.75rem, 14vw, 4.25rem);
   }
-  
+
   .subtitle {
-    font-size: 0.9rem;
+    font-size: 0.92rem;
   }
-  
-  .btn {
-    width: 100%;
-    padding: 0.8rem 1.5rem;
-  }
-  
+
   .actions {
     flex-direction: column;
     gap: 0.75rem;
+  }
+
+  .btn {
+    width: 100%;
+    padding: 0.85rem 1.5rem;
+  }
+
+  .visualCol,
+  .featureFrame {
+    min-height: 280px;
   }
 }
