@@ -47,8 +47,28 @@ async function verifyPassword(plaintext, storedHash) {
   return incomingHash === storedHash;
 }
 
+function defaultPaymentMethods() {
+  return { zelle: { handle: '', instructions: '', qrUrl: '' }, venmo: { handle: '', instructions: '', qrUrl: '' } };
+}
+
+function normalizePaymentMethods(value) {
+  const base = defaultPaymentMethods();
+  return { zelle: { ...base.zelle, ...(value?.zelle || {}) }, venmo: { ...base.venmo, ...(value?.venmo || {}) } };
+}
+
 function defaultState() {
-  return { exchangeRate: 58, products: [], batches: [], catalogItems: [], sales: [], purchaseRequests: [], users: [], sessions: [] };
+  return {
+    exchangeRate: 58,
+    products: [],
+    batches: [],
+    catalogItems: [],
+    sales: [],
+    purchaseRequests: [],
+    users: [],
+    sessions: [],
+    socialLinks: {},
+    paymentMethods: defaultPaymentMethods(),
+  };
 }
 
 function publicState(state) {
@@ -67,6 +87,8 @@ function normalizeState(input) {
     purchaseRequests: Array.isArray(input.purchaseRequests) ? input.purchaseRequests : [],
     users: Array.isArray(input.users) ? input.users : [],
     sessions: Array.isArray(input.sessions) ? input.sessions : [],
+    socialLinks: input.socialLinks && typeof input.socialLinks === 'object' ? input.socialLinks : {},
+    paymentMethods: normalizePaymentMethods(input.paymentMethods),
   };
 }
 
@@ -91,6 +113,8 @@ async function saveState(env, inputState) {
   const existing = await getState(env);
   if (!Object.prototype.hasOwnProperty.call(incomingState, 'users')) state.users = Array.isArray(existing.state.users) ? existing.state.users : [];
   if (!Object.prototype.hasOwnProperty.call(incomingState, 'sessions')) state.sessions = Array.isArray(existing.state.sessions) ? existing.state.sessions : [];
+  if (!Object.prototype.hasOwnProperty.call(incomingState, 'socialLinks')) state.socialLinks = existing.state.socialLinks || {};
+  if (!Object.prototype.hasOwnProperty.call(incomingState, 'paymentMethods')) state.paymentMethods = normalizePaymentMethods(existing.state.paymentMethods);
   const updatedAt = new Date().toISOString();
   await env.DB.prepare(`INSERT INTO app_state (id, value, updated_at) VALUES (?, ?, ?) ON CONFLICT(id) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at`).bind(STATE_ID, JSON.stringify(state), updatedAt).run();
   return { state, updatedAt };
