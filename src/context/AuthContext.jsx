@@ -85,35 +85,27 @@ async function createCloudUser(userPayload, token = '') {
   const headers = token
     ? { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
     : { 'Content-Type': 'application/json' };
-
-  const response = await fetch('/api/users', {
-    method: 'POST',
-    headers,
-    body: JSON.stringify(userPayload)
-  });
+  const response = await fetch('/api/users', { method: 'POST', headers, body: JSON.stringify(userPayload) });
   const result = await response.json();
   if (!response.ok || !result.ok) throw new Error(result.error || 'Unable to create user.');
   return result.user;
 }
 
-async function createCloudSession(userId) {
+async function createCloudSession(username, password) {
   const response = await fetch('/api/sessions', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ userId, hours: SESSION_HOURS })
+    body: JSON.stringify({ username, password, hours: SESSION_HOURS })
   });
   const result = await response.json();
   if (!response.ok || !result.ok) throw new Error(result.error || 'Unable to create secure session.');
-  return result.session;
+  return result;
 }
 
 async function deleteCloudSession(token) {
   if (!token) return;
   try {
-    await fetch('/api/sessions/current', {
-      method: 'DELETE',
-      headers: { Authorization: `Bearer ${token}` }
-    });
+    await fetch('/api/sessions/current', { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
   } catch (error) {
     console.warn('Session revoke failed; local session cleared:', error);
   }
@@ -128,15 +120,8 @@ function FirstRunSetup({ onCreated }) {
   const handleSubmit = async (event) => {
     event.preventDefault();
     setError('');
-
-    if (!username.trim()) {
-      setError('Username is required.');
-      return;
-    }
-    if (password.length < 8) {
-      setError('Use at least 8 characters for the initial admin password.');
-      return;
-    }
+    if (!username.trim()) return setError('Username is required.');
+    if (password.length < 8) return setError('Use at least 8 characters for the initial admin password.');
 
     setBusy(true);
     try {
@@ -159,22 +144,10 @@ function FirstRunSetup({ onCreated }) {
           <h1 className="font-display text-2xl text-stone-900 font-normal">Create Admin Account</h1>
           <p className="text-sm text-stone-500 mt-1">No administrator exists yet. Create the first account before launching the admin panel.</p>
         </div>
-
         {error && <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded p-3">{error}</div>}
-
-        <div className="space-y-1">
-          <label className="text-xs font-semibold uppercase tracking-wider text-stone-600">Username</label>
-          <input className="w-full border border-stone-300 rounded px-3 py-2 text-sm outline-none focus:border-[#C9A84C]" value={username} onChange={e => setUsername(e.target.value)} autoComplete="username" />
-        </div>
-
-        <div className="space-y-1">
-          <label className="text-xs font-semibold uppercase tracking-wider text-stone-600">Password</label>
-          <input className="w-full border border-stone-300 rounded px-3 py-2 text-sm outline-none focus:border-[#C9A84C]" type="password" value={password} onChange={e => setPassword(e.target.value)} autoComplete="new-password" />
-        </div>
-
-        <button disabled={busy} className="w-full bg-stone-900 text-white rounded py-2.5 text-xs font-semibold uppercase tracking-wider disabled:opacity-50">
-          {busy ? 'Creating...' : 'Create Admin Account'}
-        </button>
+        <div className="space-y-1"><label className="text-xs font-semibold uppercase tracking-wider text-stone-600">Username</label><input className="w-full border border-stone-300 rounded px-3 py-2 text-sm outline-none focus:border-[#C9A84C]" value={username} onChange={e => setUsername(e.target.value)} autoComplete="username" /></div>
+        <div className="space-y-1"><label className="text-xs font-semibold uppercase tracking-wider text-stone-600">Password</label><input className="w-full border border-stone-300 rounded px-3 py-2 text-sm outline-none focus:border-[#C9A84C]" type="password" value={password} onChange={e => setPassword(e.target.value)} autoComplete="new-password" /></div>
+        <button disabled={busy} className="w-full bg-stone-900 text-white rounded py-2.5 text-xs font-semibold uppercase tracking-wider disabled:opacity-50">{busy ? 'Creating...' : 'Create Admin Account'}</button>
       </form>
     </div>
   );
@@ -188,25 +161,20 @@ export function AuthProvider({ children }) {
   const [authReady, setAuthReady] = useState(false);
   const [needsFirstRunSetup, setNeedsFirstRunSetup] = useState(false);
 
-  useEffect(() => {
-    localStorage.setItem('gf_users', JSON.stringify(users));
-  }, [users]);
+  useEffect(() => { localStorage.setItem('gf_users', JSON.stringify(users)); }, [users]);
 
   useEffect(() => {
     let cancelled = false;
-
     const hydrateUsers = async () => {
       const localUsers = readLocalUsers();
       try {
         const state = await fetchCloudState();
         const cloudUsers = Array.isArray(state.users) ? state.users : [];
         const mergedUsers = mergeUsers(cloudUsers, localUsers);
-
         if (!cancelled) {
           setUsers(mergedUsers);
           localStorage.setItem('gf_users', JSON.stringify(mergedUsers));
           setNeedsFirstRunSetup(mergedUsers.length === 0);
-
           const localCurrentUser = readCurrentUser();
           if (localCurrentUser) {
             const refreshedCurrentUser = mergedUsers.find(u => u.id === localCurrentUser.id || u.username === localCurrentUser.username);
@@ -216,20 +184,13 @@ export function AuthProvider({ children }) {
             }
           }
         }
-
-        if (mergedUsers.length && mergedUsers.length !== cloudUsers.length && getSessionToken()) {
-          await saveUsersToCloud(mergedUsers);
-        }
       } catch (error) {
         console.warn('User cloud hydration failed; using local cache:', error);
-        if (!cancelled) {
-          setNeedsFirstRunSetup(localUsers.length === 0);
-        }
+        if (!cancelled) setNeedsFirstRunSetup(localUsers.length === 0);
       } finally {
         if (!cancelled) setAuthReady(true);
       }
     };
-
     hydrateUsers();
     return () => { cancelled = true; };
   }, []);
@@ -252,14 +213,10 @@ export function AuthProvider({ children }) {
 
     let verified = false;
     let sessionUser = foundUser;
-
-    if (isPasswordHash(foundUser.password)) {
-      verified = await verifyPassword(passwordInput, foundUser.password);
-    } else {
+    if (isPasswordHash(foundUser.password)) verified = await verifyPassword(passwordInput, foundUser.password);
+    else {
       verified = foundUser.password === passwordInput;
-      if (verified) {
-        sessionUser = await migratePlaintextPassword(foundUser, passwordInput);
-      }
+      if (verified) sessionUser = await migratePlaintextPassword(foundUser, passwordInput);
     }
 
     if (!verified) {
@@ -268,7 +225,26 @@ export function AuthProvider({ children }) {
     }
 
     try {
-      const session = await createCloudSession(sessionUser.id);
+      let loginResult;
+      try {
+        loginResult = await createCloudSession(sessionUser.username, passwordInput);
+      } catch (sessionError) {
+        const state = await fetchCloudState();
+        const cloudUsers = Array.isArray(state.users) ? state.users : [];
+        if (cloudUsers.length === 0) {
+          const seededUser = await createCloudUser({ username: sessionUser.username, password: sessionUser.password, role: sessionUser.role || 'Administrator', id: sessionUser.id });
+          const nextUsers = mergeUsers([seededUser], users);
+          setUsers(nextUsers);
+          localStorage.setItem('gf_users', JSON.stringify(nextUsers));
+          sessionUser = seededUser;
+          loginResult = await createCloudSession(sessionUser.username, passwordInput);
+        } else {
+          throw sessionError;
+        }
+      }
+
+      const session = loginResult.session;
+      sessionUser = loginResult.user || sessionUser;
       localStorage.setItem('gf_session_token', session.token);
       localStorage.setItem('gf_session_expires_at', session.expiresAt);
     } catch (error) {
@@ -299,9 +275,8 @@ export function AuthProvider({ children }) {
     if (!username.trim() || !password) throw new Error('Username and password are required.');
     const exists = users.some(u => u.username.toLowerCase() === username.trim().toLowerCase());
     if (exists) throw new Error('Username already exists.');
-
     const hashedPassword = await hashPassword(password);
-    const userFromCloud = await createCloudUser({ username: username.trim(), password: hashedPassword, role });
+    const userFromCloud = await createCloudUser({ username: username.trim(), password: hashedPassword, role }, getSessionToken());
     const nextUsers = [...users, userFromCloud];
     setUsers(nextUsers);
     localStorage.setItem('gf_users', JSON.stringify(nextUsers));
@@ -310,47 +285,20 @@ export function AuthProvider({ children }) {
 
   const deleteUser = async (userId) => {
     if (users.length <= 1) throw new Error('Cannot delete the last user. You must keep at least one active user.');
-
-    const response = await fetch(`/api/users/${encodeURIComponent(userId)}`, {
-      method: 'DELETE',
-      headers: authHeaders()
-    });
+    const response = await fetch(`/api/users/${encodeURIComponent(userId)}`, { method: 'DELETE', headers: authHeaders() });
     const result = await response.json();
     if (!response.ok || !result.ok) throw new Error(result.error || 'Failed to delete user.');
-
     const nextUsers = Array.isArray(result.data) ? result.data : users.filter(u => u.id !== userId);
     setUsers(nextUsers);
     localStorage.setItem('gf_users', JSON.stringify(nextUsers));
-
     if (currentUser && currentUser.id === userId) logout();
   };
 
-  if (!authReady) {
-    return (
-      <div className="min-h-screen bg-[#FAF8F5] flex items-center justify-center">
-        <div className="h-8 w-8 rounded-full border-2 border-[#E5DFD8] border-t-[#C9A84C] animate-spin" />
-      </div>
-    );
-  }
-
-  if (needsFirstRunSetup) {
-    return <FirstRunSetup onCreated={(nextUsers) => { setUsers(nextUsers); setNeedsFirstRunSetup(false); }} />;
-  }
+  if (!authReady) return <div className="min-h-screen bg-[#FAF8F5] flex items-center justify-center"><div className="h-8 w-8 rounded-full border-2 border-[#E5DFD8] border-t-[#C9A84C] animate-spin" /></div>;
+  if (needsFirstRunSetup) return <FirstRunSetup onCreated={(nextUsers) => { setUsers(nextUsers); setNeedsFirstRunSetup(false); }} />;
 
   return (
-    <AuthContext.Provider value={{
-      users,
-      currentUser,
-      isAdmin,
-      login,
-      logout,
-      loginError,
-      setLoginError,
-      createUser,
-      deleteUser,
-      authReady,
-      sessionToken: getSessionToken()
-    }}>
+    <AuthContext.Provider value={{ users, currentUser, isAdmin, login, logout, loginError, setLoginError, createUser, deleteUser, authReady, sessionToken: getSessionToken() }}>
       {children}
     </AuthContext.Provider>
   );
