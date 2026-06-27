@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useStore } from '../../context/StoreContext';
-import { Users, UserPlus, Trash2, Shield, Key, AlertTriangle, Database, RefreshCw } from 'lucide-react';
+import { Users, UserPlus, Trash2, Shield, Key, AlertTriangle, Database } from 'lucide-react';
 
 export function UsersTab() {
   const { users, currentUser, createUser, deleteUser } = useAuth();
-  const { clearMockData, resetToDemoData, products, batches, sales } = useStore();
+  const { clearMockData, products, batches, sales } = useStore();
 
   // Create User form state
   const [newUsername, setNewUsername] = useState('');
@@ -14,9 +14,8 @@ export function UsersTab() {
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
 
-  // Clear/Reset confirmation state
+  // Clear confirmation state
   const [isConfirmingClear, setIsConfirmingClear] = useState(false);
-  const [isConfirmingReset, setIsConfirmingReset] = useState(false);
 
   const handleCreateUser = (e) => {
     e.preventDefault();
@@ -60,11 +59,7 @@ export function UsersTab() {
   const handleClearMockData = () => {
     clearMockData();
     setIsConfirmingClear(false);
-    alert('All mock data (products, batches, sales) has been removed. You now have a clean slate!');
-  };
-
-  const handleResetDemoData = () => {
-    resetToDemoData();
+    alert('Database has been completely cleared. You now have a blank slate!');
   };
 
   return (
@@ -165,19 +160,19 @@ export function UsersTab() {
             </div>
 
             <p className="text-sm text-stone-600">
-              Meticulously manage your system dataset. Easily wipe pre-seeded demonstrative products, batches, and transactions to start inputting genuine inventory, or restore them anytime.
+              Meticulously manage your system dataset. You can easily wipe all custom products, batches, and recorded sales/requests to start with a fresh, clean slate.
             </p>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4">
               {/* Wipe Mock Data */}
               <div className="p-5 border border-stone-200 rounded-lg bg-stone-50 flex flex-col justify-between space-y-4">
                 <div className="space-y-1">
                   <h4 className="font-semibold text-stone-900 text-sm flex items-center gap-1.5">
                     <Trash2 size={15} className="text-red-600" />
-                    Wipe Seeded Mock Data
+                    Wipe Database Slate
                   </h4>
                   <p className="text-xs text-stone-500">
-                    Removes all default products, purchase batches, and recorded sales logs from the store context. This gives you a blank slate to input authentic pre-loved inventory.
+                    Removes all products, purchase batches, and recorded sales logs from the store context. This gives you a blank slate to input authentic pre-loved inventory.
                   </p>
                 </div>
 
@@ -192,7 +187,7 @@ export function UsersTab() {
                   ) : (
                     <div className="space-y-3 bg-red-50 p-3 border border-red-200 rounded">
                       <p className="text-xs text-red-900 font-semibold">
-                        Are you absolutely sure? This action is irreversible for custom items added!
+                        Are you absolutely sure? This action is irreversible! All catalog items, batches, and sales will be lost.
                       </p>
                       <div className="flex gap-2">
                         <button
@@ -212,51 +207,8 @@ export function UsersTab() {
                   )}
                 </div>
               </div>
-
-              {/* Restore Seeded Mock Data */}
-              <div className="p-5 border border-stone-200 rounded-lg bg-stone-50 flex flex-col justify-between space-y-4">
-                <div className="space-y-1">
-                  <h4 className="font-semibold text-stone-900 text-sm flex items-center gap-1.5">
-                    <RefreshCw size={15} className="text-amber-600" />
-                    Restore Demonstration Dataset
-                  </h4>
-                  <p className="text-xs text-stone-500">
-                    Resets the database back to its curated demonstration state, re-seeding pre-loved luxury bags, jewelry items, realistic batches, and illustrative logs.
-                  </p>
-                </div>
-
-                <div className="pt-2">
-                  {!isConfirmingReset ? (
-                    <button
-                      onClick={() => setIsConfirmingReset(true)}
-                      className="px-4 py-2 bg-stone-800 hover:bg-stone-900 text-white font-medium text-xs rounded shadow-sm transition-all uppercase tracking-wider font-sans"
-                    >
-                      Restore Seeded Data
-                    </button>
-                  ) : (
-                    <div className="space-y-3 bg-stone-100 p-3 border border-stone-300 rounded">
-                      <p className="text-xs text-stone-800 font-semibold">
-                        This will override your current store state. Proceed?
-                      </p>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={handleResetDemoData}
-                          className="px-3 py-1.5 bg-stone-900 text-white font-semibold text-xs rounded hover:bg-black transition"
-                        >
-                          Yes, Reload Seeded Data
-                        </button>
-                        <button
-                          onClick={() => setIsConfirmingReset(false)}
-                          className="px-3 py-1.5 bg-white border border-stone-300 text-stone-700 font-semibold text-xs rounded hover:bg-stone-50 transition"
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
             </div>
+
 
             {/* Current Stats */}
             <div className="grid grid-cols-3 gap-4 text-center border-t border-stone-100 pt-4">

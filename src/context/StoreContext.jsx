@@ -1,5 +1,4 @@
 import { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import { ITEMS } from '../data/items';
 
 const StoreContext = createContext(null);
 
@@ -14,157 +13,50 @@ export function StoreProvider({ children }) {
     return saved ? Number(saved) : DEFAULT_EXCHANGE_RATE;
   });
 
+  // Ensure legacy mock state in browser local storage is cleared once so user has a clean slate immediately
+  useEffect(() => {
+    if (!localStorage.getItem('gf_clean_slate_init_v2')) {
+      localStorage.removeItem('gf_products');
+      localStorage.removeItem('gf_batches');
+      localStorage.removeItem('gf_sales');
+      localStorage.removeItem('gf_purchase_requests');
+      localStorage.removeItem('gf_catalog_items');
+      localStorage.setItem('gf_clean_slate_init_v2', 'true');
+      // Reload to ensure state is initialized with clean slate
+      window.location.reload();
+    }
+  }, []);
+
   const [products, setProducts] = useState(() => {
     const saved = localStorage.getItem('gf_products');
     if (saved) return JSON.parse(saved);
-    if (localStorage.getItem('gf_cleared') === 'true') return [];
-    // Use the default ITEMS as starting products
-    return ITEMS.map(item => ({
-      id: item.id,
-      name: item.name,
-      brand: item.brand,
-      cat: item.cat,
-      detail: item.detail || '',
-      price: item.price, // in USD
-      orig: item.orig || null,
-      emoji: item.emoji || '👜',
-      photoUrl: item.photoUrl || null
-    }));
+    return [];
   });
 
   const [batches, setBatches] = useState(() => {
     const saved = localStorage.getItem('gf_batches');
     if (saved) return JSON.parse(saved);
-    if (localStorage.getItem('gf_cleared') === 'true') return [];
-
-    // Seed realistic starting batches for each default product
-    const seeded = [];
-    ITEMS.forEach((item, idx) => {
-      const quantity = 10;
-      const productCostPHP = item.price * 0.55 * DEFAULT_EXCHANGE_RATE; // e.g. 55% of retail in PHP
-      const shippingPHP = 50 * DEFAULT_EXCHANGE_RATE;
-      const tariffPHP = 30 * DEFAULT_EXCHANGE_RATE;
-
-      // Convert to USD
-      const productCostUSD = Math.round((productCostPHP / DEFAULT_EXCHANGE_RATE) * 100) / 100;
-      const shippingUSD = Math.round((shippingPHP / DEFAULT_EXCHANGE_RATE) * 100) / 100;
-      const tariffUSD = Math.round((tariffPHP / DEFAULT_EXCHANGE_RATE) * 100) / 100;
-
-      const totalCostUSD = productCostUSD + shippingUSD + tariffUSD;
-      const costPerItemUSD = Math.round((totalCostUSD / quantity) * 100) / 100;
-
-      seeded.push({
-        id: `batch-${item.id}-1`,
-        productId: item.id,
-        batchNumber: `BATCH-2024-${String(item.id).padStart(3, '0')}`,
-        date: '2024-10-01',
-        quantity: quantity,
-        remainingQty: quantity - (idx % 3 === 0 ? 3 : 0), // some already sold
-        productCost: productCostUSD,
-        shipping: shippingUSD,
-        tariff: tariffUSD,
-        totalCost: totalCostUSD,
-        costPerItem: costPerItemUSD,
-        condition: item.condition || 'mint',
-        exchangeRateUsed: DEFAULT_EXCHANGE_RATE,
-        enteredInPhp: true
-      });
-    });
-    return seeded;
+    return [];
   });
 
   const [sales, setSales] = useState(() => {
     const saved = localStorage.getItem('gf_sales');
     if (saved) return JSON.parse(saved);
-    if (localStorage.getItem('gf_cleared') === 'true') return [];
-
-    // Seed some initial sales matching our seeded batches
-    const seededSales = [
-      {
-        id: 'sale-1',
-        date: '2024-11-08',
-        buyer: 'Maria Santos',
-        totalPrice: 1500, // Sold classic items
-        totalCogs: 920,
-        profit: 580,
-        items: [
-          {
-            productId: 2, // Speedy 30
-            qty: 2,
-            pricePerItem: 750,
-            totalPrice: 1500,
-            batches: [
-              { batchId: 'batch-2-1', qty: 2, costPerItem: 460 }
-            ]
-          }
-        ]
-      },
-      {
-        id: 'sale-2',
-        date: '2024-12-15',
-        buyer: 'Ana Reyes',
-        totalPrice: 1020,
-        totalCogs: 510,
-        profit: 510,
-        items: [
-          {
-            productId: 11, // Croissant Ring
-            qty: 3,
-            pricePerItem: 340,
-            totalPrice: 1020,
-            batches: [
-              { batchId: 'batch-11-1', qty: 3, costPerItem: 170 }
-            ]
-          }
-        ]
-      }
-    ];
-    return seededSales;
+    return [];
   });
 
   const [purchaseRequests, setPurchaseRequests] = useState(() => {
     const saved = localStorage.getItem('gf_purchase_requests');
     if (saved) return JSON.parse(saved);
-    if (localStorage.getItem('gf_cleared') === 'true') return [];
-
-    const seeded = [
-      {
-        id: 'req-1',
-        date: '2024-12-25',
-        buyerName: 'Beatriz Santos',
-        buyerEmail: 'beatriz.s@example.com',
-        buyerAddress: '123 Mahogany St, Forbes Park, Makati, Philippines',
-        items: [
-          { productId: 'cat-3', name: 'Birkin 30', brand: 'Hermès', qty: 1, price: 12000, emoji: '👛' }
-        ],
-        status: 'pending',
-        shippingCost: null,
-        specialInstructions: 'Please wrap it nicely, it is a birthday gift for my mother.'
-      }
-    ];
-    return seeded;
+    return [];
   });
 
   const [catalogItems, setCatalogItems] = useState(() => {
     const saved = localStorage.getItem('gf_catalog_items');
     if (saved) return JSON.parse(saved);
-    if (localStorage.getItem('gf_cleared') === 'true') return [];
-
-    // Seed default catalog items, 1-to-1 with ITEMS and seeded batches
-    return ITEMS.map(item => ({
-      id: `cat-${item.id}`,
-      productId: item.id,
-      batchId: `batch-${item.id}-1`, // Seeded batch ID from store state
-      name: item.name,
-      brand: item.brand,
-      cat: item.cat,
-      detail: item.detail || '',
-      price: item.price, // Seeded retail price
-      orig: item.orig || null,
-      emoji: item.emoji || '👜',
-      condition: item.condition || 'mint'
-    }));
+    return [];
   });
+
 
   // Save to LocalStorage whenever state changes
   useEffect(() => {
@@ -545,16 +437,6 @@ export function StoreProvider({ children }) {
     setCatalogItems([]);
   }, []);
 
-  const resetToDemoData = useCallback(() => {
-    localStorage.removeItem('gf_cleared');
-    localStorage.removeItem('gf_products');
-    localStorage.removeItem('gf_batches');
-    localStorage.removeItem('gf_sales');
-    localStorage.removeItem('gf_purchase_requests');
-    localStorage.removeItem('gf_catalog_items');
-    window.location.reload();
-  }, []);
-
   return (
     <StoreContext.Provider value={{
       exchangeRate,
@@ -582,8 +464,7 @@ export function StoreProvider({ children }) {
       addPurchaseRequest,
       updatePurchaseRequest,
       deletePurchaseRequest,
-      clearMockData,
-      resetToDemoData
+      clearMockData
     }}>
       {children}
     </StoreContext.Provider>
