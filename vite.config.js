@@ -13,9 +13,6 @@ export default defineConfig({
           if (id.includes('node_modules')) {
             return 'vendor'
           }
-          if (id.includes('/src/admin/')) {
-            return 'admin'
-          }
         },
       },
     },
