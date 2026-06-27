@@ -1,0 +1,140 @@
+.hero {
+  background-color: #FAF8F5; /* Warm elegant off-white */
+  border-bottom: 1px solid #EAE5DF;
+  padding: 5rem 1.5rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at 50% 50%, rgba(201, 168, 76, 0.05) 0%, rgba(255, 255, 255, 0) 70%);
+  pointer-events: none;
+}
+
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+.badge {
+  display: inline-block;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: #C9A84C; /* Gold accent */
+  font-weight: 500;
+  margin-bottom: 1.5rem;
+  background: rgba(201, 168, 76, 0.08);
+  padding: 0.35rem 1rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(201, 168, 76, 0.2);
+}
+
+.title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 3rem;
+  line-height: 1.15;
+  color: #1C1410; /* Deep warm charcoal */
+  font-weight: 300;
+  margin-bottom: 1.5rem;
+  letter-spacing: -0.01em;
+}
+
+.title em {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-weight: 400;
+  color: #8C7B6E;
+}
+
+.subtitle {
+  font-family: 'Inter', sans-serif;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #61554A;
+  max-width: 600px;
+  margin: 0 auto 2.5rem auto;
+  font-weight: 300;
+}
+
+.actions {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.btn {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 0.9rem 2rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  outline: none;
+}
+
+.btnPrimary {
+  background-color: #1C1410;
+  color: #FAF8F5;
+  border: 1px solid #1C1410;
+}
+
+.btnPrimary:hover {
+  background-color: #382B24;
+  border-color: #382B24;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(28, 20, 16, 0.1);
+}
+
+.btnPrimary:active {
+  transform: translateY(0);
+}
+
+.btnSecondary {
+  background-color: transparent;
+  color: #1C1410;
+  border: 1px solid #C9A84C;
+}
+
+.btnSecondary:hover {
+  background-color: rgba(201, 168, 76, 0.05);
+  transform: translateY(-1px);
+}
+
+.btnSecondary:active {
+  transform: translateY(0);
+}
+
+@media (max-width: 640px) {
+  .title {
+    font-size: 2.25rem;
+  }
+  
+  .subtitle {
+    font-size: 0.9rem;
+  }
+  
+  .btn {
+    width: 100%;
+    padding: 0.8rem 1.5rem;
+  }
+  
+  .actions {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+}

@@ -1,0 +1,220 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  background-color: #FAF8F5;
+  border-radius: 4px;
+  overflow: hidden;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
+  border: 1px solid #EAE5DF;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(28, 20, 16, 0.05);
+  border-color: #D6CEC5;
+}
+
+.imgWrap {
+  aspect-ratio: 1 / 1;
+  width: 100%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-bottom: 1px solid #EAE5DF;
+}
+
+.photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.3s ease, transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.photoLoaded {
+  opacity: 1;
+}
+
+.card:hover .photo {
+  transform: scale(1.05);
+}
+
+.skeleton {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, #FAF8F5 25%, #EAE5DF 50%, #FAF8F5 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+}
+
+.emoji {
+  font-size: 4rem;
+  transition: transform 0.3s ease;
+}
+
+.card:hover .emoji {
+  transform: scale(1.1) rotate(2deg);
+}
+
+.badge {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.25rem 0.6rem;
+  border-radius: 2px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+
+.badgeMint {
+  background-color: #E2ECE9;
+  color: #2F614E;
+}
+
+.badgeGood {
+  background-color: #F1EAE2;
+  color: #72512F;
+}
+
+.badgeFair {
+  background-color: #F6E6E6;
+  color: #8C3D3D;
+}
+
+.badgeNew {
+  background-color: #FBF5E8;
+  color: #8C6D1F;
+  border: 1px solid rgba(201, 168, 76, 0.3);
+}
+
+.wishlist {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  background-color: rgba(250, 248, 245, 0.85);
+  backdrop-filter: blur(4px);
+  border: 1px solid #EAE5DF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #8C7B6E;
+  transition: all 0.2s;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+
+.wishlist:hover {
+  background-color: #FAF8F5;
+  color: #C9A84C;
+  border-color: #C9A84C;
+}
+
+.wishlist.liked {
+  color: #C9A84C;
+  border-color: #C9A84C;
+}
+
+.body {
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.brand {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #8C7B6E;
+  font-weight: 500;
+  margin: 0 0 0.25rem 0;
+}
+
+.name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.25rem;
+  font-weight: 400;
+  color: #1C1410;
+  margin: 0 0 0.5rem 0;
+  line-height: 1.2;
+}
+
+.detail {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.75rem;
+  color: #61554A;
+  margin: 0 0 1.25rem 0;
+  line-height: 1.4;
+  font-weight: 300;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: auto;
+  border-top: 1px solid #FAF0E6;
+  padding-top: 0.75rem;
+}
+
+.pricing {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.price {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #1C1410;
+}
+
+.orig {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.75rem;
+  text-decoration: line-through;
+  color: #A3968A;
+}
+
+.addBtn {
+  width: 1.85rem;
+  height: 1.85rem;
+  border-radius: 4px;
+  background-color: transparent;
+  border: 1px solid #1C1410;
+  color: #1C1410;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.addBtn:hover {
+  background-color: #1C1410;
+  color: #FAF8F5;
+  transform: scale(1.05);
+}
+
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}

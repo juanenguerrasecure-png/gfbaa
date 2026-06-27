@@ -1,0 +1,246 @@
+.shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: #FAF8F5;
+  color: #1C1410;
+}
+
+.topBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 4rem;
+  padding: 0 1.5rem;
+  background-color: #1C1410;
+  color: #FAF8F5;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  position: sticky;
+  top: 0;
+  z-index: 90;
+}
+
+.topLeft {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.menuBtn {
+  display: none;
+  background: none;
+  border: none;
+  color: #FAF8F5;
+  cursor: pointer;
+  padding: 0.25rem;
+  align-items: center;
+  justify-content: center;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.brandName {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.25rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.brandBadge {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background-color: #C9A84C;
+  color: #1C1410;
+  padding: 0.15rem 0.4rem;
+  border-radius: 2px;
+  font-weight: 600;
+}
+
+.topRight {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.storeLinkBtn {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.8rem;
+  color: #FAF8F5;
+  background: none;
+  border: none;
+  cursor: pointer;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+}
+
+.storeLinkBtn:hover {
+  opacity: 1;
+}
+
+.logoutBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.8rem;
+  color: #FAF8F5;
+  background: none;
+  border: none;
+  cursor: pointer;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+}
+
+.logoutBtn:hover {
+  opacity: 1;
+  color: #8C3D3D;
+}
+
+.body {
+  display: flex;
+  flex: 1;
+  position: relative;
+}
+
+.sidebar {
+  width: 260px;
+  background-color: #FAF8F5;
+  border-right: 1px solid #EAE5DF;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 1.5rem 0;
+  position: sticky;
+  top: 4rem;
+  height: calc(100vh - 4rem);
+  z-index: 80;
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0 0.75rem;
+}
+
+.navItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #61554A;
+  background: none;
+  border: none;
+  padding: 0.75rem 1rem;
+  border-radius: 4px;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.navItem:hover {
+  background-color: #F1EAE2;
+  color: #1C1410;
+}
+
+.navActive {
+  background-color: #1C1410 !important;
+  color: #FAF8F5 !important;
+}
+
+.sidebarFooter {
+  padding: 0 1rem;
+}
+
+.adminInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding-top: 1rem;
+  border-top: 1px solid #EAE5DF;
+}
+
+.adminAvatar {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background-color: #1C1410;
+  color: #FAF8F5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.adminName {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #1C1410;
+}
+
+.adminRole {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.7rem;
+  color: #8C7B6E;
+}
+
+.main {
+  flex: 1;
+  min-width: 0;
+  background-color: #FAF8F5;
+}
+
+.mainInner {
+  padding: 2rem 2.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+@media (max-width: 768px) {
+  .menuBtn {
+    display: flex;
+  }
+  
+  .sidebar {
+    position: fixed;
+    top: 4rem;
+    left: 0;
+    bottom: 0;
+    height: calc(100vh - 4rem);
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 95;
+    background-color: #FAF8F5;
+  }
+  
+  .sidebarOpen {
+    transform: translateX(0);
+  }
+  
+  .overlay {
+    position: fixed;
+    top: 4rem;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(28, 20, 16, 0.4);
+    backdrop-filter: blur(2px);
+    z-index: 94;
+  }
+  
+  .mainInner {
+    padding: 1.5rem;
+  }
+}

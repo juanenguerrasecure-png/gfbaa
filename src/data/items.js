@@ -1,0 +1,18 @@
+export const ITEMS = [
+  { id: 1,  cat: 'bags',    name: 'Classic Flap',       brand: 'Chanel',        detail: 'Black caviar leather · Silver hardware · Medium', price: 3200, orig: 3800, condition: 'mint', emoji: '👜' },
+  { id: 2,  cat: 'bags',    name: 'Speedy 30',          brand: 'Louis Vuitton', detail: 'Monogram canvas · Brass hardware · 2019',        price: 750,  orig: 950,  condition: 'good', emoji: '👝' },
+  { id: 3,  cat: 'bags',    name: 'Birkin 30',          brand: 'Hermès',        detail: 'Togo leather · Gold hardware · Etain',           price: 12000, orig: null,  condition: 'mint', emoji: '👛' },
+  { id: 4,  cat: 'bags',    name: 'Re-Edition 2005',    brand: 'Prada',         detail: 'Nylon · Silver chain · Black',                   price: 650,  orig: 850,  condition: 'mint', emoji: '🎒' },
+  { id: 5,  cat: 'bags',    name: 'Dionysus Small',     brand: 'Gucci',         detail: 'GG Supreme canvas · Tiger closure',              price: 900,  orig: 1200, condition: 'good', emoji: '👜' },
+  { id: 6,  cat: 'bags',    name: 'Lady Dior',          brand: 'Dior',          detail: 'Cannage lambskin · Rose des vents · Small',      price: 2200, orig: 2600, condition: 'fair', emoji: '💼' },
+  { id: 7,  cat: 'bags',    name: 'Kelly 28',           brand: 'Hermès',        detail: 'Epsom leather · Palladium · Beton',              price: 9500, orig: null,  condition: 'good', emoji: '👜' },
+  { id: 8,  cat: 'bags',    name: 'WOC',                brand: 'Chanel',        detail: 'Caviar leather · Gold chain · Black',            price: 1700, orig: 2000, condition: 'mint', emoji: '👛' },
+  { id: 9,  cat: 'jewelry', name: 'Eternity Band',      brand: '18K Gold',      detail: 'Round brilliants · 1.2ct total · Size 6',        price: 850,  orig: null,  condition: 'new',  emoji: '💍' },
+  { id: 10, cat: 'jewelry', name: 'Cuban Chain',        brand: '18K Gold',      detail: '5mm width · 45cm · Lobster clasp',               price: 550,  orig: 650,  condition: 'mint', emoji: '📿' },
+  { id: 11, cat: 'jewelry', name: 'Croissant Ring',     brand: '18K Gold',      detail: 'Twisted rope design · Size 7 · 3.8g',            price: 320,  orig: null,  condition: 'new',  emoji: '💍' },
+  { id: 12, cat: 'jewelry', name: 'Paperclip Bracelet', brand: '18K Gold',      detail: '18cm · Adjustable · 5.2g',                       price: 420,  orig: 480,  condition: 'mint', emoji: '✨' },
+  { id: 13, cat: 'jewelry', name: 'Teardrop Pendant',   brand: '18K Gold',      detail: 'Fresh water pearl drop · 16" chain',             price: 250,  orig: null,  condition: 'new',  emoji: '📿' },
+  { id: 14, cat: 'jewelry', name: 'Huggie Hoops',       brand: '18K Gold',      detail: 'Diamond-cut · 12mm · Pair',                      price: 170,  orig: 210,  condition: 'good', emoji: '💫' },
+  { id: 15, cat: 'jewelry', name: 'Signet Ring',        brand: '18K Gold',      detail: 'Oval face · Engravable · Size 8',                price: 380,  orig: null,  condition: 'new',  emoji: '💍' },
+  { id: 16, cat: 'jewelry', name: 'Tennis Bracelet',    brand: '18K Gold',      detail: '2.5ct total · 17cm · Box clasp',                 price: 1500, orig: 1700, condition: 'mint', emoji: '✨' },
+];

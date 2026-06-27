@@ -1,0 +1,6 @@
+{
+  "name": "Good Finds by AA",
+  "description": "A pre-loved designer bags and 18K gold jewelry platform with real-time inventory management",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
