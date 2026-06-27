@@ -2,20 +2,23 @@ import { createContext, useCallback, useContext, useEffect, useRef, useState } f
 
 const StoreContext = createContext(null);
 const DEFAULT_EXCHANGE_RATE = 58.0;
+const DEFAULT_PAYMENT_METHODS = { zelle: { handle: '', instructions: '', qrUrl: '' }, venmo: { handle: '', instructions: '', qrUrl: '' } };
 
 function getAuthHeaders(extra = {}) {
   const token = localStorage.getItem('gf_session_token') || '';
   return token ? { ...extra, Authorization: `Bearer ${token}` } : extra;
 }
 
+function normalizePaymentMethods(value) {
+  return {
+    zelle: { ...DEFAULT_PAYMENT_METHODS.zelle, ...(value?.zelle || {}) },
+    venmo: { ...DEFAULT_PAYMENT_METHODS.venmo, ...(value?.venmo || {}) },
+  };
+}
+
 export function StoreProvider({ children }) {
   const readLocalJson = (key, fallback) => {
-    try {
-      const saved = localStorage.getItem(key);
-      return saved ? JSON.parse(saved) : fallback;
-    } catch (_error) {
-      return fallback;
-    }
+    try { const saved = localStorage.getItem(key); return saved ? JSON.parse(saved) : fallback; } catch (_error) { return fallback; }
   };
 
   const readLocalNumber = (key, fallback) => {
@@ -30,6 +33,8 @@ export function StoreProvider({ children }) {
   const [sales, setSales] = useState(() => readLocalJson('gf_sales', []));
   const [purchaseRequests, setPurchaseRequests] = useState(() => readLocalJson('gf_purchase_requests', []));
   const [catalogItems, setCatalogItems] = useState(() => readLocalJson('gf_catalog_items', []));
+  const [socialLinks, setSocialLinks] = useState(() => readLocalJson('gf_social_links', {}));
+  const [paymentMethods, setPaymentMethods] = useState(() => normalizePaymentMethods(readLocalJson('gf_payment_methods', DEFAULT_PAYMENT_METHODS)));
 
   const [cloudReady, setCloudReady] = useState(false);
   const applyingRemoteRef = useRef(false);
@@ -44,14 +49,12 @@ export function StoreProvider({ children }) {
     sales,
     purchaseRequests,
     catalogItems,
-  }), [exchangeRate, products, batches, sales, purchaseRequests, catalogItems]);
+    socialLinks,
+    paymentMethods,
+  }), [exchangeRate, products, batches, sales, purchaseRequests, catalogItems, socialLinks, paymentMethods]);
 
   const snapshotHasRecords = (snapshot) => Boolean(
-    snapshot?.products?.length ||
-    snapshot?.batches?.length ||
-    snapshot?.catalogItems?.length ||
-    snapshot?.sales?.length ||
-    snapshot?.purchaseRequests?.length
+    snapshot?.products?.length || snapshot?.batches?.length || snapshot?.catalogItems?.length || snapshot?.sales?.length || snapshot?.purchaseRequests?.length
   );
 
   const writeLocalCache = useCallback((snapshot) => {
@@ -61,6 +64,8 @@ export function StoreProvider({ children }) {
     localStorage.setItem('gf_sales', JSON.stringify(snapshot.sales || []));
     localStorage.setItem('gf_purchase_requests', JSON.stringify(snapshot.purchaseRequests || []));
     localStorage.setItem('gf_catalog_items', JSON.stringify(snapshot.catalogItems || []));
+    localStorage.setItem('gf_social_links', JSON.stringify(snapshot.socialLinks || {}));
+    localStorage.setItem('gf_payment_methods', JSON.stringify(normalizePaymentMethods(snapshot.paymentMethods)));
   }, []);
 
   const applySnapshot = useCallback((snapshot) => {
@@ -71,6 +76,8 @@ export function StoreProvider({ children }) {
     setSales(Array.isArray(snapshot.sales) ? snapshot.sales : []);
     setPurchaseRequests(Array.isArray(snapshot.purchaseRequests) ? snapshot.purchaseRequests : []);
     setCatalogItems(Array.isArray(snapshot.catalogItems) ? snapshot.catalogItems : []);
+    setSocialLinks(snapshot.socialLinks && typeof snapshot.socialLinks === 'object' ? snapshot.socialLinks : {});
+    setPaymentMethods(normalizePaymentMethods(snapshot.paymentMethods));
     writeLocalCache(snapshot);
     window.setTimeout(() => { applyingRemoteRef.current = false; }, 0);
   }, [writeLocalCache]);
@@ -104,7 +111,6 @@ export function StoreProvider({ children }) {
       const response = await fetch('/api/state', { method: 'GET' });
       const result = await response.json();
       if (!response.ok || !result.ok) throw new Error(result.error || 'Unable to load cloud state.');
-
       const localSnapshot = buildSnapshot();
       if (result.exists && result.state) {
         if (!snapshotHasRecords(result.state) && snapshotHasRecords(localSnapshot) && localStorage.getItem('gf_session_token')) {
@@ -152,6 +158,21 @@ export function StoreProvider({ children }) {
     };
   }, [cloudReady, loadCloudState]);
 
+  const saveSocialLinks = useCallback(async (nextSocialLinks) => {
+    setSocialLinks(nextSocialLinks);
+    const snapshot = { ...buildSnapshot(), socialLinks: nextSocialLinks };
+    writeLocalCache(snapshot);
+    await saveCloudState(snapshot);
+  }, [buildSnapshot, saveCloudState, writeLocalCache]);
+
+  const savePaymentMethods = useCallback(async (nextPaymentMethods) => {
+    const normalized = normalizePaymentMethods(nextPaymentMethods);
+    setPaymentMethods(normalized);
+    const snapshot = { ...buildSnapshot(), paymentMethods: normalized };
+    writeLocalCache(snapshot);
+    await saveCloudState(snapshot);
+  }, [buildSnapshot, saveCloudState, writeLocalCache]);
+
   const convertPhpToUsd = useCallback((phpAmount) => {
     if (!phpAmount || isNaN(Number(phpAmount))) return 0;
     return Math.round((Number(phpAmount) / exchangeRate) * 100) / 100;
@@ -173,16 +194,7 @@ export function StoreProvider({ children }) {
     return newItem;
   }, []);
 
-  const updateCatalogItem = useCallback((id, updates) => {
-    setCatalogItems(prev => prev.map(item => {
-      if (item.id !== id) return item;
-      const nextItem = { ...item, ...updates };
-      if (updates.quantity !== undefined) nextItem.quantity = Number(updates.quantity);
-      if (updates.remainingQty !== undefined) nextItem.remainingQty = Number(updates.remainingQty);
-      return nextItem;
-    }));
-  }, []);
-
+  const updateCatalogItem = useCallback((id, updates) => setCatalogItems(prev => prev.map(item => item.id !== id ? item : { ...item, ...updates, ...(updates.quantity !== undefined ? { quantity: Number(updates.quantity) } : {}), ...(updates.remainingQty !== undefined ? { remainingQty: Number(updates.remainingQty) } : {}) })), []);
   const deleteCatalogItem = useCallback((id) => setCatalogItems(prev => prev.filter(item => item.id !== id)), []);
 
   const getCatalogItemStock = useCallback((catalogItemId) => {
@@ -227,7 +239,6 @@ export function StoreProvider({ children }) {
       if (!productObj) throw new Error('Item not found in catalog.');
       totalPrice += pricePerItem * requestedQty;
       const batchesDeducted = [];
-
       if (batchIdToDeduct) {
         const batchInState = updatedBatches.find(b => b.id === batchIdToDeduct);
         if (!batchInState) throw new Error(`Associated batch not found for catalog item "${productObj.name}".`);
@@ -255,10 +266,8 @@ export function StoreProvider({ children }) {
           batchesDeducted.push({ batchId: batchInState.id, batchNumber: batchInState.batchNumber, qty: deductAmount, costPerItem: batchInState.costPerItem });
         }
       }
-
       saleItemsSummary.push({ productId: item.productId, name: productObj.name, brand: productObj.brand, qty: requestedQty, pricePerItem, totalPrice: pricePerItem * requestedQty, batches: batchesDeducted });
     }
-
     setBatches(updatedBatches);
     setCatalogItems(updatedCatalogItems);
     const newSale = { id: `sale-${Date.now()}`, date: date || new Date().toISOString().split('T')[0], buyer: buyer || 'Walk-in customer', totalPrice, totalCogs: Math.round(totalCogs * 100) / 100, profit: Math.round((totalPrice - totalCogs) * 100) / 100, items: saleItemsSummary, selectionMethod: selectionMethod || 'Direct' };
@@ -288,7 +297,6 @@ export function StoreProvider({ children }) {
     if (!batchId) throw new Error('Please select a batch from inventory.');
     if (isNaN(requestedQty) || requestedQty <= 0) throw new Error('Quantity must be a positive number.');
     if (isNaN(price) || price < 0) throw new Error('Price cannot be negative.');
-
     const updatedBatches = [...batches];
     const updatedCatalogItems = [...catalogItems];
     const batchInState = updatedBatches.find(b => b.id === batchId);
@@ -296,7 +304,6 @@ export function StoreProvider({ children }) {
     if (batchInState.remainingQty < requestedQty) throw new Error(`Insufficient stock in Batch "${batchInState.batchNumber}".`);
     const productObj = products.find(p => p.id === batchInState.productId);
     if (!productObj) throw new Error('Product specs not found for this batch.');
-
     batchInState.remainingQty -= requestedQty;
     updatedCatalogItems.forEach(c => { if (c.batchId === batchId && c.remainingQty !== undefined) c.remainingQty = Math.max(0, c.remainingQty - requestedQty); });
     const totalCogs = requestedQty * batchInState.costPerItem;
@@ -316,21 +323,16 @@ export function StoreProvider({ children }) {
     setPurchaseRequests(prev => [newRequest, ...prev]);
     return newRequest;
   }, []);
-
   const updatePurchaseRequest = useCallback((id, updates) => setPurchaseRequests(prev => prev.map(r => r.id === id ? { ...r, ...updates } : r)), []);
   const deletePurchaseRequest = useCallback((id) => setPurchaseRequests(prev => prev.filter(r => r.id !== id)), []);
 
   const clearMockData = useCallback(() => {
-    const emptySnapshot = { exchangeRate, products: [], batches: [], sales: [], purchaseRequests: [], catalogItems: [] };
+    const emptySnapshot = { exchangeRate, products: [], batches: [], sales: [], purchaseRequests: [], catalogItems: [], socialLinks, paymentMethods };
     localStorage.setItem('gf_cleared', 'true');
-    setProducts([]);
-    setBatches([]);
-    setSales([]);
-    setPurchaseRequests([]);
-    setCatalogItems([]);
+    setProducts([]); setBatches([]); setSales([]); setPurchaseRequests([]); setCatalogItems([]);
     writeLocalCache(emptySnapshot);
     saveCloudState(emptySnapshot);
-  }, [exchangeRate, saveCloudState, writeLocalCache]);
+  }, [exchangeRate, socialLinks, paymentMethods, saveCloudState, writeLocalCache]);
 
   return (
     <StoreContext.Provider value={{
@@ -341,6 +343,8 @@ export function StoreProvider({ children }) {
       sales, recordSale, recordManualSale, deleteSale,
       getProductStock, convertPhpToUsd, inventoryValuation,
       purchaseRequests, addPurchaseRequest, updatePurchaseRequest, deletePurchaseRequest,
+      socialLinks, saveSocialLinks,
+      paymentMethods, savePaymentMethods,
       clearMockData
     }}>
       {children}
