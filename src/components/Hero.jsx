@@ -7,13 +7,14 @@ export function Hero({ onCategoryClick }) {
         <div className={styles.copyCol}>
           <span className={styles.badge}>Curated Pre-Loved Luxury</span>
           <h2 className={styles.title}>
-            Timeless classics for the modern collector.
+            Timeless Classics. <br />
+            <em>Guaranteed Authenticity.</em>
           </h2>
           <p className={styles.kicker}>
-            Authentic designer bags and 18K gold jewelry
+            Good Finds by AA
           </p>
           <p className={styles.subtitle}>
-            Discover a refined selection of pre-loved designer handbags and fine jewelry, chosen for elegance, condition, and enduring value.
+            Discover our meticulously authenticated collection of pre-loved designer handbags and exquisite 18K gold jewelry. Handpicked treasures that define elegance.
           </p>
           <div className={styles.actions}>
             <button
@@ -21,14 +22,14 @@ export function Hero({ onCategoryClick }) {
               onClick={() => onCategoryClick('bags')}
               className={`${styles.btn} ${styles.btnPrimary}`}
             >
-              Shop Bags
+              Shop Luxury Bags
             </button>
             <button
               id="hero_btn_jewelry"
               onClick={() => onCategoryClick('jewelry')}
               className={`${styles.btn} ${styles.btnSecondary}`}
             >
-              Shop Jewelry
+              Explore Fine Jewelry
             </button>
           </div>
         </div>
