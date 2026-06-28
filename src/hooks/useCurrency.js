@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 const STORAGE_KEY = 'gf_price_currency';
 const EVENT_NAME = 'gf_price_currency_change';
 const DEFAULT_CURRENCY = 'PHP';
+const DEFAULT_EXCHANGE_RATE = 58;
 
 function readStoredCurrency() {
   try {
@@ -28,31 +29,42 @@ function persistCurrency(value) {
   return next;
 }
 
-export function formatProductPrice(product, currency) {
-  const phpPrice = Number(product?.price || 0);
-  const usdPrice = product?.priceUSD !== undefined && product?.priceUSD !== null && product?.priceUSD !== ''
-    ? Number(product.priceUSD)
-    : null;
+function toNumber(value) {
+  const number = Number(value);
+  return Number.isFinite(number) ? number : null;
+}
 
-  if (currency === 'USD' && usdPrice !== null && Number.isFinite(usdPrice)) {
-    return `$${usdPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+export function getProductPriceValues(product, exchangeRate = DEFAULT_EXCHANGE_RATE) {
+  const rate = Number(exchangeRate) > 0 ? Number(exchangeRate) : DEFAULT_EXCHANGE_RATE;
+  const explicitPhp = toNumber(product?.pricePHP ?? product?.phpPrice ?? product?.pricePhp);
+  const explicitUsd = toNumber(product?.priceUSD ?? product?.usdPrice ?? product?.priceUsd);
+  const basePrice = toNumber(product?.price) ?? 0;
+
+  const usd = explicitUsd ?? basePrice;
+  const php = explicitPhp ?? Math.round(usd * rate * 100) / 100;
+
+  return { php, usd };
+}
+
+export function formatProductPrice(product, currency, exchangeRate = DEFAULT_EXCHANGE_RATE) {
+  const { php, usd } = getProductPriceValues(product, exchangeRate);
+
+  if (currency === 'USD') {
+    return `$${usd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   }
 
-  return `₱${phpPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  return `₱${php.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 export function hasUsdPrice(product) {
-  const value = product?.priceUSD;
-  return value !== undefined && value !== null && value !== '' && Number.isFinite(Number(value));
+  return Boolean(product);
 }
 
 export function useCurrency() {
   const [currency, setCurrencyState] = useState(readStoredCurrency);
 
   useEffect(() => {
-    const handleCustomChange = (event) => {
-      setCurrencyState(normalizeCurrency(event.detail));
-    };
+    const handleCustomChange = (event) => setCurrencyState(normalizeCurrency(event.detail));
     const handleStorageChange = (event) => {
       if (event.key === STORAGE_KEY) setCurrencyState(normalizeCurrency(event.newValue));
     };
@@ -69,9 +81,7 @@ export function useCurrency() {
     setCurrencyState(next);
   };
 
-  const toggleCurrency = () => {
-    setCurrency(currency === 'PHP' ? 'USD' : 'PHP');
-  };
+  const toggleCurrency = () => setCurrency(currency === 'PHP' ? 'USD' : 'PHP');
 
   return { currency, setCurrency, toggleCurrency };
 }
