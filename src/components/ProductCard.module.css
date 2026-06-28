@@ -6,6 +6,7 @@
   overflow: hidden;
   transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease, border-color 0.4s ease;
   border: 1px solid #E5DFD8;
+  cursor: pointer;
 }
 
 .card:hover {
@@ -33,20 +34,12 @@
   transition: opacity 0.3s ease, transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.photoLoaded {
-  opacity: 1;
-}
-
-.card:hover .photo {
-  transform: scale(1.05);
-}
+.photoLoaded { opacity: 1; }
+.card:hover .photo { transform: scale(1.05); }
 
 .skeleton {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   background: linear-gradient(90deg, #FAF8F5 25%, #E5DFD8 50%, #FAF8F5 75%);
   background-size: 200% 100%;
   animation: loading 1.5s infinite;
@@ -57,9 +50,7 @@
   transition: transform 0.3s ease;
 }
 
-.card:hover .emoji {
-  transform: scale(1.1) rotate(2deg);
-}
+.card:hover .emoji { transform: scale(1.1) rotate(2deg); }
 
 .badge {
   position: absolute;
@@ -78,27 +69,14 @@
   box-shadow: 0 2px 4px rgba(0,0,0,0.02);
 }
 
-.badgeMint {
-  color: #5D7268;
-}
+.badgeMint { color: #5D7268; }
+.badgeGood { color: #7A695D; }
+.badgeFair { color: #8E6B6B; }
+.badgeNew { color: #8E7A4A; border-color: #C9A84C; }
 
-.badgeGood {
-  color: #7A695D;
-}
-
-.badgeFair {
-  color: #8E6B6B;
-}
-
-.badgeNew {
-  color: #8E7A4A;
-  border-color: #C9A84C;
-}
-
-.wishlist {
+.wishlist,
+.whatsappBtn {
   position: absolute;
-  top: 0.75rem;
-  right: 0.75rem;
   width: 1.75rem;
   height: 1.75rem;
   border-radius: 50%;
@@ -115,48 +93,24 @@
   z-index: 12;
 }
 
-.quickViewBtn {
-  position: absolute;
-  bottom: 1rem;
-  left: 50%;
-  transform: translate(-50%, 10px);
-  opacity: 0;
-  background-color: rgba(250, 248, 245, 0.95);
-  color: #1C1410;
-  border: 1px solid #EAE5DF;
-  padding: 0.5rem 1rem;
-  font-family: 'Inter', sans-serif;
-  font-size: 0.7rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 4px 12px rgba(28, 20, 16, 0.08);
-  pointer-events: auto;
-  z-index: 10;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.wishlist {
+  top: 0.75rem;
+  right: 0.75rem;
 }
 
-.quickViewBtn:hover {
-  background-color: #1C1410;
-  color: #FAF8F5;
-  border-color: #1C1410;
-  transform: translate(-50%, 0) scale(1.03);
+.whatsappBtn {
+  bottom: 0.75rem;
+  right: 0.75rem;
+  color: #25D366;
+  text-decoration: none;
 }
 
-.card:hover .quickViewBtn {
-  opacity: 1;
-  transform: translate(-50%, 0);
-}
-
-.wishlist:hover {
+.wishlist:hover,
+.whatsappBtn:hover {
   background-color: #FAF8F5;
   color: #C9A84C;
   border-color: #C9A84C;
+  transform: scale(1.04);
 }
 
 .wishlist.liked {
@@ -242,17 +196,18 @@
   transition: all 0.2s;
 }
 
-.addBtn:hover {
+.addBtn:hover:not(:disabled) {
   background-color: #1C1410;
   color: #FAF8F5;
   transform: scale(1.05);
 }
 
+.addBtn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 @keyframes loading {
-  0% {
-    background-position: 200% 0;
-  }
-  100% {
-    background-position: -200% 0;
-  }
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
