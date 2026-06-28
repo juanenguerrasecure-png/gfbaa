@@ -15,13 +15,28 @@ const BADGE = {
 const CAT_BG = { bags: ['#F0E8DF', '#E8DDD3'], jewelry: ['#F3EEE8', '#EDE6DC'] };
 const FALLBACK_EMOJI = { bags: '👜', jewelry: '💍' };
 
-function getWhatsAppHref(baseUrl, item) {
+function buildInquiryText(item) {
+  return `Hi! I'm interested in: ${item.name} by ${item.brand}. Can you tell me more about its availability and condition?`;
+}
+
+function appendTextParam(baseUrl, item) {
   if (!baseUrl) return '';
-  const text = `Hi! I'm interested in: ${item.name} by ${item.brand}. Can you tell me more about its availability and condition?`;
-  const encoded = encodeURIComponent(text);
   const url = String(baseUrl).trim();
   if (!url) return '';
+  const encoded = encodeURIComponent(buildInquiryText(item));
   return url.includes('?') ? `${url}&text=${encoded}` : `${url}?text=${encoded}`;
+}
+
+function getMessengerHref(baseUrl, item) {
+  if (!baseUrl) return '';
+  const url = String(baseUrl).trim();
+  if (!url) return '';
+  const encoded = encodeURIComponent(buildInquiryText(item));
+  if (url.includes('m.me/')) return url.includes('?') ? `${url}&text=${encoded}` : `${url}?text=${encoded}`;
+  const clean = url.replace(/\/$/, '');
+  const page = clean.split('/').filter(Boolean).pop();
+  if (page && !page.includes('.')) return `https://m.me/${page}?text=${encoded}`;
+  return url;
 }
 
 export function ProductCard({ item, onAddToCart }) {
@@ -37,7 +52,9 @@ export function ProductCard({ item, onAddToCart }) {
   const hasPhoto = item.photoUrl && !imgError;
   const stock = getCatalogItemStock(item.id);
   const soldOut = stock <= 0;
-  const whatsappHref = getWhatsAppHref(socialLinks.whatsapp, item);
+  const whatsappHref = appendTextParam(socialLinks.whatsapp, item);
+  const viberHref = appendTextParam(socialLinks.viber, item);
+  const messengerHref = getMessengerHref(socialLinks.messenger || socialLinks.facebook, item);
 
   return (
     <>
@@ -46,7 +63,14 @@ export function ProductCard({ item, onAddToCart }) {
           {hasPhoto ? <>{!imgLoaded && <div className={styles.skeleton} aria-hidden="true" />}<img src={item.photoUrl} alt={`${item.brand} ${item.name}`} className={`${styles.photo} ${imgLoaded ? styles.photoLoaded : ''}`} onLoad={() => setImgLoaded(true)} onError={() => setImgError(true)} loading="lazy" decoding="async" /></> : <span className={styles.emoji} aria-hidden="true">{item.emoji ?? FALLBACK_EMOJI[item.cat]}</span>}
           <span className={`${styles.badge} ${styles[badge.cls]}`} aria-label={`Condition: ${badge.label}`}>{badge.label}</span>
           <button className={`${styles.wishlist} ${liked ? styles.liked : ''}`} onClick={e => { e.stopPropagation(); setLiked(l => !l); }} aria-label={liked ? 'Remove from wishlist' : 'Save to wishlist'} id={`wishlist_btn_${item.id}`}><Heart size={15} strokeWidth={1.8} fill={liked ? '#C9A84C' : 'none'} stroke={liked ? '#C9A84C' : 'currentColor'} /></button>
-          {whatsappHref && <a className={styles.whatsappBtn} href={whatsappHref} target="_blank" rel="noopener noreferrer" onClick={event => event.stopPropagation()} aria-label={`Ask about ${item.name} on WhatsApp`}><MessageCircle size={15} /></a>}
+
+          {(whatsappHref || viberHref || messengerHref) && (
+            <div className={styles.contactStack}>
+              {whatsappHref && <a className={`${styles.contactBtn} ${styles.whatsappBtn}`} href={whatsappHref} target="_blank" rel="noopener noreferrer" onClick={event => event.stopPropagation()} aria-label={`Ask about ${item.name} on WhatsApp`}><MessageCircle size={14} /></a>}
+              {viberHref && <a className={`${styles.contactBtn} ${styles.viberBtn}`} href={viberHref} target="_blank" rel="noopener noreferrer" onClick={event => event.stopPropagation()} aria-label={`Ask about ${item.name} on Viber`}>V</a>}
+              {messengerHref && <a className={`${styles.contactBtn} ${styles.messengerBtn}`} href={messengerHref} target="_blank" rel="noopener noreferrer" onClick={event => event.stopPropagation()} aria-label={`Ask about ${item.name} on Messenger`}>M</a>}
+            </div>
+          )}
         </div>
 
         <div className={styles.body}>
