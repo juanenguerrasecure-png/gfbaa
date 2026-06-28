@@ -25,16 +25,15 @@ function getPhotos(product) {
 
 function getWhatsAppHref(baseUrl, product) {
   if (!baseUrl) return '';
-  const text = `Hi! I'm interested in: ${product.name} by ${product.brand}. Can you tell me more about its availability and condition?`;
+  const text = `Hello, I would like more information about ${product.name} by ${product.brand}.`;
   const encoded = encodeURIComponent(text);
   const url = String(baseUrl).trim();
   if (!url) return '';
-  if (url.includes('?')) return `${url}&text=${encoded}`;
-  return `${url}?text=${encoded}`;
+  return url.includes('?') ? `${url}&text=${encoded}` : `${url}?text=${encoded}`;
 }
 
 export function ProductDetailModal({ isOpen, onClose, product, onAddToCart }) {
-  const { socialLinks = {}, getCatalogItemStock } = useStore();
+  const { socialLinks = {}, getCatalogItemStock, exchangeRate } = useStore();
   const { currency } = useCurrency();
   const [activePhoto, setActivePhoto] = useState(0);
   const [touchStart, setTouchStart] = useState(null);
@@ -88,9 +87,10 @@ export function ProductDetailModal({ isOpen, onClose, product, onAddToCart }) {
           {photos.length > 1 && <><button type="button" className={`${styles.arrow} ${styles.arrowLeft}`} onClick={goPrev} aria-label="Previous photo"><ChevronLeft size={20} /></button><button type="button" className={`${styles.arrow} ${styles.arrowRight}`} onClick={goNext} aria-label="Next photo"><ChevronRight size={20} /></button><div className={styles.dots}>{photos.map((_, index) => <button key={index} type="button" className={`${styles.dot} ${index === activePhoto ? styles.activeDot : ''}`} onClick={() => setActivePhoto(index)} aria-label={`Show photo ${index + 1}`} />)}</div></>}
         </div>
         <div className={styles.infoPanel}>
-          <p className={styles.brand}>{product.brand}</p><h2 className={styles.name}>{product.name}</h2>
+          <p className={styles.brand}>{product.brand}</p>
+          <h2 className={styles.name}>{product.name}</h2>
           <div className={styles.metaRow}><span className={`${styles.badge} ${styles[badge.cls]}`}>{badge.label}</span><span className={styles.category}>{product.cat || 'curation'}</span></div>
-          <div className={styles.priceRow}><span className={styles.price}>{formatProductPrice(product, displayCurrency)}</span><PriceToggle compact allowUsd={allowUsd} /></div>
+          <div className={styles.priceRow}><span className={styles.price}>{formatProductPrice(product, displayCurrency, exchangeRate)}</span><PriceToggle compact allowUsd={allowUsd} /></div>
           <p className={styles.stock}>{soldOut ? 'Sold Out' : `${stock} available`}</p>
           {product.detail && <p className={styles.description}>{product.detail}</p>}
           {product.description && product.description !== product.detail && <p className={styles.description}>{product.description}</p>}
