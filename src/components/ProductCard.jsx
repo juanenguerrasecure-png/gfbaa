@@ -27,14 +27,10 @@ function appendTextParam(baseUrl, item) {
   return url.includes('?') ? `${url}&text=${encoded}` : `${url}?text=${encoded}`;
 }
 
-function getViberHref(baseUrl) {
+function getViberHref(baseUrl, item) {
   if (!baseUrl) return '';
-  const url = String(baseUrl).trim();
-  if (!url) return '';
-  if (url.startsWith('viber://')) return url;
-  const digits = url.replace(/[^0-9]/g, '');
-  if (digits) return `viber://chat?number=%2B${digits}`;
-  return url;
+  const encoded = encodeURIComponent(buildInquiryText(item));
+  return `viber://forward?text=${encoded}`;
 }
 
 function getMessengerHref(baseUrl) {
@@ -52,7 +48,7 @@ async function copyInquiryText(item) {
   try {
     await navigator.clipboard.writeText(buildInquiryText(item));
   } catch (_error) {
-    // Clipboard may be blocked by the browser. The chat link should still open.
+    // Clipboard may be blocked by the browser. The chat/share link should still open.
   }
 }
 
@@ -61,7 +57,7 @@ function openContact(event, href, item) {
   event.preventDefault();
   if (!href) return;
   copyInquiryText(item);
-  window.open(href, '_blank', 'noopener,noreferrer');
+  window.location.href = href;
 }
 
 export function ProductCard({ item, onAddToCart }) {
@@ -78,7 +74,7 @@ export function ProductCard({ item, onAddToCart }) {
   const stock = getCatalogItemStock(item.id);
   const soldOut = stock <= 0;
   const whatsappHref = appendTextParam(socialLinks.whatsapp, item);
-  const viberHref = getViberHref(socialLinks.viber);
+  const viberHref = getViberHref(socialLinks.viber, item);
   const messengerHref = getMessengerHref(socialLinks.messenger || socialLinks.facebook);
 
   return (
@@ -92,8 +88,8 @@ export function ProductCard({ item, onAddToCart }) {
           {(whatsappHref || viberHref || messengerHref) && (
             <div className={styles.contactStack}>
               {whatsappHref && <a className={`${styles.contactBtn} ${styles.whatsappBtn}`} href={whatsappHref} target="_blank" rel="noopener noreferrer" onClick={event => { event.stopPropagation(); }} aria-label={`Ask about ${item.name} on WhatsApp`}><MessageCircle size={14} /></a>}
-              {viberHref && <a className={`${styles.contactBtn} ${styles.viberBtn}`} href={viberHref} target="_blank" rel="noopener noreferrer" onClick={event => openContact(event, viberHref, item)} aria-label={`Ask about ${item.name} on Viber`}>V</a>}
-              {messengerHref && <a className={`${styles.contactBtn} ${styles.messengerBtn}`} href={messengerHref} target="_blank" rel="noopener noreferrer" onClick={event => openContact(event, messengerHref, item)} aria-label={`Ask about ${item.name} on Messenger`}>M</a>}
+              {viberHref && <a className={`${styles.contactBtn} ${styles.viberBtn}`} href={viberHref} onClick={event => openContact(event, viberHref, item)} aria-label={`Ask about ${item.name} on Viber`}>V</a>}
+              {messengerHref && <a className={`${styles.contactBtn} ${styles.messengerBtn}`} href={messengerHref} target="_blank" rel="noopener noreferrer" onClick={event => { event.stopPropagation(); copyInquiryText(item); }} aria-label={`Ask about ${item.name} on Messenger`}>M</a>}
             </div>
           )}
         </div>
