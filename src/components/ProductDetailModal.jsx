@@ -23,13 +23,28 @@ function getPhotos(product) {
   return [...new Set(list.filter(Boolean))];
 }
 
-function getWhatsAppHref(baseUrl, product) {
+function buildInquiryText(product) {
+  return `Hi! I'm interested in: ${product.name} by ${product.brand}. Can you tell me more about its availability and condition?`;
+}
+
+function appendTextParam(baseUrl, product) {
   if (!baseUrl) return '';
-  const text = `Hello, I would like more information about ${product.name} by ${product.brand}.`;
-  const encoded = encodeURIComponent(text);
   const url = String(baseUrl).trim();
   if (!url) return '';
+  const encoded = encodeURIComponent(buildInquiryText(product));
   return url.includes('?') ? `${url}&text=${encoded}` : `${url}?text=${encoded}`;
+}
+
+function getMessengerHref(baseUrl, product) {
+  if (!baseUrl) return '';
+  const url = String(baseUrl).trim();
+  if (!url) return '';
+  const encoded = encodeURIComponent(buildInquiryText(product));
+  if (url.includes('m.me/')) return url.includes('?') ? `${url}&text=${encoded}` : `${url}?text=${encoded}`;
+  const clean = url.replace(/\/$/, '');
+  const page = clean.split('/').filter(Boolean).pop();
+  if (page && !page.includes('.')) return `https://m.me/${page}?text=${encoded}`;
+  return url;
 }
 
 export function ProductDetailModal({ isOpen, onClose, product, onAddToCart }) {
@@ -42,7 +57,9 @@ export function ProductDetailModal({ isOpen, onClose, product, onAddToCart }) {
   const badge = BADGE[product?.condition] ?? BADGE.good;
   const stock = product ? getCatalogItemStock(product.id) : 0;
   const soldOut = stock <= 0;
-  const whatsappHref = product ? getWhatsAppHref(socialLinks?.whatsapp, product) : '';
+  const whatsappHref = product ? appendTextParam(socialLinks?.whatsapp, product) : '';
+  const viberHref = product ? appendTextParam(socialLinks?.viber, product) : '';
+  const messengerHref = product ? getMessengerHref(socialLinks?.messenger || socialLinks?.facebook, product) : '';
   const allowUsd = hasUsdPrice(product);
   const displayCurrency = allowUsd ? currency : 'PHP';
 
@@ -98,7 +115,9 @@ export function ProductDetailModal({ isOpen, onClose, product, onAddToCart }) {
         </div>
         <div className={styles.actionBar}>
           <button type="button" className={styles.addBtn} onClick={handleAdd} disabled={soldOut}><ShoppingBag size={16} />{soldOut ? 'Sold Out' : 'Add to Cart'}</button>
-          {whatsappHref && <a className={styles.whatsAppBtn} href={whatsappHref} target="_blank" rel="noopener noreferrer"><MessageCircle size={16} />Ask on WhatsApp</a>}
+          {whatsappHref && <a className={`${styles.inquiryBtn} ${styles.whatsAppBtn}`} href={whatsappHref} target="_blank" rel="noopener noreferrer"><MessageCircle size={16} />WhatsApp</a>}
+          {viberHref && <a className={`${styles.inquiryBtn} ${styles.viberBtn}`} href={viberHref} target="_blank" rel="noopener noreferrer">Viber</a>}
+          {messengerHref && <a className={`${styles.inquiryBtn} ${styles.messengerBtn}`} href={messengerHref} target="_blank" rel="noopener noreferrer">Messenger</a>}
         </div>
       </section>
     </div>
