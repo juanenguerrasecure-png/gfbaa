@@ -74,9 +74,10 @@
 .badgeFair { color: #8E6B6B; }
 .badgeNew { color: #8E7A4A; border-color: #C9A84C; }
 
-.wishlist,
-.whatsappBtn {
+.wishlist {
   position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
   width: 1.75rem;
   height: 1.75rem;
   border-radius: 50%;
@@ -93,20 +94,41 @@
   z-index: 12;
 }
 
-.wishlist {
-  top: 0.75rem;
-  right: 0.75rem;
-}
-
-.whatsappBtn {
+.contactStack {
+  position: absolute;
   bottom: 0.75rem;
   right: 0.75rem;
-  color: #25D366;
-  text-decoration: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  z-index: 13;
 }
 
+.contactBtn {
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  background-color: rgba(250, 248, 245, 0.9);
+  backdrop-filter: blur(4px);
+  border: 1px solid #EAE5DF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-decoration: none;
+  transition: all 0.2s;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+
+.whatsappBtn { color: #25D366; }
+.viberBtn { color: #7360F2; }
+.messengerBtn { color: #0084FF; }
+
 .wishlist:hover,
-.whatsappBtn:hover {
+.contactBtn:hover {
   background-color: #FAF8F5;
   color: #C9A84C;
   border-color: #C9A84C;
