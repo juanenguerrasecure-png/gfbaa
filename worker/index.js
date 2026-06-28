@@ -330,7 +330,9 @@ export default {
         const mergedState = {
           ...incomingState,
           sessions: auth.state.sessions || [],
-          users: auth.state.users?.length > 0 ? auth.state.users : (incomingState.users || []),
+          users: Object.prototype.hasOwnProperty.call(incomingState, 'users') && Array.isArray(incomingState.users)
+            ? incomingState.users
+            : (auth.state.users || []),
         };
         const saved = await saveState(env, mergedState);
         return json({ ok: true, ...saved, state: publicState(saved.state) }, { status: 200 }, corsHeaders);

@@ -9,7 +9,7 @@ const TITLES = {
   under1k: 'Under $1,000',
 };
 
-export function Catalog({ items, activeFilter, onAddToCart, onClearFilter }) {
+export function Catalog({ items, activeFilter, onAddToCart, onClearFilter, sort, onSortChange }) {
   let displayTitle = TITLES[activeFilter] ?? 'Collection';
   if (activeFilter && activeFilter.startsWith('brand:')) {
     const brandName = activeFilter.slice(6);
@@ -19,10 +19,31 @@ export function Catalog({ items, activeFilter, onAddToCart, onClearFilter }) {
   return (
     <main className={styles.catalog}>
       <div className={styles.header}>
-        <h2 className={styles.sectionTitle}>{displayTitle}</h2>
-        <span className={styles.count}>
-          {items.length} piece{items.length !== 1 ? 's' : ''}
-        </span>
+        <div className="flex flex-col sm:flex-row sm:items-baseline gap-2">
+          <h2 className={styles.sectionTitle}>{displayTitle}</h2>
+          <span className={styles.count}>
+            {items.length} piece{items.length !== 1 ? 's' : ''}
+          </span>
+        </div>
+
+        {onSortChange && (
+          <div className={styles.sortWrapper} id="catalog_sort_wrapper">
+            <label htmlFor="catalog_sort_select" className={styles.sortLabel}>Sort by</label>
+            <div className={styles.selectWrapper}>
+              <select
+                id="catalog_sort_select"
+                className={styles.sortSelect}
+                value={sort || 'newest'}
+                onChange={e => onSortChange(e.target.value)}
+                aria-label="Sort product grid"
+              >
+                <option value="newest">Newest Arrivals</option>
+                <option value="low">Price: Low to High</option>
+                <option value="high">Price: High to Low</option>
+              </select>
+            </div>
+          </div>
+        )}
       </div>
 
       {activeFilter !== 'all' && onClearFilter && (

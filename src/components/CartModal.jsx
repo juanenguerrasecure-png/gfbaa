@@ -2,10 +2,12 @@ import { useState } from 'react';
 import { useStore } from '../context/StoreContext';
 import { X, Trash2, ShoppingBag, Send, CheckCircle, MapPin, Mail, User } from 'lucide-react';
 import { PaymentInfoModal } from './PaymentInfoModal';
+import { formatProductPrice, useCurrency } from '../hooks/useCurrency';
 import styles from './CartModal.module.css';
 
 export function CartModal({ isOpen, onClose, cart, onRemove, onClear, showToast }) {
-  const { paymentMethods = {}, addPurchaseRequest } = useStore();
+  const { paymentMethods = {}, addPurchaseRequest, exchangeRate } = useStore();
+  const { currency } = useCurrency();
   const [buyerName, setBuyerName] = useState('');
   const [buyerEmail, setBuyerEmail] = useState('');
   const [buyerAddress, setBuyerAddress] = useState('');
@@ -132,9 +134,9 @@ export function CartModal({ isOpen, onClose, cart, onRemove, onClear, showToast 
               <div className={styles.layout}>
                 <div className={styles.itemsSection}>
                   <h3 className={styles.sectionTitle}>Selected Curation ({cart.length})</h3>
-                  <div className={styles.itemsList}>{cart.map((item, idx) => <div key={`${item.id}-${idx}`} className={styles.cartItem}><div className={styles.itemEmoji}>{item.emoji || 'bag'}</div><div className={styles.itemInfo}><h4 className={styles.itemName}>{item.name}</h4><p className={styles.itemBrand}>{item.brand}</p><span className={styles.itemCatBadge}>{item.cat}</span></div><div className={styles.itemPriceWrap}><span className={styles.itemPrice}>${item.price.toLocaleString()}</span><button className={styles.removeBtn} onClick={() => onRemove(idx)} title="Remove from bag"><Trash2 size={15} /></button></div></div>)}</div>
+                  <div className={styles.itemsList}>{cart.map((item, idx) => <div key={`${item.id}-${idx}`} className={styles.cartItem}><div className={styles.itemEmoji}>{item.emoji || 'bag'}</div><div className={styles.itemInfo}><h4 className={styles.itemName}>{item.name}</h4><p className={styles.itemBrand}>{item.brand}</p><span className={styles.itemCatBadge}>{item.cat}</span></div><div className={styles.itemPriceWrap}><span className={styles.itemPrice}>{formatProductPrice(item, currency, exchangeRate)}</span><button className={styles.removeBtn} onClick={() => onRemove(idx)} title="Remove from bag"><Trash2 size={15} /></button></div></div>)}</div>
                   <div className="mb-4 rounded border border-[#E5DFD8] bg-[#FAF8F5] p-3"><p className="mb-2 text-[10px] font-bold uppercase tracking-[0.12em] text-stone-500">Payment Methods Accepted</p><div className="flex gap-2"><PaymentButton platform="zelle" label="Zelle" bg="#6D1ED4" /><PaymentButton platform="venmo" label="Venmo" bg="#3D95CE" /></div></div>
-                  <div className={styles.summaryBox}><div className={styles.summaryRow}><span>Luxury Curation Total</span><span className={styles.totalPrice}>${totalAmount.toLocaleString()}</span></div><div className={styles.alertBanner}><p className={styles.alertText}>* No payment is processed online. This request secures the item(s) for administrator review.</p></div></div>
+                  <div className={styles.summaryBox}><div className={styles.summaryRow}><span>Luxury Curation Total</span><span className={styles.totalPrice}>{formatProductPrice({ price: totalAmount }, currency, exchangeRate)}</span></div><div className={styles.alertBanner}><p className={styles.alertText}>* No payment is processed online. This request secures the item(s) for administrator review.</p></div></div>
                 </div>
 
                 <div className={styles.formSection}>

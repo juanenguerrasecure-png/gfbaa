@@ -1,8 +1,9 @@
-import { useState } from 'react';
-import { Heart, ShoppingBag } from 'lucide-react';
+import { useState, useRef, useMemo } from 'react';
+import { Heart, ShoppingBag, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import { ProductDetailModal } from './ProductDetailModal';
 import { formatProductPrice, useCurrency } from '../hooks/useCurrency';
+import { ProductPlaceholder } from './ProductPlaceholder';
 import WhatsAppIcon from '../assets/icons/WhatsAppIcon';
 import ViberIcon from '../assets/icons/ViberIcon';
 import MessengerIcon from '../assets/icons/MessengerIcon';
@@ -17,7 +18,6 @@ const BADGE = {
 };
 
 const CAT_BG = { bags: ['#F0E8DF', '#E8DDD3'], jewelry: ['#F3EEE8', '#EDE6DC'] };
-const FALLBACK_EMOJI = { bags: '👜', jewelry: '💍' };
 
 
 function getMessengerHref(baseUrl) {
@@ -49,26 +49,141 @@ function openContact(event, href, item) {
 
 export function ProductCard({ item, onAddToCart }) {
   const [liked, setLiked] = useState(false);
-  const [imgError, setImgError] = useState(false);
-  const [imgLoaded, setImgLoaded] = useState(false);
   const [detailOpen, setDetailOpen] = useState(false);
   const { getCatalogItemStock, socialLinks = {}, exchangeRate } = useStore();
   const { currency } = useCurrency();
 
   const badge = BADGE[item.condition] ?? BADGE.good;
   const [bg1, bg2] = CAT_BG[item.cat] ?? CAT_BG.bags;
-  const hasPhoto = item.photoUrl && !imgError;
   const stock = getCatalogItemStock(item.id);
   const soldOut = stock <= 0;
   const whatsappHref = appendTextParam(socialLinks.whatsapp, item);
   const viberHref = getViberHref(socialLinks.viber, item);
   const messengerHref = getMessengerHref(socialLinks.messenger || socialLinks.facebook);
 
+  // Extract all photos
+  const photos = useMemo(() => {
+    const list = [];
+    if (Array.isArray(item?.photos)) list.push(...item.photos);
+    if (Array.isArray(item?.photoUrls)) list.push(...item.photoUrls);
+    if (item?.photoUrl) list.push(item.photoUrl);
+    if (item?.photo) list.push(item.photo);
+    return [...new Set(list.filter(Boolean))];
+  }, [item]);
+
+  const [activePhoto, setActivePhoto] = useState(0);
+  const [failedPhotos, setFailedPhotos] = useState({});
+  const [loadedPhotos, setLoadedPhotos] = useState({});
+  const carouselRef = useRef(null);
+
+  const visiblePhotos = useMemo(() => {
+    return photos.filter((_, idx) => !failedPhotos[idx]);
+  }, [photos, failedPhotos]);
+
+  const hasPhoto = visiblePhotos.length > 0;
+
+  const handleScroll = (e) => {
+    const container = e.currentTarget;
+    if (container.clientWidth > 0) {
+      const index = Math.round(container.scrollLeft / container.clientWidth);
+      if (index !== activePhoto && index >= 0 && index < visiblePhotos.length) {
+        setActivePhoto(index);
+      }
+    }
+  };
+
+  const scrollToIndex = (index) => {
+    if (carouselRef.current && carouselRef.current.clientWidth > 0) {
+      carouselRef.current.scrollTo({
+        left: index * carouselRef.current.clientWidth,
+        behavior: 'smooth'
+      });
+      setActivePhoto(index);
+    }
+  };
+
+  const handlePrev = (e) => {
+    e.stopPropagation();
+    const nextIndex = activePhoto === 0 ? visiblePhotos.length - 1 : activePhoto - 1;
+    scrollToIndex(nextIndex);
+  };
+
+  const handleNext = (e) => {
+    e.stopPropagation();
+    const nextIndex = activePhoto === visiblePhotos.length - 1 ? 0 : activePhoto + 1;
+    scrollToIndex(nextIndex);
+  };
+
   return (
     <>
-      <article className={styles.card} onClick={() => setDetailOpen(true)} id={`product_card_${item.id}`}>
+      <article className={`${styles.card} group`} onClick={() => setDetailOpen(true)} id={`product_card_${item.id}`}>
         <div className={styles.imgWrap} style={{ background: `linear-gradient(135deg, ${bg1}, ${bg2})` }}>
-          {hasPhoto ? <>{!imgLoaded && <div className={styles.skeleton} aria-hidden="true" />}<img src={item.photoUrl} alt={`${item.brand} ${item.name}`} className={`${styles.photo} ${imgLoaded ? styles.photoLoaded : ''}`} onLoad={() => setImgLoaded(true)} onError={() => setImgError(true)} loading="lazy" decoding="async" /></> : <span className={styles.emoji} aria-hidden="true">{item.emoji ?? FALLBACK_EMOJI[item.cat]}</span>}
+          {hasPhoto ? (
+            <>
+              <div 
+                ref={carouselRef}
+                className={styles.carouselContainer} 
+                onScroll={handleScroll}
+                id={`product_carousel_${item.id}`}
+              >
+                {visiblePhotos.map((url, index) => {
+                  const isLoaded = loadedPhotos[index];
+                  return (
+                    <div className={styles.carouselSlide} key={`${url}-${index}`}>
+                      {!isLoaded && <div className={styles.skeleton} aria-hidden="true" />}
+                      <img
+                        src={url}
+                        alt={`${item.brand} ${item.name} - View ${index + 1}`}
+                        className={`${styles.photo} ${isLoaded ? styles.photoLoaded : ''}`}
+                        onLoad={() => setLoadedPhotos(prev => ({ ...prev, [index]: true }))}
+                        onError={() => setFailedPhotos(prev => ({ ...prev, [index]: true }))}
+                        loading="lazy"
+                        decoding="async"
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+
+              {visiblePhotos.length > 1 && (
+                <>
+                  <button 
+                    type="button" 
+                    className={`${styles.carouselArrow} ${styles.carouselArrowLeft}`} 
+                    onClick={handlePrev}
+                    aria-label="Previous photo"
+                  >
+                    <ChevronLeft size={16} strokeWidth={2} />
+                  </button>
+                  <button 
+                    type="button" 
+                    className={`${styles.carouselArrow} ${styles.carouselArrowRight}`} 
+                    onClick={handleNext}
+                    aria-label="Next photo"
+                  >
+                    <ChevronRight size={16} strokeWidth={2} />
+                  </button>
+
+                  <div className={styles.carouselDots}>
+                    {visiblePhotos.map((_, index) => (
+                      <button
+                        key={index}
+                        type="button"
+                        className={`${styles.carouselDot} ${index === activePhoto ? styles.carouselDotActive : ''}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          scrollToIndex(index);
+                        }}
+                        aria-label={`Show view ${index + 1}`}
+                      />
+                    ))}
+                  </div>
+                </>
+              )}
+            </>
+          ) : (
+            <ProductPlaceholder category={item.cat} />
+          )}
           <span className={`${styles.badge} ${styles[badge.cls]}`} aria-label={`Condition: ${badge.label}`}>{badge.label}</span>
           <button className={`${styles.wishlist} ${liked ? styles.liked : ''}`} onClick={e => { e.stopPropagation(); setLiked(l => !l); }} aria-label={liked ? 'Remove from wishlist' : 'Save to wishlist'} id={`wishlist_btn_${item.id}`}><Heart size={15} strokeWidth={1.8} fill={liked ? '#C9A84C' : 'none'} stroke={liked ? '#C9A84C' : 'currentColor'} /></button>
 

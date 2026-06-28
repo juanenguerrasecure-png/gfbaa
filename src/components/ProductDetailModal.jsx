@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight, ShoppingBag, X } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import { formatProductPrice, hasUsdPrice, useCurrency } from '../hooks/useCurrency';
 import { PriceToggle } from './PriceToggle';
+import { ProductPlaceholder } from './ProductPlaceholder';
 import WhatsAppIcon from '../assets/icons/WhatsAppIcon';
 import ViberIcon from '../assets/icons/ViberIcon';
 import MessengerIcon from '../assets/icons/MessengerIcon';
@@ -15,8 +16,6 @@ const BADGE = {
   fair: { label: 'Fair', cls: 'badgeFair' },
   new: { label: 'New', cls: 'badgeNew' },
 };
-
-const FALLBACK_EMOJI = { bags: '👜', jewelry: '💍' };
 
 function getPhotos(product) {
   const list = [];
@@ -108,7 +107,13 @@ export function ProductDetailModal({ isOpen, onClose, product, onAddToCart }) {
       <section className={styles.modal} onClick={event => event.stopPropagation()} aria-modal="true" role="dialog" aria-label={`${product.brand} ${product.name}`}>
         <button type="button" className={styles.closeBtn} onClick={onClose} aria-label="Close product details"><X size={20} /></button>
         <div className={styles.gallery} onTouchStart={event => setTouchStart(event.touches[0].clientX)} onTouchEnd={handleTouchEnd}>
-          {photos.length ? <img src={photos[activePhoto]} alt={`${product.brand} ${product.name}`} className={styles.photo} /> : <div className={styles.fallbackPhoto}>{product.emoji || FALLBACK_EMOJI[product.cat] || 'GF'}</div>}
+          {photos.length ? (
+            <img src={photos[activePhoto]} alt={`${product.brand} ${product.name}`} className={styles.photo} />
+          ) : (
+            <div className="absolute inset-0 w-full h-full">
+              <ProductPlaceholder category={product.cat} />
+            </div>
+          )}
           {photos.length > 1 && <><button type="button" className={`${styles.arrow} ${styles.arrowLeft}`} onClick={goPrev} aria-label="Previous photo"><ChevronLeft size={20} /></button><button type="button" className={`${styles.arrow} ${styles.arrowRight}`} onClick={goNext} aria-label="Next photo"><ChevronRight size={20} /></button><div className={styles.dots}>{photos.map((_, index) => <button key={index} type="button" className={`${styles.dot} ${index === activePhoto ? styles.activeDot : ''}`} onClick={() => setActivePhoto(index)} aria-label={`Show photo ${index + 1}`} />)}</div></>}
         </div>
         <div className={styles.infoPanel}>

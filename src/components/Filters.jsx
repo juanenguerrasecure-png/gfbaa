@@ -2,13 +2,13 @@ import styles from './Filters.module.css';
 
 const FILTERS = [
   { key: 'all',      label: 'All' },
-  { key: 'bags',     label: 'Bags' },
-  { key: 'jewelry',  label: 'Jewelry' },
+  { key: 'bags',     label: 'Designer Bags' },
+  { key: 'jewelry',  label: '18K Gold Jewelry' },
   { key: 'mint',     label: 'Mint' },
   { key: 'under1k',  label: 'Under $1k' },
 ];
 
-export function Filters({ activeFilter, onFilterChange, onSortChange, availableBrands = [] }) {
+export function Filters({ activeFilter, onFilterChange, availableBrands = [] }) {
   return (
     <div className={styles.wrap} id="storefront_filters_wrap">
       <div className={styles.scrollArea} id="storefront_filters_scroll">
@@ -43,19 +43,6 @@ export function Filters({ activeFilter, onFilterChange, onSortChange, availableB
             );
           })}
         </div>
-      </div>
-      <div className={styles.sortWrap} id="storefront_sort_wrap">
-        <select
-          id="storefront_sort_select"
-          className={styles.sort}
-          onChange={e => onSortChange(e.target.value)}
-          aria-label="Sort items"
-        >
-          <option value="default">Featured</option>
-          <option value="low">Price ↑</option>
-          <option value="high">Price ↓</option>
-          <option value="name">A–Z</option>
-        </select>
       </div>
     </div>
   );
