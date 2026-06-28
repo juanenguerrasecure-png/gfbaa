@@ -57,7 +57,9 @@ export function formatProductPrice(product, currency, exchangeRate = DEFAULT_EXC
 }
 
 export function hasUsdPrice(product) {
-  return Boolean(product);
+  return Boolean(
+    product?.priceUSD ?? product?.usdPrice ?? product?.priceUsd
+  );
 }
 
 export function useCurrency() {

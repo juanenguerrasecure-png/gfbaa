@@ -1,8 +1,12 @@
 import { useState } from 'react';
-import { Heart, MessageCircle, ShoppingBag } from 'lucide-react';
+import { Heart, ShoppingBag } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import { ProductDetailModal } from './ProductDetailModal';
 import { formatProductPrice, useCurrency } from '../hooks/useCurrency';
+import WhatsAppIcon from '../assets/icons/WhatsAppIcon';
+import ViberIcon from '../assets/icons/ViberIcon';
+import MessengerIcon from '../assets/icons/MessengerIcon';
+import { buildInquiryText, appendTextParam, getViberHref } from '../utils/inquiryHelpers';
 import styles from './ProductCard.module.css';
 
 const BADGE = {
@@ -15,23 +19,6 @@ const BADGE = {
 const CAT_BG = { bags: ['#F0E8DF', '#E8DDD3'], jewelry: ['#F3EEE8', '#EDE6DC'] };
 const FALLBACK_EMOJI = { bags: '👜', jewelry: '💍' };
 
-function buildInquiryText(item) {
-  return `Hi! I'm interested in: ${item.name} by ${item.brand}. Can you tell me more about its availability and condition?`;
-}
-
-function appendTextParam(baseUrl, item) {
-  if (!baseUrl) return '';
-  const url = String(baseUrl).trim();
-  if (!url) return '';
-  const encoded = encodeURIComponent(buildInquiryText(item));
-  return url.includes('?') ? `${url}&text=${encoded}` : `${url}?text=${encoded}`;
-}
-
-function getViberHref(baseUrl, item) {
-  if (!baseUrl) return '';
-  const encoded = encodeURIComponent(buildInquiryText(item));
-  return `viber://forward?text=${encoded}`;
-}
 
 function getMessengerHref(baseUrl) {
   if (!baseUrl) return '';
@@ -87,9 +74,9 @@ export function ProductCard({ item, onAddToCart }) {
 
           {(whatsappHref || viberHref || messengerHref) && (
             <div className={styles.contactStack}>
-              {whatsappHref && <a className={`${styles.contactBtn} ${styles.whatsappBtn}`} href={whatsappHref} target="_blank" rel="noopener noreferrer" onClick={event => { event.stopPropagation(); }} aria-label={`Ask about ${item.name} on WhatsApp`}><MessageCircle size={14} /></a>}
-              {viberHref && <a className={`${styles.contactBtn} ${styles.viberBtn}`} href={viberHref} onClick={event => openContact(event, viberHref, item)} aria-label={`Ask about ${item.name} on Viber`}>V</a>}
-              {messengerHref && <a className={`${styles.contactBtn} ${styles.messengerBtn}`} href={messengerHref} target="_blank" rel="noopener noreferrer" onClick={event => { event.stopPropagation(); copyInquiryText(item); }} aria-label={`Ask about ${item.name} on Messenger`}>M</a>}
+              {whatsappHref && <a className={`${styles.contactBtn} ${styles.whatsappBtn}`} href={whatsappHref} target="_blank" rel="noopener noreferrer" onClick={event => { event.stopPropagation(); }} aria-label={`Ask about ${item.name} on WhatsApp`}><WhatsAppIcon size={14} /></a>}
+              {viberHref && <a className={`${styles.contactBtn} ${styles.viberBtn}`} href={viberHref} onClick={event => openContact(event, viberHref, item)} aria-label={`Ask about ${item.name} on Viber`}><ViberIcon size={14} /></a>}
+              {messengerHref && <a className={`${styles.contactBtn} ${styles.messengerBtn}`} href={messengerHref} target="_blank" rel="noopener noreferrer" onClick={event => { event.stopPropagation(); copyInquiryText(item); }} aria-label={`Ask about ${item.name} on Messenger`}><MessengerIcon size={14} /></a>}
             </div>
           )}
         </div>

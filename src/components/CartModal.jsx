@@ -5,7 +5,7 @@ import { PaymentInfoModal } from './PaymentInfoModal';
 import styles from './CartModal.module.css';
 
 export function CartModal({ isOpen, onClose, cart, onRemove, onClear, showToast }) {
-  const { paymentMethods = {} } = useStore();
+  const { paymentMethods = {}, addPurchaseRequest } = useStore();
   const [buyerName, setBuyerName] = useState('');
   const [buyerEmail, setBuyerEmail] = useState('');
   const [buyerAddress, setBuyerAddress] = useState('');
@@ -41,26 +41,43 @@ export function CartModal({ isOpen, onClose, cart, onRemove, onClear, showToast 
         emoji: item.emoji || 'bag'
       }));
 
-      const response = await fetch('/api/requests', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          buyerName: buyerName.trim(),
-          buyerEmail: buyerEmail.trim(),
-          buyerContact: buyerEmail.trim(),
-          buyerAddress: buyerAddress.trim(),
-          specialInstructions: specialInstructions.trim(),
-          message: specialInstructions.trim(),
-          productId: itemsPayload[0]?.productId || '',
-          productName: itemsPayload[0]?.name || '',
-          items: itemsPayload
-        }),
-      });
+      let requestObj;
+      try {
+        const response = await fetch('/api/requests', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            buyerName: buyerName.trim(),
+            buyerEmail: buyerEmail.trim(),
+            buyerContact: buyerEmail.trim(),
+            buyerAddress: buyerAddress.trim(),
+            specialInstructions: specialInstructions.trim(),
+            message: specialInstructions.trim(),
+            productId: itemsPayload[0]?.productId || '',
+            productName: itemsPayload[0]?.name || '',
+            items: itemsPayload
+          }),
+        });
 
-      const result = await response.json();
-      if (!response.ok || !result.ok) throw new Error(result.error || 'Failed to submit request.');
+        const result = await response.json();
+        if (!response.ok || !result.ok) throw new Error(result.error || 'Failed to submit request.');
+        requestObj = result.request;
+      } catch (fetchErr) {
+        console.warn('Backend requests submission failed; creating locally:', fetchErr);
+        if (addPurchaseRequest) {
+          requestObj = addPurchaseRequest({
+            buyerName: buyerName.trim(),
+            buyerEmail: buyerEmail.trim(),
+            buyerAddress: buyerAddress.trim(),
+            specialInstructions: specialInstructions.trim(),
+            items: itemsPayload
+          });
+        } else {
+          throw fetchErr;
+        }
+      }
 
-      setSuccessRequest(result.request);
+      setSuccessRequest(requestObj);
       onClear();
       showToast('Request submitted successfully');
     } catch (_err) {

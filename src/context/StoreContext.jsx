@@ -140,6 +140,8 @@ export function StoreProvider({ children }) {
 
   useEffect(() => {
     if (!cloudReady || applyingRemoteRef.current) return;
+    const token = localStorage.getItem('gf_session_token');
+    if (!token) return;
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     const snapshot = buildSnapshot();
     saveTimerRef.current = setTimeout(() => { saveCloudState(snapshot); }, 600);

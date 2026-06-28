@@ -9,7 +9,7 @@ function buildCorsHeaders(request, env) {
     ? '*'
     : requestOrigin === configuredOrigin
       ? configuredOrigin
-      : configuredOrigin;
+      : '';
 
   return {
     'Access-Control-Allow-Origin': allowOrigin,

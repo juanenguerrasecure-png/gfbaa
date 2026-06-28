@@ -10,11 +10,6 @@ const DEFAULT_SOCIAL_LINKS = {
   viber: '',
 };
 
-function getAuthHeaders(extra = {}) {
-  const token = localStorage.getItem('gf_session_token') || '';
-  return token ? { ...extra, Authorization: `Bearer ${token}` } : extra;
-}
-
 function normalizeWhatsApp(value) {
   const trimmed = String(value || '').trim();
   if (!trimmed) return '';
@@ -60,20 +55,7 @@ export function SocialLinksTab() {
     };
 
     try {
-      if (saveSocialLinks) {
-        await saveSocialLinks(nextSocialLinks);
-      } else {
-        const response = await fetch('/api/state', { method: 'GET' });
-        const result = await response.json();
-        if (!response.ok || !result.ok) throw new Error(result.error || 'Unable to load state.');
-        const saveResponse = await fetch('/api/state', {
-          method: 'PUT',
-          headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
-          body: JSON.stringify({ state: { ...(result.state || {}), socialLinks: nextSocialLinks } }),
-        });
-        const saveResult = await saveResponse.json();
-        if (!saveResponse.ok || !saveResult.ok) throw new Error(saveResult.error || 'Unable to save social links.');
-      }
+      await saveSocialLinks(nextSocialLinks);
       setStatus('Social links saved successfully.');
     } catch (error) {
       setStatus(error.message || 'Failed to save social links.');

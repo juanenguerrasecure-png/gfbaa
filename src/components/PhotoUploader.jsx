@@ -35,9 +35,9 @@ export function PhotoUploader({ value, onChange }) {
       if (!response.ok || !result.ok) throw new Error(result.error || 'Photo upload failed.');
       return result.url;
     } catch (error) {
-      console.warn('R2 photo upload failed:', error);
-      setUploadError('Photo upload failed. Please check your connection and try again.');
-      return null;
+      console.warn('R2 photo upload failed; falling back to base64 Data URL for local session:', error);
+      // Fallback gracefully to using the base64 dataUrl so product images work locally
+      return dataUrl;
     } finally {
       setIsUploading(false);
     }

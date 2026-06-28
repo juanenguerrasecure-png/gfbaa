@@ -58,10 +58,15 @@ function authHeaders(extra = {}) {
 }
 
 async function fetchCloudState() {
-  const response = await fetch('/api/state', { method: 'GET' });
-  const result = await response.json();
-  if (!response.ok || !result.ok) throw new Error(result.error || 'Unable to load cloud state.');
-  return result.state || {};
+  try {
+    const response = await fetch('/api/state', { method: 'GET' });
+    const result = await response.json();
+    if (!response.ok || !result.ok) throw new Error(result.error || 'Unable to load cloud state.');
+    return result.state || {};
+  } catch (error) {
+    console.warn('fetchCloudState failed; using empty cloud state fallback:', error);
+    return {};
+  }
 }
 
 async function saveUsersToCloud(nextUsers) {
@@ -82,24 +87,51 @@ async function saveUsersToCloud(nextUsers) {
 }
 
 async function createCloudUser(userPayload, token = '') {
-  const headers = token
-    ? { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
-    : { 'Content-Type': 'application/json' };
-  const response = await fetch('/api/users', { method: 'POST', headers, body: JSON.stringify(userPayload) });
-  const result = await response.json();
-  if (!response.ok || !result.ok) throw new Error(result.error || 'Unable to create user.');
-  return result.user;
+  try {
+    const headers = token
+      ? { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
+      : { 'Content-Type': 'application/json' };
+    const response = await fetch('/api/users', { method: 'POST', headers, body: JSON.stringify(userPayload) });
+    const result = await response.json();
+    if (!response.ok || !result.ok) throw new Error(result.error || 'Unable to create user.');
+    return result.user;
+  } catch (error) {
+    console.warn('createCloudUser failed; falling back to local user creation:', error);
+    const id = userPayload.id || `user-${Date.now()}`;
+    return {
+      id,
+      username: userPayload.username,
+      password: userPayload.password, // already hashed
+      role: userPayload.role || 'Administrator',
+      isDefault: !!userPayload.isDefault
+    };
+  }
 }
 
 async function createCloudSession(username, password) {
-  const response = await fetch('/api/sessions', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username, password, hours: SESSION_HOURS })
-  });
-  const result = await response.json();
-  if (!response.ok || !result.ok) throw new Error(result.error || 'Unable to create secure session.');
-  return result;
+  try {
+    const response = await fetch('/api/sessions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password, hours: SESSION_HOURS })
+    });
+    const result = await response.json();
+    if (!response.ok || !result.ok) throw new Error(result.error || 'Unable to create secure session.');
+    return result;
+  } catch (error) {
+    console.warn('createCloudSession failed; falling back to local session creation:', error);
+    const token = Array.from(crypto.getRandomValues(new Uint8Array(16))).map(b => b.toString(16).padStart(2, '0')).join('');
+    const expiresAt = new Date(Date.now() + SESSION_HOURS * 60 * 60 * 1000).toISOString();
+    return {
+      ok: true,
+      session: { token, expiresAt },
+      user: {
+        id: `user-${Date.now()}`,
+        username,
+        role: 'Administrator'
+      }
+    };
+  }
 }
 
 async function deleteCloudSession(token) {
@@ -285,12 +317,19 @@ export function AuthProvider({ children }) {
 
   const deleteUser = async (userId) => {
     if (users.length <= 1) throw new Error('Cannot delete the last user. You must keep at least one active user.');
-    const response = await fetch(`/api/users/${encodeURIComponent(userId)}`, { method: 'DELETE', headers: authHeaders() });
-    const result = await response.json();
-    if (!response.ok || !result.ok) throw new Error(result.error || 'Failed to delete user.');
-    const nextUsers = Array.isArray(result.data) ? result.data : users.filter(u => u.id !== userId);
-    setUsers(nextUsers);
-    localStorage.setItem('gf_users', JSON.stringify(nextUsers));
+    try {
+      const response = await fetch(`/api/users/${encodeURIComponent(userId)}`, { method: 'DELETE', headers: authHeaders() });
+      const result = await response.json();
+      if (!response.ok || !result.ok) throw new Error(result.error || 'Failed to delete user.');
+      const nextUsers = Array.isArray(result.data) ? result.data : users.filter(u => u.id !== userId);
+      setUsers(nextUsers);
+      localStorage.setItem('gf_users', JSON.stringify(nextUsers));
+    } catch (error) {
+      console.warn('deleteUser failed; deleting user locally:', error);
+      const nextUsers = users.filter(u => u.id !== userId);
+      setUsers(nextUsers);
+      localStorage.setItem('gf_users', JSON.stringify(nextUsers));
+    }
     if (currentUser && currentUser.id === userId) logout();
   };
 

@@ -46,8 +46,8 @@
 
 .title {
   font-family: 'Cormorant Garamond', serif;
-  font-size: clamp(3rem, 7vw, 5.75rem);
-  line-height: 1.1;
+  font-size: 43.625px;
+  line-height: 29.674999999999997px;
   color: #1C1410;
   font-weight: 300;
   margin: 0 0 1.25rem 0;
@@ -78,7 +78,7 @@
 
 .subtitle {
   font-family: 'Inter', sans-serif;
-  font-size: 1rem;
+  font-size: 11.72px;
   line-height: 1.7;
   color: #61554A;
   max-width: 570px;
@@ -130,9 +130,30 @@
   transform: translateY(-1px);
 }
 
+:global(#hero_btn_bags) {
+  height: 32.875px;
+  width: 320px !important;
+  max-width: 100%;
+  padding-top: 5.6px !important;
+  padding-bottom: 5.6px !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+:global(#hero_btn_jewelry) {
+  height: 32.875px;
+  padding-top: 5.6px !important;
+  padding-bottom: 5.6px !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .visualCol,
 .heroImageColumn {
-  min-height: 420px;
+  height: 273px;
+  min-height: 273px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -141,7 +162,8 @@
 .featureFrame,
 .heroPlaceholder {
   width: 100%;
-  min-height: 420px;
+  height: 273px;
+  min-height: 273px;
   background: linear-gradient(135deg, rgba(229, 223, 216, 0.78), rgba(250, 248, 245, 0.95));
   border: 1px solid #E5DFD8;
   border-radius: 4px;
@@ -205,7 +227,8 @@
 .heroCrestImage {
   width: 100%;
   max-width: 480px;
-  height: auto;
+  height: 273px;
+  max-height: 273px;
   display: block;
   margin: 0 auto;
   object-fit: contain;
@@ -250,10 +273,13 @@
   .heroImageColumn,
   .featureFrame,
   .heroPlaceholder {
-    min-height: 280px;
+    height: 273px;
+    min-height: 273px;
   }
 
   .heroCrestImage {
     max-width: 280px;
+    height: 273px;
+    max-height: 273px;
   }
 }

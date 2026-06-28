@@ -1,8 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ChevronLeft, ChevronRight, MessageCircle, ShoppingBag, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ShoppingBag, X } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import { formatProductPrice, hasUsdPrice, useCurrency } from '../hooks/useCurrency';
 import { PriceToggle } from './PriceToggle';
+import WhatsAppIcon from '../assets/icons/WhatsAppIcon';
+import ViberIcon from '../assets/icons/ViberIcon';
+import MessengerIcon from '../assets/icons/MessengerIcon';
+import { buildInquiryText, appendTextParam, getViberHref } from '../utils/inquiryHelpers';
 import styles from './ProductDetailModal.module.css';
 
 const BADGE = {
@@ -23,23 +27,6 @@ function getPhotos(product) {
   return [...new Set(list.filter(Boolean))];
 }
 
-function buildInquiryText(product) {
-  return `Hi! I'm interested in: ${product.name} by ${product.brand}. Can you tell me more about its availability and condition?`;
-}
-
-function appendTextParam(baseUrl, product) {
-  if (!baseUrl) return '';
-  const url = String(baseUrl).trim();
-  if (!url) return '';
-  const encoded = encodeURIComponent(buildInquiryText(product));
-  return url.includes('?') ? `${url}&text=${encoded}` : `${url}?text=${encoded}`;
-}
-
-function getViberHref(baseUrl, product) {
-  if (!baseUrl) return '';
-  const encoded = encodeURIComponent(buildInquiryText(product));
-  return `viber://forward?text=${encoded}`;
-}
 
 function getMessengerHref(baseUrl) {
   if (!baseUrl) return '';
@@ -136,9 +123,9 @@ export function ProductDetailModal({ isOpen, onClose, product, onAddToCart }) {
         </div>
         <div className={styles.actionBar}>
           <button type="button" className={styles.addBtn} onClick={handleAdd} disabled={soldOut}><ShoppingBag size={16} />{soldOut ? 'Sold Out' : 'Add to Cart'}</button>
-          {whatsappHref && <a className={`${styles.inquiryBtn} ${styles.whatsAppBtn}`} href={whatsappHref} target="_blank" rel="noopener noreferrer">WhatsApp</a>}
-          {viberHref && <a className={`${styles.inquiryBtn} ${styles.viberBtn}`} href={viberHref} onClick={event => openContact(event, viberHref, product)}>Viber</a>}
-          {messengerHref && <a className={`${styles.inquiryBtn} ${styles.messengerBtn}`} href={messengerHref} target="_blank" rel="noopener noreferrer" onClick={() => copyInquiryText(product)}>Messenger</a>}
+          {whatsappHref && <a className={`${styles.inquiryBtn} ${styles.whatsAppBtn}`} href={whatsappHref} target="_blank" rel="noopener noreferrer"><WhatsAppIcon size={15} /> WhatsApp</a>}
+          {viberHref && <a className={`${styles.inquiryBtn} ${styles.viberBtn}`} href={viberHref} onClick={event => openContact(event, viberHref, product)}><ViberIcon size={15} /> Viber</a>}
+          {messengerHref && <a className={`${styles.inquiryBtn} ${styles.messengerBtn}`} href={messengerHref} target="_blank" rel="noopener noreferrer" onClick={() => copyInquiryText(product)}><MessengerIcon size={15} /> Messenger</a>}
         </div>
       </section>
     </div>
