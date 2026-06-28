@@ -27,16 +27,41 @@ function appendTextParam(baseUrl, item) {
   return url.includes('?') ? `${url}&text=${encoded}` : `${url}?text=${encoded}`;
 }
 
-function getMessengerHref(baseUrl, item) {
+function getViberHref(baseUrl) {
   if (!baseUrl) return '';
   const url = String(baseUrl).trim();
   if (!url) return '';
-  const encoded = encodeURIComponent(buildInquiryText(item));
-  if (url.includes('m.me/')) return url.includes('?') ? `${url}&text=${encoded}` : `${url}?text=${encoded}`;
+  if (url.startsWith('viber://')) return url;
+  const digits = url.replace(/[^0-9]/g, '');
+  if (digits) return `viber://chat?number=%2B${digits}`;
+  return url;
+}
+
+function getMessengerHref(baseUrl) {
+  if (!baseUrl) return '';
+  const url = String(baseUrl).trim();
+  if (!url) return '';
+  if (url.includes('m.me/')) return url;
   const clean = url.replace(/\/$/, '');
   const page = clean.split('/').filter(Boolean).pop();
-  if (page && !page.includes('.')) return `https://m.me/${page}?text=${encoded}`;
+  if (page && !page.includes('.')) return `https://m.me/${page}`;
   return url;
+}
+
+async function copyInquiryText(item) {
+  try {
+    await navigator.clipboard.writeText(buildInquiryText(item));
+  } catch (_error) {
+    // Clipboard may be blocked by the browser. The chat link should still open.
+  }
+}
+
+function openContact(event, href, item) {
+  event.stopPropagation();
+  event.preventDefault();
+  if (!href) return;
+  copyInquiryText(item);
+  window.open(href, '_blank', 'noopener,noreferrer');
 }
 
 export function ProductCard({ item, onAddToCart }) {
@@ -53,8 +78,8 @@ export function ProductCard({ item, onAddToCart }) {
   const stock = getCatalogItemStock(item.id);
   const soldOut = stock <= 0;
   const whatsappHref = appendTextParam(socialLinks.whatsapp, item);
-  const viberHref = appendTextParam(socialLinks.viber, item);
-  const messengerHref = getMessengerHref(socialLinks.messenger || socialLinks.facebook, item);
+  const viberHref = getViberHref(socialLinks.viber);
+  const messengerHref = getMessengerHref(socialLinks.messenger || socialLinks.facebook);
 
   return (
     <>
@@ -66,9 +91,9 @@ export function ProductCard({ item, onAddToCart }) {
 
           {(whatsappHref || viberHref || messengerHref) && (
             <div className={styles.contactStack}>
-              {whatsappHref && <a className={`${styles.contactBtn} ${styles.whatsappBtn}`} href={whatsappHref} target="_blank" rel="noopener noreferrer" onClick={event => event.stopPropagation()} aria-label={`Ask about ${item.name} on WhatsApp`}><MessageCircle size={14} /></a>}
-              {viberHref && <a className={`${styles.contactBtn} ${styles.viberBtn}`} href={viberHref} target="_blank" rel="noopener noreferrer" onClick={event => event.stopPropagation()} aria-label={`Ask about ${item.name} on Viber`}>V</a>}
-              {messengerHref && <a className={`${styles.contactBtn} ${styles.messengerBtn}`} href={messengerHref} target="_blank" rel="noopener noreferrer" onClick={event => event.stopPropagation()} aria-label={`Ask about ${item.name} on Messenger`}>M</a>}
+              {whatsappHref && <a className={`${styles.contactBtn} ${styles.whatsappBtn}`} href={whatsappHref} target="_blank" rel="noopener noreferrer" onClick={event => { event.stopPropagation(); }} aria-label={`Ask about ${item.name} on WhatsApp`}><MessageCircle size={14} /></a>}
+              {viberHref && <a className={`${styles.contactBtn} ${styles.viberBtn}`} href={viberHref} target="_blank" rel="noopener noreferrer" onClick={event => openContact(event, viberHref, item)} aria-label={`Ask about ${item.name} on Viber`}>V</a>}
+              {messengerHref && <a className={`${styles.contactBtn} ${styles.messengerBtn}`} href={messengerHref} target="_blank" rel="noopener noreferrer" onClick={event => openContact(event, messengerHref, item)} aria-label={`Ask about ${item.name} on Messenger`}>M</a>}
             </div>
           )}
         </div>
