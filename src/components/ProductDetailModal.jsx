@@ -35,14 +35,10 @@ function appendTextParam(baseUrl, product) {
   return url.includes('?') ? `${url}&text=${encoded}` : `${url}?text=${encoded}`;
 }
 
-function getViberHref(baseUrl) {
+function getViberHref(baseUrl, product) {
   if (!baseUrl) return '';
-  const url = String(baseUrl).trim();
-  if (!url) return '';
-  if (url.startsWith('viber://')) return url;
-  const digits = url.replace(/[^0-9]/g, '');
-  if (digits) return `viber://chat?number=%2B${digits}`;
-  return url;
+  const encoded = encodeURIComponent(buildInquiryText(product));
+  return `viber://forward?text=${encoded}`;
 }
 
 function getMessengerHref(baseUrl) {
@@ -60,7 +56,7 @@ async function copyInquiryText(product) {
   try {
     await navigator.clipboard.writeText(buildInquiryText(product));
   } catch (_error) {
-    // Clipboard may be blocked by the browser. The chat link should still open.
+    // Clipboard may be blocked by the browser. The chat/share link should still open.
   }
 }
 
@@ -69,7 +65,7 @@ function openContact(event, href, product) {
   event.preventDefault();
   if (!href) return;
   copyInquiryText(product);
-  window.open(href, '_blank', 'noopener,noreferrer');
+  window.location.href = href;
 }
 
 export function ProductDetailModal({ isOpen, onClose, product, onAddToCart }) {
@@ -83,7 +79,7 @@ export function ProductDetailModal({ isOpen, onClose, product, onAddToCart }) {
   const stock = product ? getCatalogItemStock(product.id) : 0;
   const soldOut = stock <= 0;
   const whatsappHref = product ? appendTextParam(socialLinks?.whatsapp, product) : '';
-  const viberHref = product ? getViberHref(socialLinks?.viber) : '';
+  const viberHref = product ? getViberHref(socialLinks?.viber, product) : '';
   const messengerHref = product ? getMessengerHref(socialLinks?.messenger || socialLinks?.facebook) : '';
   const allowUsd = hasUsdPrice(product);
   const displayCurrency = allowUsd ? currency : 'PHP';
@@ -141,8 +137,8 @@ export function ProductDetailModal({ isOpen, onClose, product, onAddToCart }) {
         <div className={styles.actionBar}>
           <button type="button" className={styles.addBtn} onClick={handleAdd} disabled={soldOut}><ShoppingBag size={16} />{soldOut ? 'Sold Out' : 'Add to Cart'}</button>
           {whatsappHref && <a className={`${styles.inquiryBtn} ${styles.whatsAppBtn}`} href={whatsappHref} target="_blank" rel="noopener noreferrer">WhatsApp</a>}
-          {viberHref && <a className={`${styles.inquiryBtn} ${styles.viberBtn}`} href={viberHref} target="_blank" rel="noopener noreferrer" onClick={event => openContact(event, viberHref, product)}>Viber</a>}
-          {messengerHref && <a className={`${styles.inquiryBtn} ${styles.messengerBtn}`} href={messengerHref} target="_blank" rel="noopener noreferrer" onClick={event => openContact(event, messengerHref, product)}>Messenger</a>}
+          {viberHref && <a className={`${styles.inquiryBtn} ${styles.viberBtn}`} href={viberHref} onClick={event => openContact(event, viberHref, product)}>Viber</a>}
+          {messengerHref && <a className={`${styles.inquiryBtn} ${styles.messengerBtn}`} href={messengerHref} target="_blank" rel="noopener noreferrer" onClick={() => copyInquiryText(product)}>Messenger</a>}
         </div>
       </section>
     </div>
