@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 
 const STORAGE_KEY = 'gf_price_currency';
+const EVENT_NAME = 'gf_price_currency_change';
 const DEFAULT_CURRENCY = 'PHP';
 
 function readStoredCurrency() {
@@ -10,6 +11,21 @@ function readStoredCurrency() {
   } catch (_error) {
     return DEFAULT_CURRENCY;
   }
+}
+
+function normalizeCurrency(value) {
+  return value === 'USD' || value === 'PHP' ? value : DEFAULT_CURRENCY;
+}
+
+function persistCurrency(value) {
+  const next = normalizeCurrency(value);
+  try {
+    localStorage.setItem(STORAGE_KEY, next);
+    window.dispatchEvent(new CustomEvent(EVENT_NAME, { detail: next }));
+  } catch (_error) {
+    window.dispatchEvent(new CustomEvent(EVENT_NAME, { detail: next }));
+  }
+  return next;
 }
 
 export function formatProductPrice(product, currency) {
@@ -31,18 +47,30 @@ export function hasUsdPrice(product) {
 }
 
 export function useCurrency() {
-  const [currency, setCurrency] = useState(readStoredCurrency);
+  const [currency, setCurrencyState] = useState(readStoredCurrency);
 
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, currency);
-    } catch (_error) {
-      // localStorage may be unavailable in restricted browser contexts.
-    }
-  }, [currency]);
+    const handleCustomChange = (event) => {
+      setCurrencyState(normalizeCurrency(event.detail));
+    };
+    const handleStorageChange = (event) => {
+      if (event.key === STORAGE_KEY) setCurrencyState(normalizeCurrency(event.newValue));
+    };
+    window.addEventListener(EVENT_NAME, handleCustomChange);
+    window.addEventListener('storage', handleStorageChange);
+    return () => {
+      window.removeEventListener(EVENT_NAME, handleCustomChange);
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
+
+  const setCurrency = (nextCurrency) => {
+    const next = persistCurrency(nextCurrency);
+    setCurrencyState(next);
+  };
 
   const toggleCurrency = () => {
-    setCurrency(prev => (prev === 'PHP' ? 'USD' : 'PHP'));
+    setCurrency(currency === 'PHP' ? 'USD' : 'PHP');
   };
 
   return { currency, setCurrency, toggleCurrency };
