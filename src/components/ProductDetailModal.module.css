@@ -1,0 +1,299 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  background: rgba(10, 8, 6, 0.62);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.modal {
+  position: relative;
+  width: min(860px, 100%);
+  max-height: 85vh;
+  background: #FAF8F5;
+  border: 1px solid #E5DFD8;
+  box-shadow: 0 24px 80px rgba(10, 8, 6, 0.22);
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  overflow: hidden;
+}
+
+.closeBtn {
+  position: absolute;
+  top: 0.9rem;
+  right: 0.9rem;
+  z-index: 5;
+  width: 2.1rem;
+  height: 2.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #E5DFD8;
+  background: rgba(250, 248, 245, 0.92);
+  color: #1C1410;
+  cursor: pointer;
+}
+
+.gallery {
+  position: relative;
+  min-height: 520px;
+  background: linear-gradient(135deg, #F0E8DF, #E8DDD3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.fallbackPhoto {
+  font-size: 6rem;
+  color: #C9A84C;
+  font-family: 'Cormorant Garamond', serif;
+}
+
+.arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 1px solid #E5DFD8;
+  background: rgba(250, 248, 245, 0.9);
+  color: #1C1410;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.arrowLeft { left: 0.8rem; }
+.arrowRight { right: 0.8rem; }
+
+.dots {
+  position: absolute;
+  left: 50%;
+  bottom: 1rem;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 0.4rem;
+}
+
+.dot {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 999px;
+  border: 1px solid rgba(250, 248, 245, 0.9);
+  background: rgba(250, 248, 245, 0.5);
+  cursor: pointer;
+}
+
+.activeDot {
+  width: 1.2rem;
+  background: #C9A84C;
+  border-color: #C9A84C;
+}
+
+.infoPanel {
+  overflow-y: auto;
+  padding: 3.5rem 2rem 6.5rem;
+}
+
+.brand {
+  margin: 0 0 0.55rem;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: #8C7B6E;
+  font-weight: 600;
+}
+
+.name {
+  margin: 0;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(2.1rem, 4vw, 3.4rem);
+  line-height: 1.05;
+  font-weight: 300;
+  color: #1C1410;
+}
+
+.metaRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 1.2rem;
+}
+
+.badge,
+.category {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.63rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  padding: 0.25rem 0.55rem;
+  border: 1px solid currentColor;
+  background: rgba(250, 248, 245, 0.85);
+}
+
+.badgeMint { color: #5D7268; }
+.badgeGood { color: #7A695D; }
+.badgeFair { color: #8E6B6B; }
+.badgeNew { color: #8E7A4A; border-color: #C9A84C; }
+.category { color: #8C7B6E; }
+
+.priceRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1.6rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #E5DFD8;
+}
+
+.price {
+  font-family: 'Inter', sans-serif;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #0A0806;
+}
+
+.stock {
+  margin: 1rem 0 0;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #61554A;
+  font-weight: 600;
+}
+
+.description {
+  margin: 1.3rem 0 0;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.92rem;
+  line-height: 1.7;
+  color: #61554A;
+  font-weight: 300;
+}
+
+.note {
+  margin-top: 1.3rem;
+  padding: 1rem;
+  border-left: 3px solid #C9A84C;
+  background: #FFF8E7;
+}
+
+.note span {
+  display: block;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-weight: 700;
+  color: #8C7B6E;
+  margin-bottom: 0.4rem;
+}
+
+.note p {
+  margin: 0;
+  font-size: 0.86rem;
+  color: #61554A;
+  line-height: 1.6;
+}
+
+.actionBar {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: calc(100% / 2.05);
+  display: flex;
+  gap: 0.7rem;
+  padding: 1rem;
+  border-top: 1px solid #E5DFD8;
+  background: rgba(250, 248, 245, 0.96);
+}
+
+.addBtn,
+.whatsAppBtn {
+  flex: 1;
+  min-height: 2.65rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  border-radius: 0;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.addBtn {
+  background: #0A0806;
+  color: #FAF8F5;
+  border: 1px solid #0A0806;
+}
+
+.addBtn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.whatsAppBtn {
+  background: #25D366;
+  color: #0A0806;
+  border: 1px solid #25D366;
+}
+
+@media (max-width: 760px) {
+  .overlay {
+    padding: 0;
+    align-items: stretch;
+  }
+
+  .modal {
+    width: 100%;
+    height: 100dvh;
+    max-height: 100dvh;
+    grid-template-columns: 1fr;
+    overflow-y: auto;
+  }
+
+  .gallery {
+    min-height: 45vh;
+  }
+
+  .infoPanel {
+    padding: 1.5rem 1.25rem 6.5rem;
+    overflow: visible;
+  }
+
+  .actionBar {
+    position: sticky;
+    bottom: 0;
+    width: 100%;
+    left: 0;
+    right: 0;
+    box-shadow: 0 -8px 20px rgba(10, 8, 6, 0.08);
+  }
+
+  .addBtn,
+  .whatsAppBtn {
+    font-size: 0.7rem;
+  }
+}
