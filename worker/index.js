@@ -326,7 +326,13 @@ export default {
         const auth = await requireWriteAuth(request, env, corsHeaders);
         if (!auth.authorized) return auth.response;
         const body = await request.json();
-        const saved = await saveState(env, body.state || body);
+        const incomingState = body.state || body;
+        const mergedState = {
+          ...incomingState,
+          sessions: auth.state.sessions || [],
+          users: auth.state.users?.length > 0 ? auth.state.users : (incomingState.users || []),
+        };
+        const saved = await saveState(env, mergedState);
         return json({ ok: true, ...saved, state: publicState(saved.state) }, { status: 200 }, corsHeaders);
       }
       if (request.method === 'GET' && path === '/api/products') { const { state, updatedAt } = await getState(env); return json({ ok: true, data: state.products, updatedAt }, { status: 200 }, corsHeaders); }
