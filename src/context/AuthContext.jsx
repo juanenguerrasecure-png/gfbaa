@@ -48,8 +48,28 @@ function mergeUsers(primaryUsers, secondaryUsers) {
   return merged;
 }
 
+function clearStoredSession() {
+  localStorage.removeItem('gf_is_admin');
+  localStorage.removeItem('gf_current_user');
+  localStorage.removeItem('gf_session_token');
+  localStorage.removeItem('gf_session_expires_at');
+}
+
+function isSessionExpired(expiresAt) {
+  if (!expiresAt) return false;
+  const expiresMs = Date.parse(expiresAt);
+  return Number.isFinite(expiresMs) && expiresMs <= Date.now();
+}
+
 function getSessionToken() {
-  return localStorage.getItem('gf_session_token') || '';
+  const token = localStorage.getItem('gf_session_token') || '';
+  const expiresAt = localStorage.getItem('gf_session_expires_at') || '';
+  if (!token) return '';
+  if (isSessionExpired(expiresAt)) {
+    clearStoredSession();
+    return '';
+  }
+  return token;
 }
 
 function authHeaders(extra = {}) {
@@ -70,6 +90,8 @@ async function fetchCloudState() {
 }
 
 async function saveUsersToCloud(nextUsers) {
+  const token = getSessionToken();
+  if (!token) return null;
   try {
     const state = await fetchCloudState();
     const response = await fetch('/api/state', {
@@ -87,25 +109,13 @@ async function saveUsersToCloud(nextUsers) {
 }
 
 async function createCloudUser(userPayload, token = '') {
-  try {
-    const headers = token
-      ? { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
-      : { 'Content-Type': 'application/json' };
-    const response = await fetch('/api/users', { method: 'POST', headers, body: JSON.stringify(userPayload) });
-    const result = await response.json();
-    if (!response.ok || !result.ok) throw new Error(result.error || 'Unable to create user.');
-    return result.user;
-  } catch (error) {
-    console.warn('createCloudUser failed; falling back to local user creation:', error);
-    const id = userPayload.id || `user-${Date.now()}`;
-    return {
-      id,
-      username: userPayload.username,
-      password: userPayload.password, // already hashed
-      role: userPayload.role || 'Administrator',
-      isDefault: !!userPayload.isDefault
-    };
-  }
+  const headers = token
+    ? { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
+    : { 'Content-Type': 'application/json' };
+  const response = await fetch('/api/users', { method: 'POST', headers, body: JSON.stringify(userPayload) });
+  const result = await response.json();
+  if (!response.ok || !result.ok) throw new Error(result.error || 'Unable to create user.');
+  return result.user;
 }
 
 async function createCloudSession(username, password) {
@@ -119,18 +129,8 @@ async function createCloudSession(username, password) {
     if (!response.ok || !result.ok) throw new Error(result.error || 'Unable to create secure session.');
     return result;
   } catch (error) {
-    console.warn('createCloudSession failed; falling back to local session creation:', error);
-    const token = Array.from(crypto.getRandomValues(new Uint8Array(16))).map(b => b.toString(16).padStart(2, '0')).join('');
-    const expiresAt = new Date(Date.now() + SESSION_HOURS * 60 * 60 * 1000).toISOString();
-    return {
-      ok: true,
-      session: { token, expiresAt },
-      user: {
-        id: `user-${Date.now()}`,
-        username,
-        role: 'Administrator'
-      }
-    };
+    console.warn('createCloudSession failed:', error);
+    throw error;
   }
 }
 
@@ -187,13 +187,24 @@ function FirstRunSetup({ onCreated }) {
 
 export function AuthProvider({ children }) {
   const [users, setUsers] = useState(() => readLocalUsers());
-  const [currentUser, setCurrentUser] = useState(() => readCurrentUser());
+  const [currentUser, setCurrentUser] = useState(() => getSessionToken() ? readCurrentUser() : null);
   const [isAdmin, setIsAdmin] = useState(() => localStorage.getItem('gf_is_admin') === 'true' && Boolean(getSessionToken()));
   const [loginError, setLoginError] = useState('');
   const [authReady, setAuthReady] = useState(false);
   const [needsFirstRunSetup, setNeedsFirstRunSetup] = useState(false);
 
   useEffect(() => { localStorage.setItem('gf_users', JSON.stringify(users)); }, [users]);
+
+  useEffect(() => {
+    const handleAuthExpired = () => {
+      clearStoredSession();
+      setIsAdmin(false);
+      setCurrentUser(null);
+      setLoginError('Your admin session expired. Please log in again.');
+    };
+    window.addEventListener('gf-auth-expired', handleAuthExpired);
+    return () => { window.removeEventListener('gf-auth-expired', handleAuthExpired); };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -207,7 +218,7 @@ export function AuthProvider({ children }) {
           setUsers(mergedUsers);
           localStorage.setItem('gf_users', JSON.stringify(mergedUsers));
           setNeedsFirstRunSetup(mergedUsers.length === 0);
-          const localCurrentUser = readCurrentUser();
+          const localCurrentUser = getSessionToken() ? readCurrentUser() : null;
           if (localCurrentUser) {
             const refreshedCurrentUser = mergedUsers.find(u => u.id === localCurrentUser.id || u.username === localCurrentUser.username);
             if (refreshedCurrentUser) {
@@ -229,7 +240,7 @@ export function AuthProvider({ children }) {
 
   const migratePlaintextPassword = async (user, plaintextPassword) => {
     const hashedPassword = await hashPassword(plaintextPassword);
-    const nextUsers = users.map(u => u.id === user.id ? { ...u, password: hashedPassword } : u);
+    const nextUsers = users.map(u => u.id === user.id ? { ...user, password: hashedPassword } : u);
     setUsers(nextUsers);
     localStorage.setItem('gf_users', JSON.stringify(nextUsers));
     await saveUsersToCloud(nextUsers);
@@ -297,10 +308,7 @@ export function AuthProvider({ children }) {
     void deleteCloudSession(token);
     setIsAdmin(false);
     setCurrentUser(null);
-    localStorage.removeItem('gf_is_admin');
-    localStorage.removeItem('gf_current_user');
-    localStorage.removeItem('gf_session_token');
-    localStorage.removeItem('gf_session_expires_at');
+    clearStoredSession();
   };
 
   const createUser = async (username, password, role = 'Administrator') => {
