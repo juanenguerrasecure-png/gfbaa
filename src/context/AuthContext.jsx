@@ -109,29 +109,14 @@ async function createCloudUser(userPayload, token = '') {
 }
 
 async function createCloudSession(username, password) {
-  try {
-    const response = await fetch('/api/sessions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password, hours: SESSION_HOURS })
-    });
-    const result = await response.json();
-    if (!response.ok || !result.ok) throw new Error(result.error || 'Unable to create secure session.');
-    return result;
-  } catch (error) {
-    console.warn('createCloudSession failed; falling back to local session creation:', error);
-    const token = Array.from(crypto.getRandomValues(new Uint8Array(16))).map(b => b.toString(16).padStart(2, '0')).join('');
-    const expiresAt = new Date(Date.now() + SESSION_HOURS * 60 * 60 * 1000).toISOString();
-    return {
-      ok: true,
-      session: { token, expiresAt },
-      user: {
-        id: `user-${Date.now()}`,
-        username,
-        role: 'Administrator'
-      }
-    };
-  }
+  const response = await fetch('/api/sessions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, password, hours: SESSION_HOURS })
+  });
+  const result = await response.json();
+  if (!response.ok || !result.ok) throw new Error(result.error || 'Unable to create secure session.');
+  return result;
 }
 
 async function deleteCloudSession(token) {
@@ -259,7 +244,7 @@ export function AuthProvider({ children }) {
     try {
       let loginResult;
       try {
-        loginResult = await createCloudSession(sessionUser.username, passwordInput);
+        loginResult = await createCloudSession(sessionUser.username, sessionUser.password);
       } catch (sessionError) {
         const state = await fetchCloudState();
         const cloudUsers = Array.isArray(state.users) ? state.users : [];
@@ -269,7 +254,7 @@ export function AuthProvider({ children }) {
           setUsers(nextUsers);
           localStorage.setItem('gf_users', JSON.stringify(nextUsers));
           sessionUser = seededUser;
-          loginResult = await createCloudSession(sessionUser.username, passwordInput);
+          loginResult = await createCloudSession(sessionUser.username, sessionUser.password);
         } else {
           throw sessionError;
         }

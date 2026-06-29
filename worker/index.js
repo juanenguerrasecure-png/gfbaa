@@ -208,7 +208,10 @@ async function createSession(request, env, corsHeaders) {
   const stateResult = await getState(env);
   const state = stateResult.state;
   const user = state.users.find(u => String(u.username || '').toLowerCase() === username.toLowerCase());
-  if (!user || !(await verifyPassword(password, user.password))) return json({ ok: false, error: 'Invalid username or password.' }, { status: 401 }, corsHeaders);
+  const passwordMatches = (user && await verifyPassword(password, user.password))
+    || (user && isPasswordHash(password) && password === user.password);
+
+  if (!user || !passwordMatches) return json({ ok: false, error: 'Invalid username or password.' }, { status: 401 }, corsHeaders);
   let nextUser = user;
   let users = state.users;
   if (!isPasswordHash(user.password)) {
