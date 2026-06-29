@@ -5,8 +5,34 @@ const DEFAULT_EXCHANGE_RATE = 58.0;
 const DEFAULT_PAYMENT_METHODS = { zelle: { handle: '', instructions: '', qrUrl: '' }, venmo: { handle: '', instructions: '', qrUrl: '' } };
 const DEFAULT_HERO_IMAGE = { url: '', alt: 'Good Finds by AA Featured Collection' };
 
-function getAuthHeaders(extra = {}) {
+function clearExpiredSession() {
+  localStorage.removeItem('gf_is_admin');
+  localStorage.removeItem('gf_current_user');
+  localStorage.removeItem('gf_session_token');
+  localStorage.removeItem('gf_session_expires_at');
+  window.dispatchEvent(new Event('gf-auth-expired'));
+}
+
+function getActiveSessionToken() {
   const token = localStorage.getItem('gf_session_token') || '';
+  const expiresAt = localStorage.getItem('gf_session_expires_at') || '';
+  if (!token) return '';
+  if (expiresAt) {
+    const expiresMs = Date.parse(expiresAt);
+    if (Number.isFinite(expiresMs) && expiresMs <= Date.now()) {
+      clearExpiredSession();
+      return '';
+    }
+  }
+  return token;
+}
+
+function hasActiveSession() {
+  return Boolean(getActiveSessionToken());
+}
+
+function getAuthHeaders(extra = {}) {
+  const token = getActiveSessionToken();
   return token ? { ...extra, Authorization: `Bearer ${token}` } : extra;
 }
 
@@ -78,6 +104,10 @@ export function StoreProvider({ children }) {
   }, [writeLocalCache]);
 
   const saveCloudState = useCallback(async (snapshot) => {
+    if (!hasActiveSession()) {
+      return { ok: false, authRequired: true, error: 'Admin session expired. Please log in again before syncing changes.' };
+    }
+
     savingRef.current = true;
     try {
       const response = await fetch('/api/state', {
@@ -85,7 +115,11 @@ export function StoreProvider({ children }) {
         headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({ state: snapshot }),
       });
-      const result = await response.json();
+      const result = await response.json().catch(() => ({}));
+      if (response.status === 401) {
+        clearExpiredSession();
+        return { ok: false, authRequired: true, error: 'Admin session expired. Please log in again before syncing changes.' };
+      }
       if (!response.ok || !result.ok) throw new Error(result.error || 'Unable to save cloud state.');
       if (result.updatedAt) {
         lastCloudUpdatedAtRef.current = result.updatedAt;
@@ -114,7 +148,7 @@ export function StoreProvider({ children }) {
       if (!response.ok || !result.ok) throw new Error(result.error || 'Unable to load cloud state.');
       const localSnapshot = buildSnapshot();
       if (result.exists && result.state) {
-        if (!snapshotHasRecords(result.state) && snapshotHasRecords(localSnapshot) && localStorage.getItem('gf_session_token')) {
+        if (!snapshotHasRecords(result.state) && snapshotHasRecords(localSnapshot) && hasActiveSession()) {
           await saveCloudState(localSnapshot);
           return;
         }
@@ -124,7 +158,7 @@ export function StoreProvider({ children }) {
           localStorage.setItem('gf_cloud_updated_at', incomingUpdatedAt);
           applySnapshot(result.state);
         }
-      } else if (snapshotHasRecords(localSnapshot) && localStorage.getItem('gf_session_token')) {
+      } else if (snapshotHasRecords(localSnapshot) && hasActiveSession()) {
         await saveCloudState(localSnapshot);
       }
     } catch (error) {
@@ -140,8 +174,7 @@ export function StoreProvider({ children }) {
 
   useEffect(() => {
     if (!cloudReady || applyingRemoteRef.current) return;
-    const token = localStorage.getItem('gf_session_token');
-    if (!token) return;
+    if (!hasActiveSession()) return;
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     const snapshot = buildSnapshot();
     saveTimerRef.current = setTimeout(() => { saveCloudState(snapshot); }, 600);
@@ -378,5 +411,3 @@ export function StoreProvider({ children }) {
     </StoreContext.Provider>
   );
 }
-
-export const useStore = () => useContext(StoreContext);
