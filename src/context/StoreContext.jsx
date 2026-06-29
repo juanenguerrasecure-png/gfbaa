@@ -411,3 +411,5 @@ export function StoreProvider({ children }) {
     </StoreContext.Provider>
   );
 }
+
+export const useStore = () => useContext(StoreContext);
