@@ -1,17 +1,19 @@
 .hero {
-  background-color: #FAF8F5;
+  background-color: var(--season-bg, #FAF8F5);
   border-bottom: 1px solid #E5DFD8;
   padding: 5rem 1.5rem;
   position: relative;
   overflow: hidden;
+  transition: background-color 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .hero::before {
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 74% 42%, rgba(201, 168, 76, 0.08) 0%, rgba(255, 255, 255, 0) 56%);
+  background: var(--season-gradient, radial-gradient(circle at 74% 42%, color-mix(in srgb, var(--accent, #C9A84C) 8%, transparent) 0%, rgba(255, 255, 255, 0) 56%));
   pointer-events: none;
+  transition: background 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .container {
@@ -30,7 +32,9 @@
 }
 
 .badge {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
   font-family: 'Inter', sans-serif;
   font-size: 0.72rem;
   text-transform: uppercase;
@@ -42,6 +46,30 @@
   padding: 0.35rem 1rem;
   border-radius: 9999px;
   border: 1px solid var(--accent);
+  transition: background 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+              color 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.badgeIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.summerSunIcon {
+  animation: gentleRotate 12s linear infinite;
+  color: #C17A4C; /* Summer terracotta accent */
+}
+
+@keyframes gentleRotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .title {
@@ -180,7 +208,7 @@
   content: '';
   position: absolute;
   inset: 2rem;
-  border: 1px solid rgba(201, 168, 76, 0.26);
+  border: 1px solid color-mix(in srgb, var(--accent) 26%, transparent);
   border-radius: 4px;
 }
 
@@ -281,5 +309,52 @@
     max-width: 280px;
     height: 273px;
     max-height: 273px;
+  }
+}
+
+/* Seasonal ambient elements styles */
+.particle {
+  position: absolute;
+  pointer-events: none;
+  z-index: 0;
+  user-select: none;
+  opacity: 0;
+  color: var(--season-particle-color, var(--accent));
+  transition: color 0.5s ease;
+}
+
+.particleFall {
+  animation: seasonalFall 14s linear infinite;
+}
+
+.particleFloat {
+  animation: seasonalFloat 7s ease-in-out infinite;
+}
+
+@keyframes seasonalFall {
+  0% {
+    transform: translateY(-5vh) rotate(0deg) translateX(0);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.65;
+  }
+  85% {
+    opacity: 0.65;
+  }
+  100% {
+    transform: translateY(105vh) rotate(360deg) translateX(50px);
+    opacity: 0;
+  }
+}
+
+@keyframes seasonalFloat {
+  0%, 100% {
+    transform: translateY(0) scale(0.8) rotate(0deg);
+    opacity: 0.2;
+  }
+  50% {
+    transform: translateY(-25px) scale(1.15) rotate(15deg);
+    opacity: 0.65;
   }
 }

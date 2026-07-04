@@ -2,9 +2,11 @@
   position: sticky;
   top: 0;
   z-index: 100;
-  background-color: rgba(250, 248, 245, 0.9);
+  background-color: color-mix(in srgb, var(--season-bg, #FAF8F5) 90%, transparent);
   backdrop-filter: blur(10px);
-  border-bottom: 1px solid #EAE5DF;
+  border-bottom: 1px solid color-mix(in srgb, var(--accent) 15%, #EAE5DF);
+  transition: background-color 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .navInner {
@@ -38,8 +40,9 @@
   font-size: 1.5rem;
   font-style: italic;
   font-weight: 300;
-  color: #8C7B6E;
+  color: var(--accent);
   white-space: nowrap;
+  transition: color 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .backBtn {

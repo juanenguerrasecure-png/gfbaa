@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useStore } from '../../context/StoreContext';
-import { Database, Link, GitMerge, Settings, HelpCircle, Save } from 'lucide-react';
+import { Database, Link, GitMerge, Settings, HelpCircle, Save, Palette, Sparkles } from 'lucide-react';
 
 const DEFAULT_HERO_ALT = 'Good Finds by AA Featured Collection';
 
@@ -88,61 +88,220 @@ export function DesignTab() {
       </div>
 
       {/* Seasonal Theme Picker Card */}
-      <div className="bg-white p-5 rounded-lg border border-[#E5DFD8] shadow-sm space-y-4">
-        <div className="flex items-start justify-between gap-4">
+      <div className="bg-white p-5 rounded-lg border border-[#E5DFD8] shadow-sm space-y-5">
+        <div className="flex items-start justify-between gap-4 border-b border-stone-100 pb-4">
           <div>
-            <h3 className="font-display text-xl text-stone-900">Seasonal Storefront Vibe</h3>
-            <p className="text-sm text-stone-500">
-              Customize the storefront accent palette for different seasons. The admin panel retains a neutral gold accent.
+            <h3 className="font-display text-xl text-stone-900 flex items-center gap-2">
+              <span>Seasonal Storefront Vibe</span>
+              <span className="text-xs bg-stone-100 text-stone-600 px-2.5 py-0.5 rounded font-mono font-normal">Active: {(season || 'classic').toUpperCase()}</span>
+            </h3>
+            <p className="text-xs text-stone-500 mt-1">
+              Dramatically shift the storefront aesthetic to match different times of the year. The Admin Panel remains in neutral luxury gold to preserve professional readability.
             </p>
           </div>
-          <span className="hidden sm:inline-flex text-[10px] uppercase tracking-wider text-amber-600 border border-[#E5DFD8] px-3 py-1 rounded-full">Storefront only</span>
+          <span className="hidden sm:inline-flex text-[10px] uppercase tracking-wider text-amber-600 border border-[#E5DFD8] px-3 py-1 rounded-full font-semibold">Live Storefront</span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4 pt-2">
-          {[
-            { id: 'classic', label: 'Classic Gold', color: 'bg-[#C9A84C]', text: 'text-[#C9A84C]', desc: 'Warm, timeless legacy luxury.' },
-            { id: 'spring', label: 'Spring Mint', color: 'bg-[#5D7268]', text: 'text-[#5D7268]', desc: 'Soft pastel sage and fresh leaf.' },
-            { id: 'summer', label: 'Summer Amber', color: 'bg-[#C17A4C]', text: 'text-[#C17A4C]', desc: 'Radiant clay, linen, and terracotta.' },
-            { id: 'autumn', label: 'Autumn Crimson', color: 'bg-[#8E4A4A]', text: 'text-[#8E4A4A]', desc: 'Rustic rust, deep grape, and crimson.' },
-            { id: 'winter', label: 'Winter Sapphire', color: 'bg-[#4B6B88]', text: 'text-[#4B6B88]', desc: 'Frosted silver and ice-deep navy.' },
-          ].map((theme) => {
-            const isSelected = (season || 'classic') === theme.id;
-            return (
-              <button
-                key={theme.id}
-                type="button"
-                onClick={async () => {
-                  setSeasonSaveStatus('Applying...');
-                  const res = await saveSeason(theme.id);
-                  if (res?.ok) {
-                    setSeasonSaveStatus(`Theme updated to ${theme.label}.`);
-                  } else {
-                    setSeasonSaveStatus('Failed to update seasonal theme.');
-                  }
-                }}
-                className={`p-4 border rounded-lg text-left transition-all relative flex flex-col justify-between h-36 outline-none ${
-                  isSelected 
-                    ? 'border-stone-900 bg-stone-50 ring-2 ring-stone-900/10' 
-                    : 'border-stone-200 hover:border-stone-400 bg-white'
-                }`}
-              >
-                <div className="flex items-center justify-between w-full">
-                  <div className={`w-8 h-8 rounded-full ${theme.color} border border-black/10`} />
-                  {isSelected && (
-                    <span className="text-[9px] uppercase tracking-wider font-bold bg-stone-900 text-white px-2 py-0.5 rounded">Active</span>
-                  )}
+        {(() => {
+          const SEASONS_DATA = [
+            { 
+              id: 'classic', 
+              label: 'Classic Gold', 
+              desc: 'Warm, timeless legacy luxury gold.',
+              emoji: '✦',
+              mood: 'Opulent, historical, high-end curation', 
+              accentColor: '#C9A84C',
+              accentSoft: '#FDFBF7',
+              particleLabel: 'Floating Sparkles',
+              paletteColors: ['#C9A84C', '#B3923B', '#FDFBF7']
+            },
+            { 
+              id: 'spring', 
+              label: 'Spring Mint', 
+              desc: 'Soft pastel sage and fresh leaf renewal.',
+              emoji: '🌸',
+              mood: 'Fresh, organic, botanical, calm growth', 
+              accentColor: '#5D7268',
+              accentSoft: '#F1F4F1',
+              particleLabel: 'Drifting Cherry Blossoms',
+              paletteColors: ['#5D7268', '#475850', '#F1F4F1']
+            },
+            { 
+              id: 'summer', 
+              label: 'Summer Amber', 
+              desc: 'Radiant terracotta, clay and linen warmth.',
+              emoji: '☀️',
+              mood: 'Warm, sun-drenched, radiant beach elements', 
+              accentColor: '#C17A4C',
+              accentSoft: '#FBF6F2',
+              particleLabel: 'Sunlight Particles',
+              paletteColors: ['#C17A4C', '#A06138', '#FBF6F2']
+            },
+            { 
+              id: 'autumn', 
+              label: 'Autumn Crimson', 
+              desc: 'Rustic crimson, deep grape, and ochre harvest.',
+              emoji: '🍁',
+              mood: 'Cozy, earthy, nostalgic warmth & velvet', 
+              accentColor: '#8E4A4A',
+              accentSoft: '#FAF4F4',
+              particleLabel: 'Falling Maple Leaves',
+              paletteColors: ['#8E4A4A', '#743B3B', '#FAF4F4']
+            },
+            { 
+              id: 'winter', 
+              label: 'Winter Sapphire', 
+              desc: 'Frosted sapphire, silver, and deep navy ice.',
+              emoji: '❄️',
+              mood: 'Cool, crisp, elegant, winter nobility', 
+              accentColor: '#4B6B88',
+              accentSoft: '#F2F5F8',
+              particleLabel: 'Glistening Ice Crystals',
+              paletteColors: ['#4B6B88', '#3A546C', '#F2F5F8']
+            }
+          ];
+
+          return (
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 pt-1">
+              {/* Left Column: Interactive Cards List */}
+              <div className="xl:col-span-2 space-y-3">
+                <p className="text-xs font-semibold text-stone-500 uppercase tracking-wider">Select a seasonal palette</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {SEASONS_DATA.map((theme) => {
+                    const isSelected = (season || 'classic') === theme.id;
+                    return (
+                      <button
+                        key={theme.id}
+                        type="button"
+                        onClick={async () => {
+                          setSeasonSaveStatus(`Applying ${theme.label} vibe...`);
+                          const res = await saveSeason(theme.id);
+                          if (res?.ok) {
+                            setSeasonSaveStatus(`Theme updated to ${theme.label}!`);
+                          } else {
+                            setSeasonSaveStatus('Failed to update seasonal theme.');
+                          }
+                        }}
+                        className={`p-4 border rounded-lg text-left transition-all flex flex-col justify-between gap-3 outline-none group cursor-pointer ${
+                          isSelected 
+                            ? 'border-stone-900 bg-stone-50/50 ring-2 ring-stone-900/5' 
+                            : 'border-stone-200 hover:border-stone-400 bg-white'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between w-full">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xl">{theme.emoji}</span>
+                            <p className="text-sm font-semibold text-stone-900 group-hover:text-[#C9A84C] transition-colors">{theme.label}</p>
+                          </div>
+                          {isSelected ? (
+                            <span className="text-[9px] uppercase tracking-wider font-bold bg-stone-900 text-white px-2 py-0.5 rounded">Active</span>
+                          ) : (
+                            <span className="text-[9px] uppercase tracking-wider text-stone-400 opacity-0 group-hover:opacity-100 transition-opacity">Click to apply</span>
+                          )}
+                        </div>
+                        
+                        <p className="text-xs text-stone-500 leading-normal">{theme.desc}</p>
+                        
+                        <div className="flex items-center gap-2 mt-1 pt-2 border-t border-stone-100 text-[10px] text-stone-400">
+                          <span className="font-semibold text-stone-500">Palette:</span>
+                          <div className="flex gap-1.5 items-center">
+                            {theme.paletteColors.map((col, cIdx) => (
+                              <span key={cIdx} className="w-3.5 h-3.5 rounded-full border border-black/10 inline-block" style={{ backgroundColor: col }} title={col} />
+                            ))}
+                          </div>
+                          <span className="mx-1">•</span>
+                          <span>{theme.particleLabel}</span>
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
-                <div className="mt-4">
-                  <p className="text-xs font-semibold text-stone-950 font-sans">{theme.label}</p>
-                  <p className="text-[10px] text-stone-500 font-sans mt-1 leading-normal">{theme.desc}</p>
+              </div>
+
+              {/* Right Column: Live Vibe Simulator */}
+              <div className="bg-stone-50/70 p-4 rounded-lg border border-stone-200 flex flex-col justify-between space-y-4">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-stone-600 uppercase tracking-wider">
+                    <Palette size={14} className="text-amber-700 animate-pulse" />
+                    <span>Vibe Simulator</span>
+                  </div>
+                  <p className="text-[11px] text-stone-500 leading-relaxed">
+                    Visualizing how active storefront elements and headings react in real-time.
+                  </p>
                 </div>
-              </button>
-            );
-          })}
-        </div>
+
+                {/* Simulated Storefront Card Mockup */}
+                {(() => {
+                  const activeTheme = SEASONS_DATA.find(t => t.id === (season || 'classic')) || SEASONS_DATA[0];
+                  return (
+                    <div 
+                      className="border border-stone-200 rounded-md p-4 shadow-sm relative overflow-hidden transition-all duration-700 space-y-3"
+                      style={{ backgroundColor: activeTheme.accentSoft }}
+                    >
+                      {/* Floating particle simulation */}
+                      <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-30 flex justify-around items-center">
+                        <span className="text-base animate-bounce" style={{ animationDelay: '0.1s' }}>{activeTheme.emoji}</span>
+                        <span className="text-lg animate-pulse" style={{ animationDelay: '0.5s' }}>{activeTheme.emoji}</span>
+                        <span className="text-xs animate-bounce" style={{ animationDelay: '0.9s' }}>{activeTheme.emoji}</span>
+                      </div>
+
+                      {/* Header Mock */}
+                      <div className="flex justify-between items-center pb-2 border-b border-stone-100 relative z-10">
+                        <span className="font-serif text-xs font-bold text-stone-800">Good Finds <span className="italic font-light text-stone-500">by AA</span></span>
+                        <div className="flex gap-1">
+                          <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: activeTheme.accentColor }} />
+                          <span className="w-2.5 h-2.5 rounded-full bg-stone-300" />
+                        </div>
+                      </div>
+
+                      {/* Hero Badge Mock */}
+                      <div className="space-y-1 relative z-10 text-center py-1">
+                        <span 
+                          className="inline-block text-[8px] uppercase tracking-widest px-2 py-0.5 rounded-full border text-stone-900"
+                          style={{ 
+                            borderColor: activeTheme.accentColor, 
+                            color: activeTheme.accentColor, 
+                            backgroundColor: '#FFFFFF' 
+                          }}
+                        >
+                          {activeTheme.emoji} {activeTheme.label}
+                        </span>
+                        <p className="font-serif text-[11px] font-medium text-stone-800 mt-1 leading-tight">
+                          {activeTheme.mood}
+                        </p>
+                      </div>
+
+                      {/* Product Card Mock */}
+                      <div className="border border-stone-100 rounded p-2 bg-white flex items-center gap-2 relative z-10 shadow-xs">
+                        <div className="w-7 h-7 rounded bg-stone-50 flex items-center justify-center text-xs">👜</div>
+                        <div className="flex-1 min-w-0">
+                          <div className="h-1.5 w-12 bg-stone-200 rounded mb-1" />
+                          <div className="h-1 w-16 bg-stone-100 rounded" />
+                        </div>
+                        <span className="text-[9px] font-mono font-bold" style={{ color: activeTheme.accentColor }}>₱55,000</span>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                <div className="text-[10px] text-stone-500 space-y-1 pt-2 border-t border-stone-200/60">
+                  <p className="font-semibold text-stone-700">Dynamic Storefront Reaction:</p>
+                  <ul className="list-disc pl-4 space-y-0.5 text-stone-500">
+                    <li>Dynamic CSS properties render in browser</li>
+                    <li>Particles trigger ambient physics effects</li>
+                    <li>Storefront banners & category pills match season</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
+
         {seasonSaveStatus && (
-          <p className="text-xs font-medium text-stone-500 pt-1">{seasonSaveStatus}</p>
+          <p className="text-xs font-semibold text-stone-700 pt-1 flex items-center gap-1.5">
+            <Sparkles size={13} className="text-amber-500 animate-spin" />
+            <span>{seasonSaveStatus}</span>
+          </p>
         )}
       </div>
 

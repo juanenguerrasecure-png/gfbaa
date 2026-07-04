@@ -304,7 +304,7 @@ export function ProductGrid({ activeFilter: externalFilter, onFilterChange: onEx
               onClick={() => setActiveFilter(f.key)}
               className={`px-4 py-1.5 text-xs font-medium rounded-full border transition-all cursor-pointer ${
                 activeFilter === f.key
-                  ? 'bg-stone-900 text-white border-stone-900 shadow-sm'
+                  ? 'bg-accent text-white border-accent shadow-sm'
                   : 'bg-stone-50 text-stone-600 border-stone-200 hover:bg-stone-100/70 hover:text-stone-900'
               }`}
               id={`filter_tab_pill_${f.key}`}
@@ -377,7 +377,11 @@ export function ProductGrid({ activeFilter: externalFilter, onFilterChange: onEx
               <div
                 key={item.id}
                 onClick={() => handleOpenDetail(item)}
-                className="group bg-white rounded-lg border border-stone-200/70 overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 flex flex-col cursor-pointer"
+                className="group rounded-lg border border-stone-200/70 overflow-hidden shadow-sm hover:shadow-md flex flex-col cursor-pointer"
+                style={{
+                  backgroundColor: 'var(--accent-soft, #FAF8F5)',
+                  transition: 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.8s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
+                }}
                 id={`product_card_tailwind_${item.id}`}
               >
                 {/* Product Image Stage */}

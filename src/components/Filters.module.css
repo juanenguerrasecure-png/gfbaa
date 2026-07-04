@@ -42,9 +42,14 @@
 }
 
 .pill.active {
-  background-color: #1C1410;
-  border-color: #1C1410;
+  background-color: var(--accent);
+  border-color: var(--accent);
   color: #FAF8F5;
+}
+
+.pill.active:hover {
+  background-color: var(--accent-deep);
+  border-color: var(--accent-deep);
 }
 
 .divider {
@@ -82,7 +87,7 @@
 }
 
 .sort:hover {
-  border-color: #C9A84C;
+  border-color: var(--accent);
 }
 
 @media (max-width: 640px) {

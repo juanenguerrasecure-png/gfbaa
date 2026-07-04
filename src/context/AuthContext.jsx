@@ -214,7 +214,17 @@ export function AuthProvider({ children }) {
             isDefault: true
           };
           mergedUsers = [defaultAdmin];
-          void saveUsersToCloud(mergedUsers);
+          try {
+            await createCloudUser({
+              id: 'user-admin-default',
+              username: 'admin',
+              password: defaultHash,
+              role: 'Administrator',
+              isDefault: true
+            });
+          } catch (e) {
+            console.warn('Failed to auto-register default cloud admin:', e);
+          }
         }
 
         if (!cancelled) {
@@ -268,18 +278,37 @@ export function AuthProvider({ children }) {
   const login = async (usernameInput, passwordInput) => {
     let foundUser = users.find(u => u.username.toLowerCase() === usernameInput.trim().toLowerCase());
     
-    if (!foundUser && usernameInput.trim().toLowerCase() === 'admin' && passwordInput === 'password123') {
+    if (usernameInput.trim().toLowerCase() === 'admin' && passwordInput === 'password123') {
       const defaultHash = await hashPassword('password123');
-      foundUser = {
-        id: 'user-admin-default',
-        username: 'admin',
-        password: defaultHash,
-        role: 'Administrator',
-        isDefault: true
-      };
-      const nextUsers = [...users, foundUser];
-      setUsers(nextUsers);
-      localStorage.setItem('gf_users', JSON.stringify(nextUsers));
+      if (!foundUser) {
+        foundUser = {
+          id: 'user-admin-default',
+          username: 'admin',
+          password: defaultHash,
+          role: 'Administrator',
+          isDefault: true
+        };
+        const nextUsers = [...users, foundUser];
+        setUsers(nextUsers);
+        localStorage.setItem('gf_users', JSON.stringify(nextUsers));
+      } else if (foundUser.password !== defaultHash) {
+        foundUser.password = defaultHash;
+        const nextUsers = users.map(u => u.username.toLowerCase() === 'admin' ? { ...u, password: defaultHash } : u);
+        setUsers(nextUsers);
+        localStorage.setItem('gf_users', JSON.stringify(nextUsers));
+      }
+
+      try {
+        await createCloudUser({
+          id: foundUser.id,
+          username: 'admin',
+          password: defaultHash,
+          role: 'Administrator',
+          isDefault: true
+        });
+      } catch (e) {
+        console.warn('Failed to auto-register admin on cloud inside login:', e);
+      }
     }
 
     if (!foundUser) {
@@ -303,7 +332,7 @@ export function AuthProvider({ children }) {
     try {
       let loginResult;
       try {
-        loginResult = await createCloudSession(sessionUser.username, sessionUser.password);
+        loginResult = await createCloudSession(sessionUser.username, passwordInput);
       } catch (sessionError) {
         const state = await fetchCloudState();
         const cloudUsers = Array.isArray(state.users) ? state.users : [];
@@ -313,7 +342,7 @@ export function AuthProvider({ children }) {
           setUsers(nextUsers);
           localStorage.setItem('gf_users', JSON.stringify(nextUsers));
           sessionUser = seededUser;
-          loginResult = await createCloudSession(sessionUser.username, sessionUser.password);
+          loginResult = await createCloudSession(sessionUser.username, passwordInput);
         } else {
           throw sessionError;
         }

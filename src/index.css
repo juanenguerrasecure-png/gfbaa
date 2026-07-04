@@ -17,44 +17,55 @@
 
   /* Season theme variables, default to Classic */
   --accent: #C9A84C;
-  --accent-deep: #b7963d;
-  --accent-soft: #FBF5E8;
+  --accent-deep: #B3923B;
+  --accent-soft: #FDFBF7;
+  --season-bg: #FAF8F5;
+  
+  /* Dynamic srgb color-mixes for smooth ambient washes */
+  --season-gradient: radial-gradient(circle at 74% 42%, color-mix(in srgb, var(--accent) 12%, transparent) 0%, rgba(255, 255, 255, 0) 65%);
+  --season-particle-color: color-mix(in srgb, var(--accent) 40%, transparent);
 }
 
 /* Seasonal themes using data-season on root */
 html[data-season="spring"], :root[data-season="spring"] {
-  --accent: #8FA382;
-  --accent-deep: #7A8D6E;
-  --accent-soft: #F2F5F0;
+  --accent: #5D7268;
+  --accent-deep: #475850;
+  --accent-soft: #F1F4F1;
+  --season-bg: #FAF9F6;
 }
 html[data-season="summer"], :root[data-season="summer"] {
-  --accent: #C97B5F;
-  --accent-deep: #B3654B;
-  --accent-soft: #FAF1ED;
+  --accent: #C17A4C;
+  --accent-deep: #A06138;
+  --accent-soft: #FBF6F2;
+  --season-bg: #FAF7F4;
 }
 html[data-season="autumn"], :root[data-season="autumn"] {
-  --accent: #B5652E;
-  --accent-deep: #9B5120;
-  --accent-soft: #FAF0E9;
+  --accent: #8E4A4A;
+  --accent-deep: #743B3B;
+  --accent-soft: #FAF4F4;
+  --season-bg: #FAF6F5;
 }
 html[data-season="winter"], :root[data-season="winter"] {
-  --accent: #4A6B57;
-  --accent-deep: #3B5746;
-  --accent-soft: #EFF3F0;
+  --accent: #4B6B88;
+  --accent-deep: #3A546C;
+  --accent-soft: #F2F5F8;
+  --season-bg: #F4F6F9;
 }
 html[data-season="classic"], :root[data-season="classic"] {
   --accent: #C9A84C;
-  --accent-deep: #b7963d;
-  --accent-soft: #FBF5E8;
+  --accent-deep: #B3923B;
+  --accent-soft: #FDFBF7;
+  --season-bg: #FAF8F5;
 }
 
 body {
-  background-color: #FAF8F5;
+  background-color: var(--season-bg, #FAF8F5);
   color: #1C1410;
   font-family: var(--font-sans);
   margin: 0;
   padding: 0;
   -webkit-font-smoothing: antialiased;
+  transition: background-color 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 input,

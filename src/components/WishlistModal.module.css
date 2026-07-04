@@ -152,8 +152,8 @@
 }
 
 .wishlistItem:hover {
-  border-color: #C9A84C;
-  box-shadow: 0 2px 8px rgba(201, 168, 76, 0.05);
+  border-color: var(--accent);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--accent) 5%, transparent);
 }
 
 .itemImageContainer {

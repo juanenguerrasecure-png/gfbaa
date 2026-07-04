@@ -1,10 +1,13 @@
 .card {
   display: flex;
   flex-direction: column;
-  background-color: #FAF8F5;
+  background-color: var(--accent-soft, #FAF8F5);
   border-radius: 0;
   overflow: hidden;
-  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.5s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), 
+              box-shadow 0.5s cubic-bezier(0.16, 1, 0.3, 1), 
+              border-color 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+              background-color 0.8s cubic-bezier(0.16, 1, 0.3, 1);
   border: 1px solid #E5DFD8;
   cursor: pointer;
   will-change: transform, box-shadow;
@@ -210,8 +213,8 @@
   height: 1.85rem;
   border-radius: 4px;
   background-color: transparent;
-  border: 1px solid #1C1410;
-  color: #1C1410;
+  border: 1px solid var(--accent);
+  color: var(--accent);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -220,7 +223,7 @@
 }
 
 .addBtn:hover:not(:disabled) {
-  background-color: #1C1410;
+  background-color: var(--accent);
   color: #FAF8F5;
   transform: scale(1.05);
 }
