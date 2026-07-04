@@ -91,7 +91,7 @@ function openContact(event, href, product) {
 }
 
 export function ProductDetailModal({ isOpen, onClose, product, onAddToCart }) {
-  const { socialLinks = {}, getCatalogItemStock, exchangeRate } = useStore();
+  const { socialLinks = {}, getCatalogItemStock, isItemReserved, exchangeRate } = useStore();
   const { currency } = useCurrency();
   const [activePhoto, setActivePhoto] = useState(0);
   const [touchStart, setTouchStart] = useState(null);
@@ -105,6 +105,7 @@ export function ProductDetailModal({ isOpen, onClose, product, onAddToCart }) {
   }, [product?.condition]);
 
   const stock = product ? getCatalogItemStock(product.id) : 0;
+  const isReserved = product ? isItemReserved(product.id) : false;
   const soldOut = stock <= 0;
   const whatsappHref = product ? appendTextParam(socialLinks?.whatsapp, product) : '';
   const viberHref = product ? getViberHref(socialLinks?.viber, product) : '';
@@ -457,12 +458,12 @@ export function ProductDetailModal({ isOpen, onClose, product, onAddToCart }) {
                     <button
                       type="button"
                       onClick={handleAdd}
-                      disabled={soldOut}
-                      className="flex-1 min-h-[44px] inline-flex items-center justify-center gap-2 bg-stone-950 text-white font-sans text-[11px] font-bold uppercase tracking-widest cursor-pointer hover:bg-stone-900 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-sm"
+                      disabled={soldOut || isReserved}
+                      className={`flex-1 min-h-[44px] inline-flex items-center justify-center gap-2 font-sans text-[11px] font-bold uppercase tracking-widest cursor-pointer transition-all shadow-sm ${isReserved ? 'bg-amber-50 text-amber-800 border border-amber-200/60 disabled:opacity-100 cursor-not-allowed' : 'bg-stone-950 text-white hover:bg-stone-900 disabled:opacity-40 disabled:cursor-not-allowed'}`}
                       id="modal_add_to_cart_btn"
                     >
                       <ShoppingBag size={14} />
-                      {soldOut ? 'Sold Out' : 'Add to Bag'}
+                      {isReserved ? 'Temporarily Reserved' : soldOut ? 'Sold Out' : 'Add to Bag'}
                     </button>
 
                     <button

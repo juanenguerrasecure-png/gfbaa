@@ -1,14 +1,46 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Hero } from './Hero';
 import { useStore } from '../context/StoreContext';
 import { useCurrency, formatProductPrice } from '../hooks/useCurrency';
 import { useWishlist } from '../hooks/useWishlist';
-import { Sparkles, ShoppingBag, Heart, ArrowRight } from 'lucide-react';
+import { Sparkles, ShoppingBag, Heart, ArrowRight, Mail } from 'lucide-react';
 
-export function HomeView({ onViewChange, onAddToCart }) {
+export function HomeView({ onViewChange, onAddToCart, showToast }) {
   const { catalogItems, getCatalogItemStock, exchangeRate, siteContent, galleryPhotos, pastCollections } = useStore();
   const { currency } = useCurrency();
   const { toggleWishlist, isWishlisted } = useWishlist();
+
+  const [email, setEmail] = useState('');
+  const [submittingNewsletter, setSubmittingNewsletter] = useState(false);
+
+  const handleSubscribe = async (e) => {
+    e.preventDefault();
+    if (!email || !email.includes('@')) {
+      if (showToast) showToast('Please enter a valid email address.');
+      return;
+    }
+
+    setSubmittingNewsletter(true);
+    try {
+      const response = await fetch('/api/newsletter/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, source: 'homepage' })
+      });
+      const result = await response.json();
+      if (response.ok && result.ok) {
+        if (showToast) showToast(result.message || 'Successfully subscribed!');
+        setEmail('');
+      } else {
+        if (showToast) showToast(result.error || 'Failed to subscribe.');
+      }
+    } catch (err) {
+      console.error('Newsletter error:', err);
+      if (showToast) showToast('Unable to connect to service. Please try again.');
+    } finally {
+      setSubmittingNewsletter(false);
+    }
+  };
 
   // Find beautiful images for the 3 navigation tiles
   const activeItems = useMemo(() => {
@@ -255,6 +287,41 @@ export function HomeView({ onViewChange, onAddToCart }) {
             </div>
           </div>
         )}
+
+        {/* Elegant Newsletter Section */}
+        <div className="mt-24 border-t border-stone-200/60 pt-16 pb-8 max-w-3xl mx-auto text-center" id="home_newsletter_section">
+          <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-stone-100 text-[#8C7B6E] mb-4">
+            <Mail size={18} strokeWidth={1.5} />
+          </div>
+          <h3 className="font-display text-xl md:text-2xl font-light text-stone-900 tracking-tight">
+            Stay in the Loop
+          </h3>
+          <p className="text-stone-500 text-xs md:text-sm mt-2 max-w-md mx-auto leading-relaxed">
+            Subscribe to receive priority notifications on pristine seasonal acquisitions, private sales, and newly cataloged curations.
+          </p>
+
+          <form onSubmit={handleSubscribe} className="mt-8 flex flex-col sm:flex-row gap-2 max-w-md mx-auto">
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Enter your email address"
+              className="flex-1 px-4 py-2.5 rounded border border-stone-200 text-sm bg-white text-stone-800 placeholder-stone-400 focus:outline-none focus:border-accent font-sans transition-colors"
+              required
+              disabled={submittingNewsletter}
+            />
+            <button
+              type="submit"
+              disabled={submittingNewsletter}
+              className="px-6 py-2.5 bg-stone-900 hover:bg-stone-800 text-white text-xs font-semibold tracking-wider uppercase rounded transition-all duration-200 cursor-pointer disabled:opacity-50 inline-flex items-center justify-center gap-2"
+            >
+              {submittingNewsletter ? 'Subscribing...' : 'Subscribe'}
+            </button>
+          </form>
+          <p className="text-[10px] text-stone-400 font-sans mt-3">
+            Unsubscribe anytime. We respect your inbox privacy.
+          </p>
+        </div>
       </div>
     </div>
   );

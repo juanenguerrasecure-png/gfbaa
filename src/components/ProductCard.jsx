@@ -50,12 +50,13 @@ function openContact(event, href, item) {
 export function ProductCard({ item, onAddToCart }) {
   const [liked, setLiked] = useState(false);
   const [detailOpen, setDetailOpen] = useState(false);
-  const { getCatalogItemStock, socialLinks = {}, exchangeRate, setInquiryItem } = useStore();
+  const { getCatalogItemStock, isItemReserved, socialLinks = {}, exchangeRate, setInquiryItem } = useStore();
   const { currency } = useCurrency();
 
   const badge = BADGE[item.condition] ?? BADGE.good;
   const [bg1, bg2] = CAT_BG[item.cat] ?? CAT_BG.bags;
   const stock = getCatalogItemStock(item.id);
+  const isReserved = isItemReserved(item.id);
   const soldOut = stock <= 0;
   const whatsappHref = appendTextParam(socialLinks.whatsapp, item);
   const viberHref = getViberHref(socialLinks.viber, item);
@@ -197,7 +198,16 @@ export function ProductCard({ item, onAddToCart }) {
         </div>
 
         <div className={styles.body}>
-          <div className="flex items-center justify-between"><p className={styles.brand}>{item.brand}</p><span className="text-[10px] font-semibold text-stone-500 bg-stone-100 px-2 py-0.5 rounded-full">{soldOut ? 'Sold out' : `${stock} left`}</span></div>
+          <div className="flex items-center justify-between">
+            <p className={styles.brand}>{item.brand}</p>
+            {isReserved ? (
+              <span className="text-[10px] font-semibold text-amber-800 bg-amber-50 border border-amber-200/60 px-2 py-0.5 rounded-full uppercase tracking-wider font-sans">Temporarily Reserved</span>
+            ) : (
+              <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${soldOut ? 'text-stone-500 bg-stone-100' : 'text-stone-600 bg-stone-100'}`}>
+                {soldOut ? 'Sold out' : `${stock} left`}
+              </span>
+            )}
+          </div>
           <h2 className={styles.name}>{item.name}</h2>
           {item.detail && <p className={styles.detail}>{item.detail}</p>}
           <div className={styles.footer}>

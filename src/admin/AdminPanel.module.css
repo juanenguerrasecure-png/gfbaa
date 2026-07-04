@@ -160,6 +160,7 @@
   top: 4rem;
   height: calc(100vh - 4rem);
   z-index: 80;
+  overflow-y: auto;
 }
 
 .nav {

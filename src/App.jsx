@@ -1,6 +1,5 @@
 import { lazy, Suspense, useEffect, useState } from 'react';
 import { Navbar }       from './components/Navbar';
-import { Hero }         from './components/Hero';
 import { ProductGrid }  from './components/ProductGrid';
 import { Toast }        from './components/Toast';
 import { CartModal }    from './components/CartModal';
@@ -16,6 +15,7 @@ import { ArchiveView }  from './components/ArchiveView';
 import { ShopHero }     from './components/ShopHero';
 import { InquirySheet }  from './components/InquirySheet';
 import { MessageMeModal } from './components/MessageMeModal';
+import { TrackRequestModal } from './components/TrackRequestModal';
 
 const AdminPanel = lazy(() => import('./admin/AdminPanel').then(module => ({ default: module.AdminPanel })));
 
@@ -42,6 +42,7 @@ export default function App() {
   const [activeFilter, setActiveFilter] = useState('all');
   const [isWishlistOpen, setIsWishlistOpen] = useState(false);
   const [isMessageMeOpen, setIsMessageMeOpen] = useState(false);
+  const [isTrackRequestOpen, setIsTrackRequestOpen] = useState(false);
 
   const {
     cart,
@@ -84,11 +85,11 @@ export default function App() {
   const renderContent = () => {
     switch (view) {
       case 'home':
-        return <HomeView onViewChange={setView} onAddToCart={addToCart} />;
+        return <HomeView onViewChange={setView} onAddToCart={addToCart} showToast={showToast} />;
       case 'gallery':
         return <GalleryView />;
       case 'archive':
-        return <ArchiveView />;
+        return <ArchiveView showToast={showToast} />;
       case 'store':
       default:
         return (
@@ -116,6 +117,7 @@ export default function App() {
         currentView={view}
         onViewChange={setView}
         onMessageMeClick={() => setIsMessageMeOpen(true)}
+        onTrackRequestClick={() => setIsTrackRequestOpen(true)}
       />
       {renderContent()}
       <CartModal
@@ -135,6 +137,11 @@ export default function App() {
       <MessageMeModal
         isOpen={isMessageMeOpen}
         onClose={() => setIsMessageMeOpen(false)}
+      />
+      <TrackRequestModal
+        isOpen={isTrackRequestOpen}
+        onClose={() => setIsTrackRequestOpen(false)}
+        showToast={showToast}
       />
       <Toast visible={toast.visible} msg={toast.msg} />
       <InquirySheet />

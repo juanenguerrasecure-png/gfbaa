@@ -127,6 +127,7 @@ function normalizeState(input) {
 async function ensureSchema(env) {
   if (!env.DB) throw new Error('D1 binding DB is not available.');
   await env.DB.prepare(`CREATE TABLE IF NOT EXISTS app_state (id TEXT PRIMARY KEY, value TEXT NOT NULL, updated_at TEXT NOT NULL)`).run();
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS subscribers (id TEXT PRIMARY KEY, email TEXT UNIQUE NOT NULL, created_at TEXT NOT NULL, source TEXT)`).run();
 }
 
 async function getState(env) {
@@ -203,6 +204,7 @@ function normalizePublicRequest(body) {
     specialInstructions: String(body.specialInstructions || body.message || '').trim(),
     date: body.date || now.split('T')[0],
     createdAt: body.createdAt || now,
+    paymentMethod: String(body.paymentMethod || '').trim(),
   };
 }
 
@@ -468,6 +470,67 @@ async function handleCreateMessage(request, env, corsHeaders) {
   return json({ ok: true, message: newMessage, updatedAt: saved.updatedAt }, { status: 201 }, corsHeaders);
 }
 
+async function createSubscriber(request, env, corsHeaders) {
+  await ensureSchema(env);
+  const body = await request.json().catch(() => ({}));
+  const email = String(body.email || '').trim().toLowerCase();
+  const source = String(body.source || 'homepage').trim();
+
+  if (!email || !email.includes('@')) {
+    return json({ ok: false, error: 'A valid email address is required.' }, { status: 400 }, corsHeaders);
+  }
+
+  try {
+    const existing = await env.DB.prepare('SELECT id FROM subscribers WHERE email = ?').bind(email).first();
+    if (existing) {
+      return json({ ok: true, message: 'You are already subscribed to our newsletter!', alreadySubscribed: true }, { status: 200 }, corsHeaders);
+    }
+
+    const id = `sub-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`;
+    const createdAt = new Date().toISOString();
+    await env.DB.prepare('INSERT INTO subscribers (id, email, created_at, source) VALUES (?, ?, ?, ?)')
+      .bind(id, email, createdAt, source)
+      .run();
+
+    return json({ ok: true, message: 'Successfully subscribed to our newsletter!', id }, { status: 201 }, corsHeaders);
+  } catch (err) {
+    return json({ ok: false, error: 'Database insertion failed.', details: err.message }, { status: 500 }, corsHeaders);
+  }
+}
+
+async function getSubscribers(request, env, corsHeaders) {
+  const auth = await requireWriteAuth(request, env, corsHeaders);
+  if (!auth.authorized) return auth.response;
+
+  await ensureSchema(env);
+  try {
+    const { results } = await env.DB.prepare('SELECT id, email, created_at AS createdAt, source FROM subscribers ORDER BY created_at DESC').all();
+    return json({ ok: true, data: results || [] }, { status: 200 }, corsHeaders);
+  } catch (err) {
+    return json({ ok: false, error: 'Failed to retrieve subscribers.', details: err.message }, { status: 500 }, corsHeaders);
+  }
+}
+
+async function deleteSubscriber(request, env, corsHeaders) {
+  const auth = await requireWriteAuth(request, env, corsHeaders);
+  if (!auth.authorized) return auth.response;
+
+  await ensureSchema(env);
+  const url = new URL(request.url);
+  const subscriberId = url.searchParams.get('id');
+
+  if (!subscriberId) {
+    return json({ ok: false, error: 'Missing subscriber id parameter.' }, { status: 400 }, corsHeaders);
+  }
+
+  try {
+    const result = await env.DB.prepare('DELETE FROM subscribers WHERE id = ?').bind(subscriberId).run();
+    return json({ ok: true, message: 'Subscriber deleted successfully.', changes: result.meta?.changes || 1 }, { status: 200 }, corsHeaders);
+  } catch (err) {
+    return json({ ok: false, error: 'Failed to delete subscriber.', details: err.message }, { status: 500 }, corsHeaders);
+  }
+}
+
 export default {
   async fetch(request, env) {
     const corsHeaders = buildCorsHeaders(request, env);
@@ -483,6 +546,9 @@ export default {
       if (request.method === 'POST' && path === '/api/requests') return createPurchaseRequest(request, env, corsHeaders);
       if (request.method === 'POST' && path === '/api/messages') return handleCreateMessage(request, env, corsHeaders);
       if (request.method === 'POST' && path === '/api/sessions') return createSession(request, env, corsHeaders);
+      if (request.method === 'POST' && path === '/api/newsletter/subscribe') return createSubscriber(request, env, corsHeaders);
+      if (request.method === 'GET' && path === '/api/newsletter/subscribers') return getSubscribers(request, env, corsHeaders);
+      if (request.method === 'DELETE' && path === '/api/newsletter/subscribers') return deleteSubscriber(request, env, corsHeaders);
       if (request.method === 'POST' && path === '/api/comments') return handleCreateCommentOrReply(request, env, corsHeaders);
       if (request.method === 'DELETE' && path === '/api/comments') return handleDeleteCommentOrReply(request, env, corsHeaders);
       if (request.method === 'DELETE' && path === '/api/sessions/current') return deleteCurrentSession(request, env, corsHeaders);

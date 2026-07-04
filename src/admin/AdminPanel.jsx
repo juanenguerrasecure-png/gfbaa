@@ -1,5 +1,5 @@
 import { lazy, Suspense, useState } from 'react';
-import { Package, PlusCircle, BarChart2, LogOut, X, Menu, Code, Users, Bell, ShoppingCart, Share2, CreditCard, Image, BookOpen, MessageSquare } from 'lucide-react';
+import { Package, PlusCircle, BarChart2, LogOut, X, Menu, Code, Users, Bell, ShoppingCart, Share2, CreditCard, Image, BookOpen, MessageSquare, Mail } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useStore } from '../context/StoreContext';
 import styles from './AdminPanel.module.css';
@@ -15,6 +15,7 @@ const PaymentMethodsTab = lazy(() => import('./tabs/PaymentMethodsTab').then(m =
 const GalleryTab = lazy(() => import('./tabs/GalleryTab').then(m => ({ default: m.GalleryTab })));
 const PastCollectionsTab = lazy(() => import('./tabs/PastCollectionsTab').then(m => ({ default: m.PastCollectionsTab })));
 const MessageBoardTab = lazy(() => import('./tabs/MessageBoardTab').then(m => ({ default: m.MessageBoardTab })));
+const NewsletterTab = lazy(() => import('./tabs/NewsletterTab').then(m => ({ default: m.NewsletterTab })));
 const GlobalManualSaleModal = lazy(() => import('./components/GlobalManualSaleModal').then(m => ({ default: m.GlobalManualSaleModal })));
 
 function AdminContentFallback() {
@@ -32,6 +33,7 @@ const NAV = [
   { key: 'inventory', label: 'Products & Stock', icon: Package, tab: InventoryTab },
   { key: 'requests', label: 'Buyer Requests', icon: Bell, tab: RequestsTab },
   { key: 'messages', label: 'Message Board Review', icon: MessageSquare, tab: MessageBoardTab },
+  { key: 'newsletter', label: 'Newsletter Subscribers', icon: Mail, tab: NewsletterTab },
   { key: 'add', label: 'Add Batch / Purchase', icon: PlusCircle, tab: AddItemTab },
   { key: 'gallery', label: 'Storefront Gallery', icon: Image, tab: GalleryTab },
   { key: 'past_collections', label: 'Past Collections', icon: BookOpen, tab: PastCollectionsTab },
@@ -45,7 +47,7 @@ const NAV = [
 const GROUPS = [
   { title: 'Operations & Stock', items: ['inventory', 'add', 'past_collections'] },
   { title: 'Editorial & Content', items: ['gallery'] },
-  { title: 'Customer Management', items: ['requests', 'messages'] },
+  { title: 'Customer Management', items: ['requests', 'messages', 'newsletter'] },
   { title: 'System & Settings', items: ['reports', 'users', 'social', 'payments', 'design'] },
 ];
 

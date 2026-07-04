@@ -2,7 +2,11 @@ import { createContext, useCallback, useContext, useEffect, useRef, useState } f
 
 const StoreContext = createContext(null);
 const DEFAULT_EXCHANGE_RATE = 58.0;
-const DEFAULT_PAYMENT_METHODS = { zelle: { handle: '', instructions: '', qrUrl: '' }, venmo: { handle: '', instructions: '', qrUrl: '' } };
+const DEFAULT_PAYMENT_METHODS = {
+  zelle: { name: 'Zelle', displayName: 'Zelle', accountName: '', handle: '', qrUrl: '', instructions: 'Please include your order number in the memo.', isEnabled: true },
+  venmo: { name: 'Venmo', displayName: 'Venmo', accountName: '', handle: '', qrUrl: '', instructions: 'Please send payment and email confirmation screenshot.', isEnabled: true },
+  paypal: { name: 'PayPal', displayName: 'PayPal', accountName: '', handle: '', qrUrl: '', instructions: 'Please send as Goods & Services or according to store policy.', isEnabled: true }
+};
 const DEFAULT_HERO_IMAGE = { url: '', alt: 'Good Finds by AA Featured Collection' };
 const DEFAULT_SITE_CONTENT = {
   homeIntro: 'Sourced with refinement, preserved for posterity',
@@ -43,7 +47,11 @@ function getAuthHeaders(extra = {}) {
 }
 
 function normalizePaymentMethods(value) {
-  return { zelle: { ...DEFAULT_PAYMENT_METHODS.zelle, ...(value?.zelle || {}) }, venmo: { ...DEFAULT_PAYMENT_METHODS.venmo, ...(value?.venmo || {}) } };
+  return {
+    zelle: { ...DEFAULT_PAYMENT_METHODS.zelle, ...(value?.zelle || {}) },
+    venmo: { ...DEFAULT_PAYMENT_METHODS.venmo, ...(value?.venmo || {}) },
+    paypal: { ...DEFAULT_PAYMENT_METHODS.paypal, ...(value?.paypal || {}) }
+  };
 }
 
 function normalizeHeroImage(value) {
@@ -307,13 +315,29 @@ export function StoreProvider({ children }) {
   const updateCatalogItem = useCallback((id, updates) => setCatalogItems(prev => prev.map(item => item.id !== id ? item : { ...item, ...updates, ...(updates.quantity !== undefined ? { quantity: Number(updates.quantity) } : {}), ...(updates.remainingQty !== undefined ? { remainingQty: Number(updates.remainingQty) } : {}) })), []);
   const deleteCatalogItem = useCallback((id) => setCatalogItems(prev => prev.filter(item => item.id !== id)), []);
 
-  const getCatalogItemStock = useCallback((catalogItemId) => {
+  const getCatalogItemStock = useCallback((catalogItemId, excludeRequestId = null) => {
     const item = catalogItems.find(c => String(c.id) === String(catalogItemId));
     if (!item) return 0;
-    if (item.remainingQty !== undefined) return item.remainingQty;
-    const batch = batches.find(b => b.id === item.batchId);
-    return batch ? batch.remainingQty : 0;
-  }, [batches, catalogItems]);
+    const baseQty = item.remainingQty !== undefined ? item.remainingQty : (batches.find(b => b.id === item.batchId)?.remainingQty || 0);
+    
+    // Calculate how many items are reserved in active request statuses
+    const reserved = (purchaseRequests || [])
+      .filter(req => req.id !== excludeRequestId && ['pending', 'submitted', 'reserved_pending_admin', 'approved_pending_payment', 'payment_submitted', 'shipping_calculated'].includes(req.status))
+      .reduce((sum, req) => {
+        const reqItem = (req.items || []).find(i => String(i.productId) === String(catalogItemId));
+        return sum + (reqItem ? Number(reqItem.qty || 1) : 0);
+      }, 0);
+
+    return Math.max(0, baseQty - reserved);
+  }, [batches, catalogItems, purchaseRequests]);
+
+  const isItemReserved = useCallback((catalogItemId) => {
+    const item = catalogItems.find(c => String(c.id) === String(catalogItemId));
+    if (!item) return false;
+    const baseQty = item.remainingQty !== undefined ? item.remainingQty : (batches.find(b => b.id === item.batchId)?.remainingQty || 0);
+    const available = getCatalogItemStock(catalogItemId);
+    return baseQty > 0 && available <= 0;
+  }, [batches, catalogItems, getCatalogItemStock]);
 
   const addBatch = useCallback((batchData) => {
     const qty = Number(batchData.quantity) || 1;
@@ -349,29 +373,47 @@ export function StoreProvider({ children }) {
       const batchesDeducted = [];
       if (batchIdToDeduct) {
         const batchInState = updatedBatches.find(b => b.id === batchIdToDeduct);
-        if (!batchInState) throw new Error(`Associated batch not found for catalog item "${productObj.name}".`);
-        if (batchInState.remainingQty < requestedQty) throw new Error(`Insufficient stock in Batch "${batchInState.batchNumber}".`);
+        if (!batchInState) {
+          // Fallback: If associated batch is missing but catalog item has remaining stock, deduct listing directly
+          if (catalogItemObj && catalogItemObj.remainingQty !== undefined) {
+            if (catalogItemObj.remainingQty < requestedQty) throw new Error(`Insufficient stock for listing "${catalogItemObj.name}".`);
+            catalogItemObj.remainingQty -= requestedQty;
+          }
+        } else {
+          if (batchInState.remainingQty < requestedQty) throw new Error(`Insufficient stock in Batch "${batchInState.batchNumber}".`);
+          if (catalogItemObj && catalogItemObj.remainingQty !== undefined) {
+            if (catalogItemObj.remainingQty < requestedQty) throw new Error(`Insufficient stock for listing "${catalogItemObj.name}".`);
+            catalogItemObj.remainingQty -= requestedQty;
+          }
+          batchInState.remainingQty -= requestedQty;
+          totalCogs += requestedQty * batchInState.costPerItem;
+          batchesDeducted.push({ batchId: batchInState.id, batchNumber: batchInState.batchNumber, qty: requestedQty, costPerItem: batchInState.costPerItem });
+        }
+      } else {
+        // No batch associated. Deduct catalog listing remainingQty directly if available.
         if (catalogItemObj && catalogItemObj.remainingQty !== undefined) {
           if (catalogItemObj.remainingQty < requestedQty) throw new Error(`Insufficient stock for listing "${catalogItemObj.name}".`);
           catalogItemObj.remainingQty -= requestedQty;
-        }
-        batchInState.remainingQty -= requestedQty;
-        totalCogs += requestedQty * batchInState.costPerItem;
-        batchesDeducted.push({ batchId: batchInState.id, batchNumber: batchInState.batchNumber, qty: requestedQty, costPerItem: batchInState.costPerItem });
-      } else {
-        const numericProdId = Number(item.productId);
-        const availableBatches = updatedBatches.filter(b => b.productId === numericProdId && b.remainingQty > 0).sort((a, b) => new Date(a.date) - new Date(b.date));
-        const totalAvailable = availableBatches.reduce((sum, b) => sum + b.remainingQty, 0);
-        if (totalAvailable < requestedQty) throw new Error(`Insufficient stock for "${productObj.name}".`);
-        let remainingToDeduct = requestedQty;
-        for (const batch of availableBatches) {
-          if (remainingToDeduct <= 0) break;
-          const batchInState = updatedBatches.find(b => b.id === batch.id);
-          const deductAmount = Math.min(batchInState.remainingQty, remainingToDeduct);
-          batchInState.remainingQty -= deductAmount;
-          remainingToDeduct -= deductAmount;
-          totalCogs += deductAmount * batchInState.costPerItem;
-          batchesDeducted.push({ batchId: batchInState.id, batchNumber: batchInState.batchNumber, qty: deductAmount, costPerItem: batchInState.costPerItem });
+        } else {
+          // Fallback to searching batches by product ID (excluding NaN strings)
+          const numericProdId = Number(item.productId);
+          if (!isNaN(numericProdId)) {
+            const availableBatches = updatedBatches.filter(b => b.productId === numericProdId && b.remainingQty > 0).sort((a, b) => new Date(a.date) - new Date(b.date));
+            const totalAvailable = availableBatches.reduce((sum, b) => sum + b.remainingQty, 0);
+            if (totalAvailable < requestedQty) throw new Error(`Insufficient stock for "${productObj.name}".`);
+            let remainingToDeduct = requestedQty;
+            for (const batch of availableBatches) {
+              if (remainingToDeduct <= 0) break;
+              const batchInState = updatedBatches.find(b => b.id === batch.id);
+              const deductAmount = Math.min(batchInState.remainingQty, remainingToDeduct);
+              batchInState.remainingQty -= deductAmount;
+              remainingToDeduct -= deductAmount;
+              totalCogs += deductAmount * batchInState.costPerItem;
+              batchesDeducted.push({ batchId: batchInState.id, batchNumber: batchInState.batchNumber, qty: deductAmount, costPerItem: batchInState.costPerItem });
+            }
+          } else {
+            // Standalone listing with non-numeric ID and no stock tracker
+          }
         }
       }
       saleItemsSummary.push({ productId: item.productId, name: productObj.name, brand: productObj.brand, qty: requestedQty, pricePerItem, totalPrice: pricePerItem * requestedQty, batches: batchesDeducted });
@@ -427,7 +469,7 @@ export function StoreProvider({ children }) {
   const inventoryValuation = batches.reduce((sum, b) => sum + (b.remainingQty * b.costPerItem), 0);
 
   const addPurchaseRequest = useCallback((requestData) => {
-    const newRequest = { id: `req-${Date.now()}`, date: new Date().toISOString().split('T')[0], buyerName: requestData.buyerName, buyerEmail: requestData.buyerEmail, buyerAddress: requestData.buyerAddress, items: requestData.items, status: 'pending', shippingCost: null, specialInstructions: requestData.specialInstructions || '' };
+    const newRequest = { id: `req-${Date.now()}`, date: new Date().toISOString().split('T')[0], buyerName: requestData.buyerName, buyerEmail: requestData.buyerEmail, buyerAddress: requestData.buyerAddress, items: requestData.items, status: 'pending', shippingCost: null, specialInstructions: requestData.specialInstructions || '', paymentMethod: requestData.paymentMethod || '' };
     const nextRequests = [newRequest, ...purchaseRequests];
     setPurchaseRequests(nextRequests);
     latestSnapshotRef.current = { ...buildSnapshot(), purchaseRequests: nextRequests };
@@ -539,7 +581,7 @@ export function StoreProvider({ children }) {
     <StoreContext.Provider value={{
       exchangeRate, setExchangeRate,
       products, addProduct, updateProduct, deleteProduct,
-      catalogItems, addCatalogItem, updateCatalogItem, deleteCatalogItem, getCatalogItemStock,
+      catalogItems, addCatalogItem, updateCatalogItem, deleteCatalogItem, getCatalogItemStock, isItemReserved,
       batches, addBatch, updateBatch, deleteBatch,
       sales, recordSale, recordManualSale, deleteSale,
       getProductStock, convertPhpToUsd, inventoryValuation,

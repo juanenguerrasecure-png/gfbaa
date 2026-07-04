@@ -4,6 +4,7 @@ import { useCurrency, formatProductPrice } from '../hooks/useCurrency';
 import { useStore } from '../context/StoreContext';
 import { ProductPlaceholder } from './ProductPlaceholder';
 import { ProductDetailModal } from './ProductDetailModal';
+import { ProductCard } from './ProductCard';
 import { useWishlist } from '../hooks/useWishlist';
 
 export function ProductGrid({ activeFilter: externalFilter, onFilterChange: onExternalFilterChange, onAddToCart }) {
@@ -357,136 +358,14 @@ export function ProductGrid({ activeFilter: externalFilter, onFilterChange: onEx
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8" id="grid_products_layout">
-          {filteredItems.map(item => {
-            const stock = getCatalogItemStock ? getCatalogItemStock(item.id) : 1;
-            const isSoldOut = stock <= 0;
-            const isLiked = isWishlisted(item.id);
-
-            // Extract all photos securely
-            const photos = (() => {
-              const list = [];
-              if (Array.isArray(item?.photos)) list.push(...item.photos);
-              if (Array.isArray(item?.photoUrls)) list.push(...item.photoUrls);
-              if (item?.photoUrl) list.push(item.photoUrl);
-              if (item?.photo) list.push(item.photo);
-              return [...new Set(list.filter(Boolean))];
-            })();
-
-            return (
-              <div
-                key={item.id}
-                onClick={() => handleOpenDetail(item)}
-                className="group rounded-lg border border-stone-200/70 overflow-hidden shadow-sm hover:shadow-md flex flex-col cursor-pointer"
-                style={{
-                  backgroundColor: 'var(--accent-soft, #FAF8F5)',
-                  transition: 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.8s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
-                }}
-                id={`product_card_tailwind_${item.id}`}
-              >
-                {/* Product Image Stage */}
-                <div className="aspect-square w-full relative overflow-hidden bg-stone-50 flex items-center justify-center">
-                  {photos.length > 0 ? (
-                    <img
-                      src={photos[0]}
-                      alt={`${item.brand || ''} ${item.name}`}
-                      className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500 ease-out"
-                      loading="lazy"
-                      decoding="async"
-                      referrerPolicy="no-referrer"
-                    />
-                  ) : (
-                    <ProductPlaceholder category={item.cat} />
-                  )}
-
-                  {/* Condition tag */}
-                  {item.condition && (
-                    <span className="absolute top-3 left-3 px-2 py-0.5 text-[9px] font-sans font-bold uppercase tracking-wider rounded bg-stone-900/90 text-stone-100 shadow-sm">
-                      {item.condition === 'mint' || item.condition === 'new' ? 'Mint' : item.condition}
-                    </span>
-                  )}
-
-                  {/* Liked Heart Button */}
-                  <button
-                    type="button"
-                    onClick={(e) => toggleLike(item.id, e)}
-                    className={`absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 hover:bg-white border flex items-center justify-center shadow-sm transition-all duration-200 focus:outline-none cursor-pointer ${
-                      isLiked ? 'text-accent border-accent/30' : 'text-stone-500 hover:text-accent border-stone-200'
-                    }`}
-                    aria-label="Toggle saved"
-                    id={`grid_wishlist_heart_${item.id}`}
-                  >
-                    <Heart
-                      size={14}
-                      fill={isLiked ? 'var(--accent)' : 'none'}
-                      stroke={isLiked ? 'var(--accent)' : 'currentColor'}
-                      strokeWidth={2}
-                    />
-                  </button>
-
-                  {/* Out of Stock banner */}
-                  {isSoldOut && (
-                    <div className="absolute inset-0 bg-stone-950/60 backdrop-blur-[1px] flex items-center justify-center">
-                      <span className="text-white text-xs font-semibold uppercase tracking-widest border border-white/40 px-3.5 py-1.5 rounded bg-stone-950/40">
-                        Sold Out
-                      </span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Information Card Details */}
-                <div className="p-4 flex-1 flex flex-col justify-between">
-                  <div>
-                    {/* Brand Meta header */}
-                    <div className="text-[10px] font-semibold text-[#8C7B6E] tracking-widest uppercase mb-1">
-                      {item.brand || 'Luxury Piece'}
-                    </div>
-
-                    {/* Title Name */}
-                    <h3 className="font-display text-sm font-medium text-stone-900 group-hover:text-accent transition-colors duration-200 line-clamp-1 mb-1">
-                      {item.name}
-                    </h3>
-
-                    {/* Details Snippet */}
-                    {item.detail && (
-                      <p className="text-stone-500 font-sans text-[11px] line-clamp-1 mb-4">
-                        {item.detail}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Pricing and cart add button */}
-                  <div className="flex items-center justify-between pt-2 border-t border-stone-100">
-                    <div className="flex flex-col">
-                      <span className="text-xs font-mono text-stone-400 line-through">
-                        {item.orig ? `$${Number(item.orig).toLocaleString()}` : ''}
-                      </span>
-                      <span className="text-sm font-semibold text-stone-950 font-serif">
-                        {formatProductPrice(item, currency, exchangeRate)}
-                      </span>
-                    </div>
-
-                    {/* Quick Add To Cart Bag Button */}
-                    <button
-                      type="button"
-                      disabled={isSoldOut}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (onAddToCart && !isSoldOut) {
-                          onAddToCart(item);
-                        }
-                      }}
-                      className="w-8 h-8 rounded-full border border-stone-200 hover:border-accent hover:bg-accent hover:text-white flex items-center justify-center text-stone-600 transition-all duration-200 disabled:opacity-35 disabled:pointer-events-none cursor-pointer"
-                      title={`Add ${item.name} to bag`}
-                      id={`grid_cart_btn_${item.id}`}
-                    >
-                      <ShoppingBag size={13} />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 animate-fadeIn" id="grid_products_layout">
+          {filteredItems.map(item => (
+            <ProductCard 
+              key={item.id} 
+              item={item} 
+              onAddToCart={onAddToCart} 
+            />
+          ))}
         </div>
       )}
 

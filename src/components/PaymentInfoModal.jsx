@@ -4,6 +4,7 @@ import styles from './PaymentInfoModal.module.css';
 const PLATFORM_LABELS = {
   zelle: 'Zelle',
   venmo: 'Venmo',
+  paypal: 'PayPal',
 };
 
 export function PaymentInfoModal({ isOpen, platform, info = {}, onClose }) {
