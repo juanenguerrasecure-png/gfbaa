@@ -117,36 +117,43 @@ select {
     overflow: visible !important;
   }
 
-  /* Hide the main application layout and modal dark backdrop overlay */
-  body > *:not(#print_area_backdrop),
-  #root,
-  #root * {
-    visibility: hidden;
-    display: none !important;
+  /* Reset layout constraints on React parent elements so they don't clip the printable content */
+  #root, #root * {
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    box-shadow: none !important;
   }
 
-  /* Restore visibility only to our modal backdrop container and the invoice print card */
-  #print_area_backdrop {
+  /* Hide the rest of the application by default using visibility */
+  body * {
+    visibility: hidden;
+  }
+
+  /* Keep only the print backdrop and its children visible */
+  #print_area_backdrop,
+  #print_area_backdrop * {
     visibility: visible !important;
+  }
+
+  /* Position the backdrop to cover the entire page nicely */
+  #print_area_backdrop {
     display: block !important;
     position: absolute !important;
     left: 0 !important;
     top: 0 !important;
     width: 100% !important;
-    background: transparent !important;
+    height: auto !important;
+    background: white !important;
     backdrop-filter: none !important;
     box-shadow: none !important;
     padding: 0 !important;
     margin: 0 !important;
+    z-index: 99999 !important;
   }
 
-  #print_area, #print_area * {
-    visibility: visible !important;
-  }
-
-  /* Expand print card to fill page with high-contrast elegant borders */
+  /* Style the printed invoice card to take full width cleanly */
   #print_area {
-    position: relative !important;
     display: block !important;
     width: 100% !important;
     max-width: 100% !important;
