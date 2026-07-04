@@ -15,6 +15,7 @@ import { GalleryView }  from './components/GalleryView';
 import { ArchiveView }  from './components/ArchiveView';
 import { ShopHero }     from './components/ShopHero';
 import { InquirySheet }  from './components/InquirySheet';
+import { MessageMeModal } from './components/MessageMeModal';
 
 const AdminPanel = lazy(() => import('./admin/AdminPanel').then(module => ({ default: module.AdminPanel })));
 
@@ -40,6 +41,7 @@ export default function App() {
   const [view, setView] = useState('home');
   const [activeFilter, setActiveFilter] = useState('all');
   const [isWishlistOpen, setIsWishlistOpen] = useState(false);
+  const [isMessageMeOpen, setIsMessageMeOpen] = useState(false);
 
   const {
     cart,
@@ -113,6 +115,7 @@ export default function App() {
         onWishlistClick={() => setIsWishlistOpen(true)}
         currentView={view}
         onViewChange={setView}
+        onMessageMeClick={() => setIsMessageMeOpen(true)}
       />
       {renderContent()}
       <CartModal
@@ -128,6 +131,10 @@ export default function App() {
         onClose={() => setIsWishlistOpen(false)}
         onAddToCart={addToCart}
         showToast={showToast}
+      />
+      <MessageMeModal
+        isOpen={isMessageMeOpen}
+        onClose={() => setIsMessageMeOpen(false)}
       />
       <Toast visible={toast.visible} msg={toast.msg} />
       <InquirySheet />

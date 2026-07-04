@@ -86,6 +86,7 @@ function defaultState() {
     pastCollections: [],
     galleryPhotos: [],
     comments: [],
+    messages: [],
     siteContent: {
       homeIntro: 'Sourced with refinement, preserved for posterity',
       shopIntro: 'Vetted designer handbags, fine pieces, and pristine seasonal acquisitions.',
@@ -118,6 +119,7 @@ function normalizeState(input) {
     pastCollections: Array.isArray(input.pastCollections) ? input.pastCollections : [],
     galleryPhotos: Array.isArray(input.galleryPhotos) ? input.galleryPhotos : [],
     comments: Array.isArray(input.comments) ? input.comments : [],
+    messages: Array.isArray(input.messages) ? input.messages : [],
     siteContent: input.siteContent && typeof input.siteContent === 'object' ? { ...base.siteContent, ...input.siteContent } : base.siteContent,
   };
 }
@@ -432,6 +434,40 @@ async function handleDeleteCommentOrReply(request, env, corsHeaders) {
   return json({ ok: true, updatedAt: saved.updatedAt }, { status: 200 }, corsHeaders);
 }
 
+async function handleCreateMessage(request, env, corsHeaders) {
+  const body = await request.json();
+  const stateResult = await getState(env);
+  const state = stateResult.state;
+
+  const name = String(body.name || '').trim();
+  const email = String(body.email || '').trim();
+  const text = String(body.text || '').trim();
+
+  if (!name) {
+    return json({ ok: false, error: 'Name is required.' }, { status: 400 }, corsHeaders);
+  }
+  if (!email) {
+    return json({ ok: false, error: 'Email or Contact info is required.' }, { status: 400 }, corsHeaders);
+  }
+  if (!text) {
+    return json({ ok: false, error: 'Message content is required.' }, { status: 400 }, corsHeaders);
+  }
+
+  const messages = Array.isArray(state.messages) ? state.messages : [];
+  const newMessage = {
+    id: `msg-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`,
+    name,
+    email,
+    text,
+    createdAt: new Date().toISOString(),
+    reviewed: false
+  };
+
+  messages.push(newMessage);
+  const saved = await saveState(env, { ...state, messages });
+  return json({ ok: true, message: newMessage, updatedAt: saved.updatedAt }, { status: 201 }, corsHeaders);
+}
+
 export default {
   async fetch(request, env) {
     const corsHeaders = buildCorsHeaders(request, env);
@@ -445,6 +481,7 @@ export default {
         return json({ ok: true, ...stateResult, state: publicState(stateResult.state) }, { status: 200 }, corsHeaders);
       }
       if (request.method === 'POST' && path === '/api/requests') return createPurchaseRequest(request, env, corsHeaders);
+      if (request.method === 'POST' && path === '/api/messages') return handleCreateMessage(request, env, corsHeaders);
       if (request.method === 'POST' && path === '/api/sessions') return createSession(request, env, corsHeaders);
       if (request.method === 'POST' && path === '/api/comments') return handleCreateCommentOrReply(request, env, corsHeaders);
       if (request.method === 'DELETE' && path === '/api/comments') return handleDeleteCommentOrReply(request, env, corsHeaders);

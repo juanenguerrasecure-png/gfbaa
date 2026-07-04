@@ -1,8 +1,8 @@
-import { ShoppingBag, Settings, ChevronLeft, Heart } from 'lucide-react';
+import { ShoppingBag, Settings, ChevronLeft, Heart, MessageSquare } from 'lucide-react';
 import { PriceToggle } from './PriceToggle';
 import styles from './Navbar.module.css';
 
-export function Navbar({ cartCount, onCartClick, onAdminClick, wishlistCount = 0, onWishlistClick, title, onBack, currentView, onViewChange }) {
+export function Navbar({ cartCount, onCartClick, onAdminClick, wishlistCount = 0, onWishlistClick, title, onBack, currentView, onViewChange, onMessageMeClick }) {
   const isStoreFrontView = ['home', 'store', 'gallery', 'archive'].includes(currentView);
 
   return (
@@ -56,6 +56,15 @@ export function Navbar({ cartCount, onCartClick, onAdminClick, wishlistCount = 0
         {title && <h1 className={styles.navTitle}>{title}</h1>}
 
         <div className={styles.navRight}>
+          <button 
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[#E5DFD8] hover:border-[#C9A84C] text-stone-600 hover:text-stone-900 bg-white/80 hover:bg-white transition-all text-xs font-semibold cursor-pointer shadow-3xs active:scale-95"
+            onClick={onMessageMeClick}
+            id="nav_message_me_btn"
+            title="Message Me"
+          >
+            <MessageSquare size={13} className="text-[#C9A84C]" strokeWidth={2.5} />
+            <span className="hidden sm:inline font-sans tracking-wide uppercase text-[10px]">Message Me</span>
+          </button>
           <div className={styles.priceToggleWrap}>
             <PriceToggle />
           </div>

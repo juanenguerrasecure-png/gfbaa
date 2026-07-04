@@ -79,6 +79,7 @@ export function StoreProvider({ children }) {
   const [pastCollections, setPastCollections] = useState(() => readLocalJson('gf_past_collections', []));
   const [galleryPhotos, setGalleryPhotos] = useState(() => readLocalJson('gf_gallery_photos', []));
   const [comments, setComments] = useState(() => readLocalJson('gf_comments', []));
+  const [messages, setMessages] = useState(() => readLocalJson('gf_messages', []));
   const [inquiryItem, setInquiryItem] = useState(null);
   const [siteContent, setSiteContent] = useState(() => ({
     ...DEFAULT_SITE_CONTENT,
@@ -94,8 +95,8 @@ export function StoreProvider({ children }) {
   const lastSerializedSnapshotRef = useRef('');
 
   const buildSnapshot = useCallback(() => ({
-    exchangeRate, products, batches, sales, purchaseRequests, catalogItems, socialLinks, paymentMethods, heroImage, season, pastCollections, galleryPhotos, comments, siteContent
-  }), [exchangeRate, products, batches, sales, purchaseRequests, catalogItems, socialLinks, paymentMethods, heroImage, season, pastCollections, galleryPhotos, comments, siteContent]);
+    exchangeRate, products, batches, sales, purchaseRequests, catalogItems, socialLinks, paymentMethods, heroImage, season, pastCollections, galleryPhotos, comments, siteContent, messages
+  }), [exchangeRate, products, batches, sales, purchaseRequests, catalogItems, socialLinks, paymentMethods, heroImage, season, pastCollections, galleryPhotos, comments, siteContent, messages]);
 
   const snapshotHasRecords = (snapshot) => Boolean(
     snapshot?.products?.length || snapshot?.batches?.length || snapshot?.catalogItems?.length || snapshot?.sales?.length || snapshot?.purchaseRequests?.length || snapshot?.pastCollections?.length || snapshot?.galleryPhotos?.length || snapshot?.comments?.length
@@ -115,6 +116,7 @@ export function StoreProvider({ children }) {
     localStorage.setItem('gf_past_collections', JSON.stringify(snapshot.pastCollections || []));
     localStorage.setItem('gf_gallery_photos', JSON.stringify(snapshot.galleryPhotos || []));
     localStorage.setItem('gf_comments', JSON.stringify(snapshot.comments || []));
+    localStorage.setItem('gf_messages', JSON.stringify(snapshot.messages || []));
     localStorage.setItem('gf_site_content', JSON.stringify(snapshot.siteContent || DEFAULT_SITE_CONTENT));
   }, []);
 
@@ -135,6 +137,7 @@ export function StoreProvider({ children }) {
     setPastCollections(Array.isArray(snapshot.pastCollections) ? snapshot.pastCollections : []);
     setGalleryPhotos(Array.isArray(snapshot.galleryPhotos) ? snapshot.galleryPhotos : []);
     setComments(Array.isArray(snapshot.comments) ? snapshot.comments : []);
+    setMessages(Array.isArray(snapshot.messages) ? snapshot.messages : []);
     setSiteContent({
       ...DEFAULT_SITE_CONTENT,
       ...(snapshot.siteContent || {})
@@ -505,10 +508,28 @@ export function StoreProvider({ children }) {
     }
   }, [loadCloudState]);
 
+  const addDirectMessage = useCallback(async ({ name, email, text }) => {
+    try {
+      const response = await fetch('/api/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, text })
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Failed to send message');
+      // Reload state after sending
+      await loadCloudState({ force: true });
+      return { ok: true, message: result.message };
+    } catch (err) {
+      console.error(err);
+      return { ok: false, error: err.message };
+    }
+  }, [loadCloudState]);
+
   const clearMockData = useCallback(() => {
-    const emptySnapshot = { exchangeRate, products: [], batches: [], sales: [], purchaseRequests: [], catalogItems: [], socialLinks, paymentMethods, heroImage, season, pastCollections: [], galleryPhotos: [], comments: [], siteContent };
+    const emptySnapshot = { exchangeRate, products: [], batches: [], sales: [], purchaseRequests: [], catalogItems: [], socialLinks, paymentMethods, heroImage, season, pastCollections: [], galleryPhotos: [], comments: [], siteContent, messages: [] };
     localStorage.setItem('gf_cleared', 'true');
-    setProducts([]); setBatches([]); setSales([]); setPurchaseRequests([]); setCatalogItems([]); setPastCollections([]); setGalleryPhotos([]); setComments([]);
+    setProducts([]); setBatches([]); setSales([]); setPurchaseRequests([]); setCatalogItems([]); setPastCollections([]); setGalleryPhotos([]); setComments([]); setMessages([]);
     latestSnapshotRef.current = emptySnapshot;
     writeLocalCache(emptySnapshot);
     return saveCloudState(emptySnapshot);
@@ -529,7 +550,8 @@ export function StoreProvider({ children }) {
       season, saveSeason,
       pastCollections, setPastCollections, savePastCollections,
       galleryPhotos, setGalleryPhotos, saveGalleryPhotos,
-      comments, addCommentOrReply, deleteCommentOrReply,
+      comments, setComments, addCommentOrReply, deleteCommentOrReply,
+      messages, setMessages, addDirectMessage,
       inquiryItem, setInquiryItem,
       siteContent, updateSiteContent,
       saveCloudState, syncCurrentState, syncAfterLocalChange,

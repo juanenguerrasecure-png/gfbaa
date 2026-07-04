@@ -1,5 +1,5 @@
 import { lazy, Suspense, useState } from 'react';
-import { Package, PlusCircle, BarChart2, LogOut, X, Menu, Code, Users, Bell, ShoppingCart, Share2, CreditCard, Image, BookOpen } from 'lucide-react';
+import { Package, PlusCircle, BarChart2, LogOut, X, Menu, Code, Users, Bell, ShoppingCart, Share2, CreditCard, Image, BookOpen, MessageSquare } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useStore } from '../context/StoreContext';
 import styles from './AdminPanel.module.css';
@@ -14,6 +14,7 @@ const SocialLinksTab = lazy(() => import('./tabs/SocialLinksTab').then(m => ({ d
 const PaymentMethodsTab = lazy(() => import('./tabs/PaymentMethodsTab').then(m => ({ default: m.PaymentMethodsTab })));
 const GalleryTab = lazy(() => import('./tabs/GalleryTab').then(m => ({ default: m.GalleryTab })));
 const PastCollectionsTab = lazy(() => import('./tabs/PastCollectionsTab').then(m => ({ default: m.PastCollectionsTab })));
+const MessageBoardTab = lazy(() => import('./tabs/MessageBoardTab').then(m => ({ default: m.MessageBoardTab })));
 const GlobalManualSaleModal = lazy(() => import('./components/GlobalManualSaleModal').then(m => ({ default: m.GlobalManualSaleModal })));
 
 function AdminContentFallback() {
@@ -30,6 +31,7 @@ function AdminContentFallback() {
 const NAV = [
   { key: 'inventory', label: 'Products & Stock', icon: Package, tab: InventoryTab },
   { key: 'requests', label: 'Buyer Requests', icon: Bell, tab: RequestsTab },
+  { key: 'messages', label: 'Message Board Review', icon: MessageSquare, tab: MessageBoardTab },
   { key: 'add', label: 'Add Batch / Purchase', icon: PlusCircle, tab: AddItemTab },
   { key: 'gallery', label: 'Storefront Gallery', icon: Image, tab: GalleryTab },
   { key: 'past_collections', label: 'Past Collections', icon: BookOpen, tab: PastCollectionsTab },
@@ -43,18 +45,22 @@ const NAV = [
 const GROUPS = [
   { title: 'Operations & Stock', items: ['inventory', 'add', 'past_collections'] },
   { title: 'Editorial & Content', items: ['gallery'] },
-  { title: 'Customer Management', items: ['requests'] },
+  { title: 'Customer Management', items: ['requests', 'messages'] },
   { title: 'System & Settings', items: ['reports', 'users', 'social', 'payments', 'design'] },
 ];
 
 export function AdminPanel({ onExitAdmin }) {
   const { logout, currentUser } = useAuth();
-  const { purchaseRequests = [] } = useStore();
+  const { purchaseRequests = [], comments = [], messages = [] } = useStore();
   const [activeKey, setActiveKey] = useState('inventory');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showGlobalManualSale, setShowGlobalManualSale] = useState(false);
 
   const pendingCount = purchaseRequests.filter(r => r.status === 'pending').length;
+  const pendingComments = comments.filter(c => !c.reviewed).length;
+  const pendingMessages = messages.filter(m => !m.reviewed).length;
+  const totalPendingMessagesBoard = pendingComments + pendingMessages;
+
   const ActiveTab = NAV.find(n => n.key === activeKey)?.tab ?? InventoryTab;
 
   const handleNav = (key) => {
@@ -108,6 +114,7 @@ export function AdminPanel({ onExitAdmin }) {
                     if (!navItem) return null;
                     const Icon = navItem.icon;
                     const isRequests = key === 'requests';
+                    const isMessagesBoard = key === 'messages';
                     return (
                       <button key={key} className={`${styles.navItem} ${activeKey === key ? styles.navActive : ''}`} onClick={() => handleNav(key)} id={`admin_nav_item_${key}`}>
                         <div className="flex items-center gap-3">
@@ -116,6 +123,9 @@ export function AdminPanel({ onExitAdmin }) {
                         </div>
                         {isRequests && pendingCount > 0 && (
                           <span className="min-w-6 rounded-full bg-[#C9A84C] px-2 py-0.5 text-center text-[0.7rem] font-bold text-[#FAF8F5]">{pendingCount}</span>
+                        )}
+                        {isMessagesBoard && totalPendingMessagesBoard > 0 && (
+                          <span className="min-w-6 rounded-full bg-[#C9A84C] px-2 py-0.5 text-center text-[0.7rem] font-bold text-[#FAF8F5]">{totalPendingMessagesBoard}</span>
                         )}
                       </button>
                     );
