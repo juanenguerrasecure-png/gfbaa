@@ -104,6 +104,75 @@ export function PaymentMethodsTab() {
         <h2 className="font-display text-2xl text-stone-900 font-normal">Payment Setup</h2>
         <p className="text-sm text-stone-500">Configure Zelle, Venmo, and PayPal details shown to shoppers from the cart payment buttons.</p>
       </div>
+
+      {/* Transaction & Settlement Steps Guide */}
+      <div className="bg-stone-50 border border-[#E5DFD8] rounded p-5 max-w-4xl space-y-4">
+        <h3 className="text-stone-900 font-medium text-xs uppercase tracking-wider font-sans">Direct Payment Settlement Steps</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3.5">
+          
+          <div className="space-y-1.5 p-3 bg-white border border-stone-200/60 rounded flex flex-col justify-between">
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-1.5">
+                <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-stone-900 text-[10px] font-bold text-white">1</span>
+                <span className="font-semibold text-[10px] text-stone-800 uppercase tracking-wider">Request</span>
+              </div>
+              <p className="text-2xs text-stone-500 leading-relaxed">
+                Shopper selects curated items, chooses their preferred payment method (Zelle, Venmo, or PayPal) inside the shopping bag, and submits.
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-1.5 p-3 bg-white border border-stone-200/60 rounded flex flex-col justify-between">
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-1.5">
+                <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-stone-900 text-[10px] font-bold text-white">2</span>
+                <span className="font-semibold text-[10px] text-stone-800 uppercase tracking-wider">Quotation</span>
+              </div>
+              <p className="text-2xs text-stone-500 leading-relaxed">
+                Admin calculates shipping costs & special handling fees on the "Requests" tab, then approves the customized quote.
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-1.5 p-3 bg-white border border-stone-200/60 rounded flex flex-col justify-between">
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-1.5">
+                <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-stone-900 text-[10px] font-bold text-white">3</span>
+                <span className="font-semibold text-[10px] text-stone-800 uppercase tracking-wider">Invoicing</span>
+              </div>
+              <p className="text-2xs text-stone-500 leading-relaxed">
+                Admin prints the PDF Invoice or sends the email. The invoice automatically displays the chosen payment's details and custom QR code.
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-1.5 p-3 bg-white border border-stone-200/60 rounded flex flex-col justify-between">
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-1.5">
+                <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-stone-900 text-[10px] font-bold text-white">4</span>
+                <span className="font-semibold text-[10px] text-stone-800 uppercase tracking-wider">Settlement</span>
+              </div>
+              <p className="text-2xs text-stone-500 leading-relaxed">
+                Shopper receives the invoice, scans the QR code or copies the handle, transfers funds, and uploads proof of payment.
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-1.5 p-3 bg-white border border-stone-200/60 rounded flex flex-col justify-between">
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-1.5">
+                <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-stone-900 text-[10px] font-bold text-white">5</span>
+                <span className="font-semibold text-[10px] text-stone-800 uppercase tracking-wider">Verification</span>
+              </div>
+              <p className="text-2xs text-stone-500 leading-relaxed">
+                Admin verifies the uploaded receipt screenshot, approves the payment state, enters tracking, and dispatches the shipment.
+              </p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
       {syncWarning && (
         <div className="flex items-center gap-3 bg-[#FFF8E7] border-l-[3px] border-[#C9A84C] px-4 py-3 text-[13px] text-stone-700">
           <span>⚠️ Saved locally but cloud sync failed. Changes may not appear on other devices.</span>

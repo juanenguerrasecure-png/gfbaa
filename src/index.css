@@ -106,3 +106,59 @@ select {
     animation: bounceSubtle 3s ease-in-out infinite;
   }
 }
+
+/* Print CSS Styles for Elegant PDF Invoices */
+@media print {
+  html, body {
+    background: white !important;
+    color: black !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  /* Hide the main application layout and modal dark backdrop overlay */
+  body > *:not(#print_area_backdrop),
+  #root,
+  #root * {
+    visibility: hidden;
+    display: none !important;
+  }
+
+  /* Restore visibility only to our modal backdrop container and the invoice print card */
+  #print_area_backdrop {
+    visibility: visible !important;
+    display: block !important;
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    background: transparent !important;
+    backdrop-filter: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  #print_area, #print_area * {
+    visibility: visible !important;
+  }
+
+  /* Expand print card to fill page with high-contrast elegant borders */
+  #print_area {
+    position: relative !important;
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0.4in !important;
+    margin: 0 !important;
+    background: white !important;
+  }
+
+  /* Hide UI Buttons (Print and Close) on paper */
+  #print_buttons {
+    display: none !important;
+  }
+}
