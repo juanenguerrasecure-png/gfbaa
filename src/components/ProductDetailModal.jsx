@@ -238,7 +238,7 @@ export function ProductDetailModal({ isOpen, onClose, product, onAddToCart }) {
               exit={{ y: '100%', opacity: 0 }}
               transition={{ type: 'spring', damping: 26, stiffness: 210 }}
               onClick={event => event.stopPropagation()}
-              className="relative w-full h-[94vh] md:h-auto md:max-h-[90vh] md:max-w-4xl bg-[#FAF8F5] md:rounded-2xl shadow-2xl flex flex-col md:grid md:grid-cols-12 overflow-hidden cursor-default select-text border-t md:border border-stone-200/80"
+              className="relative w-full h-[94vh] md:h-[80vh] md:max-h-[720px] md:min-h-[580px] md:max-w-4xl bg-[#FAF8F5] md:rounded-2xl shadow-2xl flex flex-col md:grid md:grid-cols-12 overflow-hidden cursor-default select-text border-t md:border border-stone-200/80"
               aria-modal="true"
               role="dialog"
               aria-label={`${product.brand} ${product.name}`}
@@ -259,7 +259,7 @@ export function ProductDetailModal({ isOpen, onClose, product, onAddToCart }) {
               </div>
 
               {/* Left Column: Media Gallery */}
-              <div className="md:col-span-7 flex flex-col bg-[#F3ECE5] border-r border-stone-200/40 select-none relative h-[40vh] md:h-full min-h-[300px] md:min-h-[520px]">
+              <div className="md:col-span-7 flex flex-col bg-[#F3ECE5] border-r border-stone-200/40 select-none relative h-[40vh] md:h-full min-h-[300px] md:min-h-0">
                 {/* Main Image Viewer */}
                 <div
                   className="relative flex-1 flex items-center justify-center overflow-hidden bg-stone-200/50 group cursor-zoom-in"
@@ -271,7 +271,7 @@ export function ProductDetailModal({ isOpen, onClose, product, onAddToCart }) {
                     <img
                       src={photos[activePhoto]}
                       alt={`${product.brand} ${product.name}`}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-102"
+                      className="w-full h-full object-contain p-4 transition-transform duration-500 group-hover:scale-101"
                       loading="lazy"
                       decoding="async"
                       referrerPolicy="no-referrer"
@@ -329,8 +329,8 @@ export function ProductDetailModal({ isOpen, onClose, product, onAddToCart }) {
               </div>
 
               {/* Right Column: Information Panel */}
-              <div className="md:col-span-5 flex flex-col h-[calc(54vh-36px)] md:h-full overflow-y-auto">
-                <div className="p-6 md:p-8 space-y-6 pb-24 md:pb-8 flex-1">
+              <div className="md:col-span-5 flex flex-col h-[calc(54vh-36px)] md:h-full overflow-hidden relative">
+                <div className="p-6 md:p-8 space-y-6 overflow-y-auto flex-1">
                   {/* Brand & Category Header */}
                   <div>
                     <span className="text-[10px] font-sans font-bold uppercase tracking-widest text-[#8C7B6E] block mb-1">
@@ -451,7 +451,7 @@ export function ProductDetailModal({ isOpen, onClose, product, onAddToCart }) {
                 </div>
 
                 {/* Fixed Bottom Action Panel */}
-                <div className="absolute bottom-0 right-0 left-0 md:left-auto md:width-full md:col-span-5 flex flex-col gap-2 p-4 border-t border-stone-200/80 bg-[#FAF8F5]/96 backdrop-blur-sm z-20 shadow-[0_-8px_20px_rgba(10,8,6,0.06)]">
+                <div className="w-full flex flex-col gap-2 p-4 border-t border-stone-200/80 bg-[#FAF8F5]/96 backdrop-blur-sm z-20 shadow-[0_-8px_20px_rgba(10,8,6,0.06)]">
                   {/* Buy / Inquire actions */}
                   <div className="flex gap-2">
                     <button
