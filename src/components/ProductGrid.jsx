@@ -4,6 +4,7 @@ import { useCurrency, formatProductPrice } from '../hooks/useCurrency';
 import { useStore } from '../context/StoreContext';
 import { ProductPlaceholder } from './ProductPlaceholder';
 import { ProductDetailModal } from './ProductDetailModal';
+import { useWishlist } from '../hooks/useWishlist';
 
 export function ProductGrid({ activeFilter: externalFilter, onFilterChange: onExternalFilterChange, onAddToCart }) {
   const [items, setItems] = useState([]);
@@ -19,7 +20,22 @@ export function ProductGrid({ activeFilter: externalFilter, onFilterChange: onEx
 
   const [sort, setSort] = useState('newest'); // 'newest' | 'low' | 'high'
   const [selectedProduct, setSelectedProduct] = useState(null);
-  const [likedItems, setLikedItems] = useState({});
+  const { toggleWishlist, isWishlisted } = useWishlist();
+
+  const handleOpenDetail = (product) => {
+    setSelectedProduct(product);
+    const url = new URL(window.location.href);
+    url.searchParams.set('product', product.id);
+    window.history.replaceState({}, '', url.pathname + url.search);
+  };
+
+  const handleCloseDetail = () => {
+    setSelectedProduct(null);
+    const url = new URL(window.location.href);
+    url.searchParams.delete('product');
+    url.searchParams.delete('id');
+    window.history.replaceState({}, '', url.pathname + url.search);
+  };
 
   const { currency } = useCurrency();
   const { exchangeRate, getCatalogItemStock, catalogItems } = useStore();
@@ -63,6 +79,19 @@ export function ProductGrid({ activeFilter: externalFilter, onFilterChange: onEx
       setItems(catalogItems);
     }
   }, [catalogItems]);
+
+  useEffect(() => {
+    if (items && items.length > 0) {
+      const params = new URLSearchParams(window.location.search);
+      const prodId = params.get('product') || params.get('id');
+      if (prodId) {
+        const found = items.find(item => String(item.id) === String(prodId));
+        if (found) {
+          setSelectedProduct(found);
+        }
+      }
+    }
+  }, [items]);
 
   // Filter out of stock items for storefront view
   const inStockItems = useMemo(() => {
@@ -142,10 +171,7 @@ export function ProductGrid({ activeFilter: externalFilter, onFilterChange: onEx
 
   const toggleLike = (id, e) => {
     e.stopPropagation();
-    setLikedItems(prev => ({
-      ...prev,
-      [id]: !prev[id]
-    }));
+    toggleWishlist(id);
   };
 
   const getDisplayTitle = () => {
@@ -335,7 +361,7 @@ export function ProductGrid({ activeFilter: externalFilter, onFilterChange: onEx
           {filteredItems.map(item => {
             const stock = getCatalogItemStock ? getCatalogItemStock(item.id) : 1;
             const isSoldOut = stock <= 0;
-            const isLiked = likedItems[item.id];
+            const isLiked = isWishlisted(item.id);
 
             // Extract all photos securely
             const photos = (() => {
@@ -350,7 +376,7 @@ export function ProductGrid({ activeFilter: externalFilter, onFilterChange: onEx
             return (
               <div
                 key={item.id}
-                onClick={() => setSelectedProduct(item)}
+                onClick={() => handleOpenDetail(item)}
                 className="group bg-white rounded-lg border border-stone-200/70 overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 flex flex-col cursor-pointer"
                 id={`product_card_tailwind_${item.id}`}
               >
@@ -362,6 +388,7 @@ export function ProductGrid({ activeFilter: externalFilter, onFilterChange: onEx
                       alt={`${item.brand || ''} ${item.name}`}
                       className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500 ease-out"
                       loading="lazy"
+                      decoding="async"
                       referrerPolicy="no-referrer"
                     />
                   ) : (
@@ -461,7 +488,7 @@ export function ProductGrid({ activeFilter: externalFilter, onFilterChange: onEx
       {selectedProduct && (
         <ProductDetailModal
           isOpen={!!selectedProduct}
-          onClose={() => setSelectedProduct(null)}
+          onClose={handleCloseDetail}
           product={selectedProduct}
           onAddToCart={onAddToCart}
         />

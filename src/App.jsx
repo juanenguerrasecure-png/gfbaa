@@ -4,8 +4,10 @@ import { Hero }         from './components/Hero';
 import { ProductGrid }  from './components/ProductGrid';
 import { Toast }        from './components/Toast';
 import { CartModal }    from './components/CartModal';
+import { WishlistModal } from './components/WishlistModal';
 import { AdminLogin }   from './admin/AdminLogin';
 import { useCart }      from './hooks/useCart';
+import { useWishlist }  from './hooks/useWishlist';
 import { useAuth }      from './context/AuthContext';
 
 const AdminPanel = lazy(() => import('./admin/AdminPanel').then(module => ({ default: module.AdminPanel })));
@@ -25,6 +27,7 @@ function AdminLoadingFallback() {
 export default function App() {
   const [view, setView] = useState('store');
   const [activeFilter, setActiveFilter] = useState('all');
+  const [isWishlistOpen, setIsWishlistOpen] = useState(false);
 
   const {
     cart,
@@ -37,6 +40,8 @@ export default function App() {
     toast,
     showToast
   } = useCart();
+
+  const { wishlist } = useWishlist();
 
   const { isAdmin } = useAuth();
 
@@ -68,6 +73,8 @@ export default function App() {
         cartCount={cart.length}
         onCartClick={viewCart}
         onAdminClick={handleAdminClick}
+        wishlistCount={wishlist.length}
+        onWishlistClick={() => setIsWishlistOpen(true)}
       />
       <Hero onCategoryClick={setActiveFilter} />
       <ProductGrid
@@ -81,6 +88,12 @@ export default function App() {
         cart={cart}
         onRemove={removeFromCart}
         onClear={clearCart}
+        showToast={showToast}
+      />
+      <WishlistModal
+        isOpen={isWishlistOpen}
+        onClose={() => setIsWishlistOpen(false)}
+        onAddToCart={addToCart}
         showToast={showToast}
       />
       <Toast visible={toast.visible} msg={toast.msg} />

@@ -273,6 +273,25 @@
   border: 1px solid #0084FF;
 }
 
+.shareBtn {
+  background: transparent;
+  color: #1C1410;
+  border: 1px solid #E5DFD8;
+  transition: all 0.2s ease;
+}
+
+.shareBtn:hover {
+  background: #E5DFD8;
+  border-color: #C9A84C;
+  color: #C9A84C;
+}
+
+.shareBtnSuccess {
+  background: #5D7268;
+  color: #FAF8F5;
+  border: 1px solid #5D7268;
+}
+
 @media (max-width: 760px) {
   .overlay {
     padding: 0;

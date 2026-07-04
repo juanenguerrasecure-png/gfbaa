@@ -85,7 +85,8 @@
 }
 
 .iconBtn,
-.cartBtn {
+.cartBtn,
+.wishlistBtn {
   background: none;
   border: none;
   color: #61554A;
@@ -99,11 +100,13 @@
 }
 
 .iconBtn:hover,
-.cartBtn:hover {
+.cartBtn:hover,
+.wishlistBtn:hover {
   color: #C9A84C;
 }
 
-.cartBtn {
+.cartBtn,
+.wishlistBtn {
   color: #1C1410;
   position: relative;
 }
@@ -143,7 +146,8 @@
   }
 
   .iconBtn,
-  .cartBtn {
+  .cartBtn,
+  .wishlistBtn {
     padding: 0.2rem;
   }
 }

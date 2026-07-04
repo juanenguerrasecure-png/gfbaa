@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ChevronLeft, ChevronRight, ShoppingBag, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ShoppingBag, X, Share2, Check } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import { formatProductPrice, hasUsdPrice, useCurrency } from '../hooks/useCurrency';
 import { PriceToggle } from './PriceToggle';
@@ -59,6 +59,7 @@ export function ProductDetailModal({ isOpen, onClose, product, onAddToCart }) {
   const { currency } = useCurrency();
   const [activePhoto, setActivePhoto] = useState(0);
   const [touchStart, setTouchStart] = useState(null);
+  const [shareSuccess, setShareSuccess] = useState(false);
 
   const photos = useMemo(() => getPhotos(product), [product]);
   const badge = BADGE[product?.condition] ?? BADGE.good;
@@ -69,6 +70,39 @@ export function ProductDetailModal({ isOpen, onClose, product, onAddToCart }) {
   const messengerHref = product ? getMessengerHref(socialLinks?.messenger || socialLinks?.facebook) : '';
   const allowUsd = hasUsdPrice(product);
   const displayCurrency = allowUsd ? currency : 'PHP';
+
+  const handleShare = async (e) => {
+    e.stopPropagation();
+    const shareUrl = `${window.location.origin}?product=${product.id}`;
+    const shareTitle = `${product.brand || 'Luxury Find'} - ${product.name}`;
+    const shareText = `Check out this vintage preloved curation: ${product.brand || ''} ${product.name} on Good Finds by AA!`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: shareTitle,
+          text: shareText,
+          url: shareUrl,
+        });
+      } catch (err) {
+        if (err.name !== 'AbortError') {
+          copyToClipboardFallback(shareUrl);
+        }
+      }
+    } else {
+      copyToClipboardFallback(shareUrl);
+    }
+  };
+
+  const copyToClipboardFallback = (url) => {
+    try {
+      navigator.clipboard.writeText(url);
+      setShareSuccess(true);
+      setTimeout(() => setShareSuccess(false), 2000);
+    } catch (err) {
+      console.warn('Failed to copy to clipboard:', err);
+    }
+  };
 
   useEffect(() => {
     if (!isOpen) return undefined;
@@ -108,7 +142,14 @@ export function ProductDetailModal({ isOpen, onClose, product, onAddToCart }) {
         <button type="button" className={styles.closeBtn} onClick={onClose} aria-label="Close product details"><X size={20} /></button>
         <div className={styles.gallery} onTouchStart={event => setTouchStart(event.touches[0].clientX)} onTouchEnd={handleTouchEnd}>
           {photos.length ? (
-            <img src={photos[activePhoto]} alt={`${product.brand} ${product.name}`} className={styles.photo} />
+            <img 
+              src={photos[activePhoto]} 
+              alt={`${product.brand} ${product.name}`} 
+              className={styles.photo} 
+              loading="lazy"
+              decoding="async"
+              referrerPolicy="no-referrer"
+            />
           ) : (
             <div className="absolute inset-0 w-full h-full">
               <ProductPlaceholder category={product.cat} />
@@ -128,6 +169,10 @@ export function ProductDetailModal({ isOpen, onClose, product, onAddToCart }) {
         </div>
         <div className={styles.actionBar}>
           <button type="button" className={styles.addBtn} onClick={handleAdd} disabled={soldOut}><ShoppingBag size={16} />{soldOut ? 'Sold Out' : 'Add to Cart'}</button>
+          <button type="button" className={`${styles.inquiryBtn} ${shareSuccess ? styles.shareBtnSuccess : styles.shareBtn}`} onClick={handleShare}>
+            {shareSuccess ? <Check size={14} /> : <Share2 size={14} />}
+            {shareSuccess ? 'Link Copied!' : 'Share Find'}
+          </button>
           {whatsappHref && <a className={`${styles.inquiryBtn} ${styles.whatsAppBtn}`} href={whatsappHref} target="_blank" rel="noopener noreferrer"><WhatsAppIcon size={15} /> WhatsApp</a>}
           {viberHref && <a className={`${styles.inquiryBtn} ${styles.viberBtn}`} href={viberHref} onClick={event => openContact(event, viberHref, product)}><ViberIcon size={15} /> Viber</a>}
           {messengerHref && <a className={`${styles.inquiryBtn} ${styles.messengerBtn}`} href={messengerHref} target="_blank" rel="noopener noreferrer" onClick={() => copyInquiryText(product)}><MessengerIcon size={15} /> Messenger</a>}

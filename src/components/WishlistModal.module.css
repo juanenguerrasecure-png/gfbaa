@@ -1,0 +1,318 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(28, 20, 16, 0.45);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.modal {
+  background-color: #FAF8F5;
+  border: 1px solid #E5DFD8;
+  border-radius: 8px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  width: 100%;
+  max-width: 700px;
+  max-height: calc(100vh - 2rem);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: modalEnter 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modalEnter {
+  from { opacity: 0; transform: scale(0.96) translateY(8px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.75rem;
+  border-bottom: 1px solid #E5DFD8;
+  background-color: #FAF8F5;
+}
+
+.titleWrap {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.heartIcon {
+  color: #C9A84C;
+}
+
+.title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.5rem;
+  font-weight: 500;
+  color: #1C1410;
+  margin: 0;
+}
+
+.closeBtn {
+  background: none;
+  border: none;
+  color: #8C7B6E;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.closeBtn:hover {
+  color: #1C1410;
+  background-color: #F1EAE2;
+}
+
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.75rem;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 4rem 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.emptyIcon {
+  color: #E5DFD8;
+}
+
+.emptyText {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.4rem;
+  color: #1C1410;
+  font-weight: 500;
+  margin: 0;
+}
+
+.emptySubtext {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.825rem;
+  color: #8C7B6E;
+  max-width: 320px;
+  line-height: 1.5;
+  margin: 0 0 0.5rem 0;
+}
+
+.secondaryBtn {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  background-color: transparent;
+  color: #1C1410;
+  border: 1px solid #1C1410;
+  padding: 0.65rem 1.25rem;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+}
+
+.secondaryBtn:hover {
+  background-color: #1C1410;
+  color: #FAF8F5;
+}
+
+.itemsList {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.wishlistItem {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  background-color: #FAF8F5;
+  border: 1px solid #E5DFD8;
+  border-radius: 6px;
+  padding: 1rem;
+  transition: all 0.2s;
+}
+
+.wishlistItem:hover {
+  border-color: #C9A84C;
+  box-shadow: 0 2px 8px rgba(201, 168, 76, 0.05);
+}
+
+.itemImageContainer {
+  width: 4rem;
+  height: 4rem;
+  border-radius: 4px;
+  overflow: hidden;
+  background-color: #F5F2EE;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 1px solid #EADFD4;
+}
+
+.itemImage {
+  width: 100%;
+  height: 100%;
+  object-cover: cover;
+  object-position: center;
+}
+
+.itemEmoji {
+  font-size: 1.5rem;
+}
+
+.itemInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.itemBrand {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #8C7B6E;
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.itemName {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #1C1410;
+  margin: 0 0 0.5rem 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.metaRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.itemCatBadge {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.6rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background-color: #E5DFD8;
+  color: #61554A;
+  padding: 0.15rem 0.4rem;
+  border-radius: 2px;
+}
+
+.itemConditionBadge {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.6rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background-color: #1C1410;
+  color: #FAF8F5;
+  padding: 0.15rem 0.4rem;
+  border-radius: 2px;
+}
+
+.itemActionsWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+.itemPrice {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #1C1410;
+}
+
+.buttonGroup {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.addToBagBtn {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.725rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background-color: #1C1410;
+  color: #FAF8F5;
+  border: 1px solid #1C1410;
+  padding: 0.45rem 0.85rem;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  transition: all 0.2s;
+}
+
+.addToBagBtn:hover {
+  background-color: #C9A84C;
+  border-color: #C9A84C;
+}
+
+.removeBtn {
+  background: none;
+  border: 1px solid #E5DFD8;
+  color: #8C7B6E;
+  cursor: pointer;
+  padding: 0.45rem;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.removeBtn:hover {
+  color: #8C3D3D;
+  border-color: #F2DEDE;
+  background-color: #FDF7F7;
+}
+
+@media (max-width: 640px) {
+  .wishlistItem {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.85rem;
+  }
+
+  .itemActionsWrap {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px dashed #E5DFD8;
+    padding-top: 0.75rem;
+    margin-top: 0.25rem;
+  }
+}
