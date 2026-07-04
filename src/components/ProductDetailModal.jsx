@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { ChevronLeft, ChevronRight, ShoppingBag, X, Share2, Check, ShieldCheck, Info, Sparkles, Maximize2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useStore } from '../context/StoreContext';
+import { CommentBoard } from './CommentBoard';
 import { formatProductPrice, hasUsdPrice, useCurrency } from '../hooks/useCurrency';
 import { PriceToggle } from './PriceToggle';
 import { ProductPlaceholder } from './ProductPlaceholder';
@@ -442,6 +443,11 @@ export function ProductDetailModal({ isOpen, onClose, product, onAddToCart }) {
                       </p>
                     )}
                   </div>
+
+                  {/* Comment Board for Active Curation / Catalog Item */}
+                  {product && (
+                    <CommentBoard itemId={product.id} itemType="catalog_item" />
+                  )}
                 </div>
 
                 {/* Fixed Bottom Action Panel */}

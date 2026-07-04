@@ -9,7 +9,9 @@ export function GalleryTab() {
   
   // New photo form state
   const [newPhotoUrl, setNewPhotoUrl] = useState(null);
+  const [newTitle, setNewTitle] = useState('');
   const [newCaption, setNewCaption] = useState('');
+  const [newStory, setNewStory] = useState('');
   
   const [status, setStatus] = useState('');
   const [isSaving, setIsSaving] = useState(false);
@@ -32,7 +34,9 @@ export function GalleryTab() {
     const newPhoto = {
       id: `gal-${Date.now()}`,
       url: newPhotoUrl,
+      title: newTitle.trim(),
       caption: newCaption.trim(),
+      story: newStory.trim(),
       order: nextOrder
     };
 
@@ -41,7 +45,9 @@ export function GalleryTab() {
     
     // Reset form
     setNewPhotoUrl(null);
+    setNewTitle('');
     setNewCaption('');
+    setNewStory('');
     setStatus('Photo added to list. Press "Save Gallery Changes" below to publish.');
   };
 
@@ -51,8 +57,18 @@ export function GalleryTab() {
     setStatus('Photo removed from list. Press "Save Gallery Changes" to publish.');
   };
 
+  const handleUpdateTitle = (id, value) => {
+    const updatedList = photosList.map(p => p.id === id ? { ...p, title: value } : p);
+    setPhotosList(updatedList);
+  };
+
   const handleUpdateCaption = (id, value) => {
     const updatedList = photosList.map(p => p.id === id ? { ...p, caption: value } : p);
+    setPhotosList(updatedList);
+  };
+
+  const handleUpdateStory = (id, value) => {
+    const updatedList = photosList.map(p => p.id === id ? { ...p, story: value } : p);
     setPhotosList(updatedList);
   };
 
@@ -133,18 +149,49 @@ export function GalleryTab() {
 
             <div className="space-y-2">
               <label className="text-xs font-semibold tracking-wider text-stone-500 uppercase block">
-                Editorial Caption
+                Curation Title *
+              </label>
+              <input
+                type="text"
+                value={newTitle}
+                onChange={e => setNewTitle(e.target.value)}
+                placeholder="e.g. Classic Silhouette Duo"
+                className="w-full border border-stone-300 rounded px-3 py-2 text-sm text-stone-900 focus:border-[#C9A84C] focus:outline-none focus:ring-1 focus:ring-[#C9A84C]/20 bg-[#FAF8F5]/50"
+                id="gallery_input_title"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs font-semibold tracking-wider text-stone-500 uppercase block">
+                Brief Description / Caption *
               </label>
               <textarea
                 value={newCaption}
                 onChange={e => setNewCaption(e.target.value)}
-                placeholder="Prismatic focus, structured silhouettes with gold textures..."
-                rows={3}
-                className="w-full border border-stone-300 rounded px-3 py-2 text-sm text-stone-900 focus:border-[#C9A84C] focus:outline-none focus:ring-1 focus:ring-[#C9A84C]/20"
+                placeholder="A high-contrast visual focus on structured leather silhouettes with 24k gold hardware."
+                rows={2}
+                className="w-full border border-stone-300 rounded px-3 py-2 text-sm text-stone-900 focus:border-[#C9A84C] focus:outline-none focus:ring-1 focus:ring-[#C9A84C]/20 bg-[#FAF8F5]/50"
                 id="gallery_input_caption"
               />
               <p className="text-[10px] text-stone-400 font-sans italic">
-                Captions are displayed in Cormorant Garamond italic for a refined brand tone.
+                A short, elegant line shown directly below the title in the gallery card.
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs font-semibold tracking-wider text-stone-500 uppercase block">
+                Full Story / Whole Description
+              </label>
+              <textarea
+                value={newStory}
+                onChange={e => setNewStory(e.target.value)}
+                placeholder="Discovered in Tokyo during our late winter diaries. This 1994 masterpiece features gorgeous preservation..."
+                rows={4}
+                className="w-full border border-stone-300 rounded px-3 py-2 text-sm text-stone-900 focus:border-[#C9A84C] focus:outline-none focus:ring-1 focus:ring-[#C9A84C]/20 bg-[#FAF8F5]/50"
+                id="gallery_input_story"
+              />
+              <p className="text-[10px] text-stone-400 font-sans italic">
+                The full narrative or details. Once clicked, users can scroll to read this entire description.
               </p>
             </div>
 
@@ -182,7 +229,7 @@ export function GalleryTab() {
               {photosList.map((photo, index) => (
                 <div 
                   key={photo.id}
-                  className="bg-white border border-[#E5DFD8] rounded-lg p-4 flex gap-4 items-center"
+                  className="bg-white border border-[#E5DFD8] rounded-lg p-4 flex gap-4 items-start"
                   id={`gallery_admin_item_${photo.id}`}
                 >
                   {/* Photo Preview */}
@@ -193,27 +240,49 @@ export function GalleryTab() {
                     referrerPolicy="no-referrer"
                   />
 
-                  {/* Settings Input */}
-                  <div className="flex-1 min-w-0 grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
-                    <div className="md:col-span-3 space-y-1">
+                  {/* Settings Inputs */}
+                  <div className="flex-1 min-w-0 grid grid-cols-1 md:grid-cols-12 gap-3">
+                    <div className="md:col-span-5 space-y-1">
+                      <label className="text-[9px] uppercase font-mono text-stone-500 block tracking-wider font-semibold">Curation Title</label>
+                      <input
+                        type="text"
+                        value={photo.title || ''}
+                        onChange={e => handleUpdateTitle(photo.id, e.target.value)}
+                        placeholder="Untitled Curation"
+                        className="w-full border border-stone-200 rounded px-2.5 py-1 text-xs text-stone-900 focus:border-[#C9A84C] focus:outline-none bg-stone-50/50"
+                      />
+                    </div>
+
+                    <div className="md:col-span-5 space-y-1">
+                      <label className="text-[9px] uppercase font-mono text-stone-500 block tracking-wider font-semibold">Brief Description (Caption)</label>
                       <input
                         type="text"
                         value={photo.caption || ''}
                         onChange={e => handleUpdateCaption(photo.id, e.target.value)}
                         placeholder="No caption provided"
-                        className="w-full border-b border-stone-200 hover:border-stone-300 focus:border-[#C9A84C] py-1 text-sm text-stone-900 focus:outline-none bg-transparent"
+                        className="w-full border border-stone-200 rounded px-2.5 py-1 text-xs text-stone-900 focus:border-[#C9A84C] focus:outline-none bg-stone-50/50"
                       />
-                      <span className="text-[9px] uppercase font-mono text-stone-400 block tracking-wider">Caption Text</span>
                     </div>
 
-                    <div className="space-y-1">
+                    <div className="md:col-span-2 space-y-1">
+                      <label className="text-[9px] uppercase font-mono text-stone-500 block tracking-wider font-semibold">Sort Order</label>
                       <input
                         type="number"
                         value={photo.order || 0}
                         onChange={e => handleUpdateOrder(photo.id, e.target.value)}
-                        className="w-full border-b border-stone-200 hover:border-stone-300 focus:border-[#C9A84C] py-1 text-sm text-stone-900 focus:outline-none bg-transparent font-mono"
+                        className="w-full border border-stone-200 rounded px-2.5 py-1 text-xs text-stone-900 focus:border-[#C9A84C] focus:outline-none bg-stone-50/50 font-mono"
                       />
-                      <span className="text-[9px] uppercase font-mono text-stone-400 block tracking-wider">Sort Order</span>
+                    </div>
+
+                    <div className="md:col-span-12 space-y-1">
+                      <label className="text-[9px] uppercase font-mono text-stone-500 block tracking-wider font-semibold">Full Story / Description</label>
+                      <textarea
+                        value={photo.story || ''}
+                        onChange={e => handleUpdateStory(photo.id, e.target.value)}
+                        placeholder="Tell the full story behind this curation. Scrollable detail once clicked."
+                        rows={2}
+                        className="w-full border border-stone-200 rounded px-2.5 py-1 text-xs text-stone-900 focus:border-[#C9A84C] focus:outline-none bg-stone-50/50"
+                      />
                     </div>
                   </div>
 

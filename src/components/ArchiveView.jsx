@@ -1,11 +1,19 @@
 import { useState, useMemo } from 'react';
 import { useStore } from '../context/StoreContext';
 import { MessageCircle, Award, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
+import { CommentBoard } from './CommentBoard';
 
 function ArchivePieceCard({ piece }) {
-  const { setInquiryItem } = useStore();
+  const { setInquiryItem, comments } = useStore();
+  const [showComments, setShowComments] = useState(false);
   const [activeIdx, setActiveIdx] = useState(0);
   const [touchStartX, setTouchStartX] = useState(0);
+
+  const itemCommentCount = useMemo(() => {
+    return (comments || []).filter(
+      (c) => String(c.itemId) === String(piece.id) && c.itemType === 'past_collection'
+    ).length;
+  }, [comments, piece.id]);
 
   const photosList = useMemo(() => {
     const list = [];
@@ -146,17 +154,33 @@ function ArchivePieceCard({ piece }) {
         </div>
       </div>
 
-      {/* Inquiry CTA */}
-      <div className="p-6 pt-0 border-t border-stone-100/60 mt-4">
+      {/* Inquiry CTA & Comments */}
+      <div className="p-6 pt-0 border-t border-stone-100/60 mt-4 space-y-3">
         <button
           type="button"
           onClick={() => setInquiryItem({ ...piece, isPast: true })}
-          className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-stone-100 hover:bg-stone-200/60 hover:text-[var(--accent)] text-stone-700 text-xs font-semibold rounded tracking-wider uppercase transition-all shadow-sm focus:outline-none cursor-pointer"
+          className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 bg-stone-100 hover:bg-stone-200/60 hover:text-[var(--accent)] text-stone-700 text-xs font-semibold rounded tracking-wider uppercase transition-all shadow-sm focus:outline-none cursor-pointer"
           id={`archive_inquiry_btn_${piece.id}`}
         >
           <MessageCircle size={13} />
           <span>Inquire Similar Piece</span>
         </button>
+
+        <button
+          type="button"
+          onClick={() => setShowComments(!showComments)}
+          className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 bg-stone-50 hover:bg-stone-100 border border-stone-200/50 text-stone-600 text-xs font-semibold rounded tracking-wider uppercase transition-all cursor-pointer"
+          id={`archive_comments_toggle_btn_${piece.id}`}
+        >
+          <MessageCircle size={13} />
+          <span>{showComments ? 'Hide Thoughts' : `Thoughts (${itemCommentCount})`}</span>
+        </button>
+
+        {showComments && (
+          <div className="border-t border-stone-200/30 pt-4 mt-3">
+            <CommentBoard itemId={piece.id} itemType="past_collection" />
+          </div>
+        )}
       </div>
     </div>
   );

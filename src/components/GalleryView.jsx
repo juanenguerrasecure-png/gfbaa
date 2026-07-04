@@ -1,6 +1,8 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useStore } from '../context/StoreContext';
-import { X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { CommentBoard } from './CommentBoard';
 
 export function GalleryView() {
   const { galleryPhotos, siteContent } = useStore();
@@ -26,6 +28,36 @@ export function GalleryView() {
     setLightboxIndex((lightboxIndex - 1 + photos.length) % photos.length);
   };
 
+  // Lock background scroll when modal is open
+  useEffect(() => {
+    if (activePhoto) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [activePhoto]);
+
+  // Support keyboard shortcuts (arrows, escape)
+  useEffect(() => {
+    if (!activePhoto) return undefined;
+    const handleKey = (event) => {
+      if (event.key === 'Escape') {
+        setLightboxIndex(null);
+      }
+      if (event.key === 'ArrowRight') {
+        setLightboxIndex(prev => photos.length ? (prev + 1) % photos.length : 0);
+      }
+      if (event.key === 'ArrowLeft') {
+        setLightboxIndex(prev => photos.length ? (prev - 1 + photos.length) % photos.length : 0);
+      }
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [activePhoto, photos.length]);
+
   return (
     <div className="bg-[#FAF8F5] min-h-screen py-16 px-6" id="gallery_view_container">
       {/* Header */}
@@ -49,33 +81,53 @@ export function GalleryView() {
             <p className="text-stone-400 text-[10px] font-mono uppercase tracking-widest mb-2">Editorial Queue Empty</p>
             <p className="font-serif text-base text-stone-700 italic">"Pristine layouts under curatorial view."</p>
             <p className="text-stone-500 text-xs mt-3 leading-relaxed max-w-xs mx-auto">
-              Please log into the concierge desk dashboard to seed your custom visual stories.
+              Please log into the concierge desk dashboard to seed your custom visual stories with titles, captions, and narratives.
             </p>
           </div>
         ) : (
-          <div className="columns-1 sm:columns-2 lg:columns-3 gap-6 space-y-6 [column-fill:_balance]" id="gallery_masonry_grid">
+          <div className="columns-1 sm:columns-2 lg:columns-3 gap-6 [column-fill:_balance]" id="gallery_masonry_grid">
             {photos.map((photo, index) => (
               <div
                 key={photo.id || index}
                 onClick={() => setLightboxIndex(index)}
-                className="break-inside-avoid relative overflow-hidden rounded-xl border border-stone-200/40 bg-stone-100 group cursor-zoom-in transition-all duration-300 shadow-sm hover:shadow-md"
+                className="break-inside-avoid mb-6 relative overflow-hidden rounded-xl border border-stone-200/50 bg-white group cursor-zoom-in transition-all duration-300 shadow-sm hover:shadow-md flex flex-col"
                 id={`gallery_photo_item_${index}`}
               >
-                <img
-                  src={photo.url}
-                  alt={photo.caption || 'Editorial curation'}
-                  className="w-full h-auto object-cover group-hover:scale-[1.02] transition-transform duration-500 ease-out"
-                  loading="lazy"
-                  referrerPolicy="no-referrer"
-                />
-                {/* Elegant Caption Overlay on Hover */}
-                <div className="absolute inset-0 bg-stone-950/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-5 z-10 text-white">
-                  <span className="text-[9px] uppercase tracking-widest font-bold text-amber-200 mb-1">View Detail</span>
-                  {photo.caption && (
-                    <p className="font-serif italic text-sm md:text-base font-light text-stone-100 leading-snug line-clamp-3">
+                {/* Photo Container */}
+                <div className="relative overflow-hidden bg-[#F3ECE5]">
+                  <img
+                    src={photo.url}
+                    alt={photo.title || photo.caption || 'Editorial curation'}
+                    className="w-full h-auto object-cover group-hover:scale-[1.01] transition-transform duration-500 ease-out"
+                    loading="lazy"
+                    referrerPolicy="no-referrer"
+                  />
+                  {/* Elegant overlay on hover */}
+                  <div className="absolute inset-0 bg-stone-950/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                    <span className="bg-white/95 backdrop-blur-xs text-stone-900 text-[10px] uppercase tracking-widest font-bold px-4 py-2 rounded-full shadow-md border border-stone-100">
+                      Read Story
+                    </span>
+                  </div>
+                </div>
+
+                {/* Card Text Meta showing Title & Brief Description */}
+                <div className="p-5 space-y-1.5 bg-white">
+                  <h3 className="font-serif text-base md:text-lg font-normal text-stone-900 tracking-tight leading-snug">
+                    {photo.title || 'Untitled Curation'}
+                  </h3>
+                  {photo.caption ? (
+                    <p className="text-stone-500 font-sans text-xs md:text-[13px] leading-relaxed font-light line-clamp-2">
                       {photo.caption}
                     </p>
+                  ) : (
+                    <p className="text-stone-400 font-sans text-xs italic leading-relaxed font-light">
+                      Tap to open full curation narrative.
+                    </p>
                   )}
+                  <div className="flex items-center gap-1.5 text-[9px] uppercase tracking-widest font-bold text-[#C9A84C] pt-1">
+                    <span>Explore Story</span>
+                    <span className="text-[7px]">✦</span>
+                  </div>
                 </div>
               </div>
             ))}
@@ -83,72 +135,118 @@ export function GalleryView() {
         )}
       </div>
 
-      {/* Elegant Lightbox Modal */}
-      {activePhoto && (
-        <div 
-          onClick={() => setLightboxIndex(null)}
-          className="fixed inset-0 bg-stone-950/90 backdrop-blur-md z-[1000] flex flex-col items-center justify-center p-4 select-none"
-          id="gallery_lightbox"
-        >
-          {/* Close Button */}
-          <button
-            onClick={() => setLightboxIndex(null)}
-            className="absolute top-6 right-6 w-11 h-11 rounded-full bg-stone-900/60 border border-white/10 flex items-center justify-center text-stone-300 hover:text-white hover:bg-stone-900 transition-all cursor-pointer z-50"
-            id="lightbox_close_btn"
-            aria-label="Close"
-          >
-            <X size={20} />
-          </button>
-
-          {/* Nav: Prev Button */}
-          <button
-            onClick={handlePrev}
-            className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-stone-900/60 border border-white/10 flex items-center justify-center text-stone-300 hover:text-white hover:bg-stone-900 transition-all cursor-pointer z-40"
-            id="lightbox_prev_btn"
-            aria-label="Previous image"
-          >
-            <ChevronLeft size={24} />
-          </button>
-
-          {/* Active Image and Caption */}
-          <div className="max-w-4xl max-h-[75vh] flex flex-col items-center justify-center relative px-10 z-30">
-            <img
-              src={activePhoto.url}
-              alt={activePhoto.caption || 'Active editorial photo'}
+      {/* Elegant Full-Screen Scrollable Lightbox Modal */}
+      <AnimatePresence>
+        {activePhoto && (
+          <div className="fixed inset-0 z-[120] overflow-hidden" id="gallery_lightbox_portal">
+            {/* Split Curation Detail Card */}
+            <motion.div
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 28, stiffness: 180 }}
+              className="fixed inset-0 w-full h-full bg-[#FAF8F5] flex flex-col overflow-y-auto z-[120]"
               onClick={(e) => e.stopPropagation()}
-              className="max-w-full max-h-[70vh] object-contain rounded shadow-2xl border border-white/5"
-              id="lightbox_active_image"
-              referrerPolicy="no-referrer"
-            />
-          </div>
-
-          {/* Caption in Cormorant Garamond Italic */}
-          {activePhoto.caption && (
-            <div 
-              onClick={(e) => e.stopPropagation()}
-              className="max-w-2xl text-center mt-6 px-6 z-30"
-              id="lightbox_caption_container"
             >
-              <p className="font-serif italic font-light text-stone-200 text-lg md:text-2xl tracking-wide leading-relaxed">
-                "{activePhoto.caption}"
-              </p>
-              <p className="text-stone-500 font-mono text-[9px] uppercase tracking-widest mt-2">
-                Good Finds Curation • Photo {lightboxIndex + 1} of {photos.length}
-              </p>
-            </div>
-          )}
+              {/* Floating Close Button */}
+              <button
+                onClick={() => setLightboxIndex(null)}
+                className="fixed top-6 right-6 z-50 w-12 h-12 flex items-center justify-center rounded-full border border-stone-200/80 bg-white/90 hover:bg-white text-stone-800 hover:text-stone-950 shadow-md transition-all cursor-pointer hover:scale-105 active:scale-95"
+                id="gallery_modal_close_btn"
+                aria-label="Close modal"
+              >
+                <X size={20} />
+              </button>
 
-          {/* Nav: Next Button */}
-          <button
-            onClick={handleNext}
-            className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-stone-900/60 border border-white/10 flex items-center justify-center text-stone-300 hover:text-white hover:bg-stone-900 transition-all cursor-pointer z-40"
-            id="lightbox_next_btn"
-            aria-label="Next image"
-          >
-            <ChevronRight size={24} />
-          </button>
-        </div>
-      )}
+              {/* Media Presentation Showcase */}
+              <div className="w-full bg-stone-950/5 relative h-[70vh] md:h-[80vh] flex-shrink-0 flex items-center justify-center overflow-hidden">
+                <img
+                  src={activePhoto.url}
+                  alt={activePhoto.title || 'Curation item'}
+                  className="w-full h-full object-contain max-h-[65vh] md:max-h-[75vh]"
+                  referrerPolicy="no-referrer"
+                />
+
+                {/* Left & Right Navigation Chevrons inside showcase */}
+                {photos.length > 1 && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={handlePrev}
+                      className="absolute left-6 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center rounded-full border border-stone-200 bg-white/90 text-stone-800 hover:bg-white shadow-md transition-all cursor-pointer z-30 hover:scale-105 active:scale-95"
+                      aria-label="Previous photo"
+                    >
+                      <ChevronLeft size={20} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleNext}
+                      className="absolute right-6 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center rounded-full border border-stone-200 bg-white/90 text-stone-800 hover:bg-white shadow-md transition-all cursor-pointer z-30 hover:scale-105 active:scale-95"
+                      aria-label="Next photo"
+                    >
+                      <ChevronRight size={20} />
+                    </button>
+                  </>
+                )}
+
+                {/* Counter Indicator badge */}
+                <div className="absolute bottom-6 right-6 bg-stone-900/80 text-white text-[11px] uppercase font-mono tracking-widest px-3.5 py-1.5 rounded-full backdrop-blur-xs shadow-sm">
+                  Curation {lightboxIndex + 1} of {photos.length}
+                </div>
+              </div>
+
+              {/* Narrative Storytelling Panel */}
+              <div className="w-full max-w-3xl mx-auto px-6 py-12 md:py-16 space-y-8 select-text flex-shrink-0">
+                {/* Category stamp */}
+                <div className="flex items-center justify-center gap-1.5">
+                  <Sparkles size={12} className="text-[#C9A84C]" />
+                  <span className="text-[10px] font-sans font-bold uppercase tracking-widest text-[#8C7B6E]">
+                    Editorial Story
+                  </span>
+                </div>
+
+                {/* Title */}
+                <h2 className="font-serif font-light text-stone-950 text-3xl md:text-5xl leading-tight tracking-tight text-center">
+                  {activePhoto.title || 'Untitled Curation'}
+                </h2>
+
+                {/* Aesthetic Accent Line */}
+                <div className="w-16 h-[1px] bg-[#C9A84C] mx-auto" />
+
+                {/* Brief Description */}
+                {activePhoto.caption && (
+                  <div className="bg-stone-50 border border-[#E5DFD8]/60 p-6 md:p-8 rounded-2xl text-center shadow-2xs">
+                    <p className="font-serif italic font-light text-stone-800 text-base md:text-lg leading-relaxed">
+                      "{activePhoto.caption}"
+                    </p>
+                  </div>
+                )}
+
+                {/* Full Description / Story which is scrollable */}
+                <div className="font-sans font-light text-stone-700 text-sm md:text-base leading-relaxed whitespace-pre-line bg-white border border-stone-200/50 p-6 md:p-8 rounded-2xl shadow-xs">
+                  {activePhoto.story ? (
+                    activePhoto.story
+                  ) : (
+                    <p className="italic text-stone-400 text-center">
+                      This luxury curation is handpicked with historical respect, ensuring both beautiful vintage preservation and original structure. Explore our daily arrivals to add timeless stories to your own personal wardrobe.
+                    </p>
+                  )}
+                </div>
+
+                {/* Comment Board for Gallery Item */}
+                <CommentBoard itemId={activePhoto.id} itemType="gallery" />
+              </div>
+
+              {/* Brand Footer */}
+              <div className="border-t border-stone-200/50 bg-stone-50/80 p-6 text-center flex-shrink-0 w-full mt-auto">
+                <span className="text-[9px] uppercase font-mono tracking-widest text-stone-400">
+                  GOOD FINDS BY AA • STYLE DIARIES
+                </span>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

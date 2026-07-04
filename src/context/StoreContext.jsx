@@ -78,6 +78,7 @@ export function StoreProvider({ children }) {
   const [season, setSeason] = useState(() => normalizeSeason(localStorage.getItem('gf_season') || 'classic'));
   const [pastCollections, setPastCollections] = useState(() => readLocalJson('gf_past_collections', []));
   const [galleryPhotos, setGalleryPhotos] = useState(() => readLocalJson('gf_gallery_photos', []));
+  const [comments, setComments] = useState(() => readLocalJson('gf_comments', []));
   const [inquiryItem, setInquiryItem] = useState(null);
   const [siteContent, setSiteContent] = useState(() => ({
     ...DEFAULT_SITE_CONTENT,
@@ -93,11 +94,11 @@ export function StoreProvider({ children }) {
   const lastSerializedSnapshotRef = useRef('');
 
   const buildSnapshot = useCallback(() => ({
-    exchangeRate, products, batches, sales, purchaseRequests, catalogItems, socialLinks, paymentMethods, heroImage, season, pastCollections, galleryPhotos, siteContent
-  }), [exchangeRate, products, batches, sales, purchaseRequests, catalogItems, socialLinks, paymentMethods, heroImage, season, pastCollections, galleryPhotos, siteContent]);
+    exchangeRate, products, batches, sales, purchaseRequests, catalogItems, socialLinks, paymentMethods, heroImage, season, pastCollections, galleryPhotos, comments, siteContent
+  }), [exchangeRate, products, batches, sales, purchaseRequests, catalogItems, socialLinks, paymentMethods, heroImage, season, pastCollections, galleryPhotos, comments, siteContent]);
 
   const snapshotHasRecords = (snapshot) => Boolean(
-    snapshot?.products?.length || snapshot?.batches?.length || snapshot?.catalogItems?.length || snapshot?.sales?.length || snapshot?.purchaseRequests?.length || snapshot?.pastCollections?.length || snapshot?.galleryPhotos?.length
+    snapshot?.products?.length || snapshot?.batches?.length || snapshot?.catalogItems?.length || snapshot?.sales?.length || snapshot?.purchaseRequests?.length || snapshot?.pastCollections?.length || snapshot?.galleryPhotos?.length || snapshot?.comments?.length
   );
 
   const writeLocalCache = useCallback((snapshot) => {
@@ -113,6 +114,7 @@ export function StoreProvider({ children }) {
     localStorage.setItem('gf_season', normalizeSeason(snapshot.season));
     localStorage.setItem('gf_past_collections', JSON.stringify(snapshot.pastCollections || []));
     localStorage.setItem('gf_gallery_photos', JSON.stringify(snapshot.galleryPhotos || []));
+    localStorage.setItem('gf_comments', JSON.stringify(snapshot.comments || []));
     localStorage.setItem('gf_site_content', JSON.stringify(snapshot.siteContent || DEFAULT_SITE_CONTENT));
   }, []);
 
@@ -132,6 +134,7 @@ export function StoreProvider({ children }) {
     setSeason(normalizeSeason(snapshot.season));
     setPastCollections(Array.isArray(snapshot.pastCollections) ? snapshot.pastCollections : []);
     setGalleryPhotos(Array.isArray(snapshot.galleryPhotos) ? snapshot.galleryPhotos : []);
+    setComments(Array.isArray(snapshot.comments) ? snapshot.comments : []);
     setSiteContent({
       ...DEFAULT_SITE_CONTENT,
       ...(snapshot.siteContent || {})
@@ -463,10 +466,49 @@ export function StoreProvider({ children }) {
     return saveCloudState(snapshot);
   }, [buildSnapshot, saveCloudState, writeLocalCache]);
 
+  const addCommentOrReply = useCallback(async ({ itemId, itemType, authorName, text, commentId }) => {
+    try {
+      const response = await fetch('/api/comments', {
+        method: 'POST',
+        headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify({ itemId, itemType, authorName, text, commentId })
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Failed to add comment');
+      // Reload state after commenting
+      await loadCloudState({ force: true });
+      return { ok: true, comment: result.comment };
+    } catch (err) {
+      console.error(err);
+      return { ok: false, error: err.message };
+    }
+  }, [loadCloudState]);
+
+  const deleteCommentOrReply = useCallback(async ({ commentId, replyId }) => {
+    try {
+      let url = `/api/comments?commentId=${encodeURIComponent(commentId)}`;
+      if (replyId) {
+        url += `&replyId=${encodeURIComponent(replyId)}`;
+      }
+      const response = await fetch(url, {
+        method: 'DELETE',
+        headers: getAuthHeaders()
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Failed to delete');
+      // Reload state after deleting
+      await loadCloudState({ force: true });
+      return { ok: true };
+    } catch (err) {
+      console.error(err);
+      return { ok: false, error: err.message };
+    }
+  }, [loadCloudState]);
+
   const clearMockData = useCallback(() => {
-    const emptySnapshot = { exchangeRate, products: [], batches: [], sales: [], purchaseRequests: [], catalogItems: [], socialLinks, paymentMethods, heroImage, season, pastCollections: [], galleryPhotos: [], siteContent };
+    const emptySnapshot = { exchangeRate, products: [], batches: [], sales: [], purchaseRequests: [], catalogItems: [], socialLinks, paymentMethods, heroImage, season, pastCollections: [], galleryPhotos: [], comments: [], siteContent };
     localStorage.setItem('gf_cleared', 'true');
-    setProducts([]); setBatches([]); setSales([]); setPurchaseRequests([]); setCatalogItems([]); setPastCollections([]); setGalleryPhotos([]);
+    setProducts([]); setBatches([]); setSales([]); setPurchaseRequests([]); setCatalogItems([]); setPastCollections([]); setGalleryPhotos([]); setComments([]);
     latestSnapshotRef.current = emptySnapshot;
     writeLocalCache(emptySnapshot);
     return saveCloudState(emptySnapshot);
@@ -487,6 +529,7 @@ export function StoreProvider({ children }) {
       season, saveSeason,
       pastCollections, setPastCollections, savePastCollections,
       galleryPhotos, setGalleryPhotos, saveGalleryPhotos,
+      comments, addCommentOrReply, deleteCommentOrReply,
       inquiryItem, setInquiryItem,
       siteContent, updateSiteContent,
       saveCloudState, syncCurrentState, syncAfterLocalChange,

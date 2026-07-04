@@ -85,6 +85,7 @@ function defaultState() {
     season: 'classic',
     pastCollections: [],
     galleryPhotos: [],
+    comments: [],
     siteContent: {
       homeIntro: 'Sourced with refinement, preserved for posterity',
       shopIntro: 'Vetted designer handbags, fine pieces, and pristine seasonal acquisitions.',
@@ -116,6 +117,7 @@ function normalizeState(input) {
     season: typeof input.season === 'string' ? input.season : base.season,
     pastCollections: Array.isArray(input.pastCollections) ? input.pastCollections : [],
     galleryPhotos: Array.isArray(input.galleryPhotos) ? input.galleryPhotos : [],
+    comments: Array.isArray(input.comments) ? input.comments : [],
     siteContent: input.siteContent && typeof input.siteContent === 'object' ? { ...base.siteContent, ...input.siteContent } : base.siteContent,
   };
 }
@@ -324,6 +326,112 @@ async function requireWriteAuth(request, env, corsHeaders) {
   return { authorized: true, state: stateResult.state };
 }
 
+async function handleCreateCommentOrReply(request, env, corsHeaders) {
+  const body = await request.json();
+  const stateResult = await getState(env);
+  const state = stateResult.state;
+  const isAdmin = validateToken(request, state);
+
+  const comments = Array.isArray(state.comments) ? state.comments : [];
+
+  // It is a reply to a comment
+  if (body.commentId) {
+    const comment = comments.find(c => c.id === body.commentId);
+    if (!comment) {
+      return json({ ok: false, error: 'Comment not found.' }, { status: 404 }, corsHeaders);
+    }
+    const reply = {
+      id: `reply-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`,
+      authorName: isAdmin ? (body.authorName || 'Admin') : String(body.authorName || 'Visitor').trim(),
+      text: String(body.text || '').trim(),
+      createdAt: new Date().toISOString(),
+      isAdmin: isAdmin
+    };
+    if (!reply.text) {
+      return json({ ok: false, error: 'Reply text is required.' }, { status: 400 }, corsHeaders);
+    }
+    if (!reply.authorName) {
+      return json({ ok: false, error: 'Author name is required.' }, { status: 400 }, corsHeaders);
+    }
+    comment.replies = Array.isArray(comment.replies) ? comment.replies : [];
+    comment.replies.push(reply);
+    
+    const saved = await saveState(env, { ...state, comments });
+    return json({ ok: true, comment, updatedAt: saved.updatedAt }, { status: 200 }, corsHeaders);
+  }
+
+  // It is a parent comment
+  const newItemId = String(body.itemId || '').trim();
+  const newItemType = String(body.itemType || '').trim(); // 'gallery', 'past_collection', 'catalog_item'
+  const authorName = String(body.authorName || '').trim();
+  const text = String(body.text || '').trim();
+
+  if (!newItemId || !newItemType) {
+    return json({ ok: false, error: 'itemId and itemType are required.' }, { status: 400 }, corsHeaders);
+  }
+  if (!authorName) {
+    return json({ ok: false, error: 'Your name is required.' }, { status: 400 }, corsHeaders);
+  }
+  if (!text) {
+    return json({ ok: false, error: 'Comment text is required.' }, { status: 400 }, corsHeaders);
+  }
+
+  const newComment = {
+    id: `comment-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`,
+    itemId: newItemId,
+    itemType: newItemType,
+    authorName: isAdmin ? `${authorName} (Admin)` : authorName,
+    text,
+    createdAt: new Date().toISOString(),
+    isAdmin: isAdmin,
+    replies: []
+  };
+
+  comments.push(newComment);
+  const saved = await saveState(env, { ...state, comments });
+  return json({ ok: true, comment: newComment, updatedAt: saved.updatedAt }, { status: 201 }, corsHeaders);
+}
+
+async function handleDeleteCommentOrReply(request, env, corsHeaders) {
+  const stateResult = await getState(env);
+  const state = stateResult.state;
+  if (!validateToken(request, state)) return unauthorized(corsHeaders);
+
+  const url = new URL(request.url);
+  const commentId = url.searchParams.get('commentId');
+  const replyId = url.searchParams.get('replyId');
+
+  if (!commentId) {
+    return json({ ok: false, error: 'commentId query parameter is required.' }, { status: 400 }, corsHeaders);
+  }
+
+  const comments = Array.isArray(state.comments) ? state.comments : [];
+
+  if (replyId) {
+    // Delete a reply inside a comment
+    const comment = comments.find(c => c.id === commentId);
+    if (!comment) {
+      return json({ ok: false, error: 'Comment not found.' }, { status: 404 }, corsHeaders);
+    }
+    const initialLen = comment.replies?.length || 0;
+    comment.replies = (comment.replies || []).filter(r => r.id !== replyId);
+    if (comment.replies.length === initialLen) {
+      return json({ ok: false, error: 'Reply not found.' }, { status: 404 }, corsHeaders);
+    }
+  } else {
+    // Delete the entire comment
+    const initialLen = comments.length;
+    const nextComments = comments.filter(c => c.id !== commentId);
+    if (nextComments.length === initialLen) {
+      return json({ ok: false, error: 'Comment not found.' }, { status: 404 }, corsHeaders);
+    }
+    state.comments = nextComments;
+  }
+
+  const saved = await saveState(env, { ...state, comments: state.comments || comments });
+  return json({ ok: true, updatedAt: saved.updatedAt }, { status: 200 }, corsHeaders);
+}
+
 export default {
   async fetch(request, env) {
     const corsHeaders = buildCorsHeaders(request, env);
@@ -338,6 +446,8 @@ export default {
       }
       if (request.method === 'POST' && path === '/api/requests') return createPurchaseRequest(request, env, corsHeaders);
       if (request.method === 'POST' && path === '/api/sessions') return createSession(request, env, corsHeaders);
+      if (request.method === 'POST' && path === '/api/comments') return handleCreateCommentOrReply(request, env, corsHeaders);
+      if (request.method === 'DELETE' && path === '/api/comments') return handleDeleteCommentOrReply(request, env, corsHeaders);
       if (request.method === 'DELETE' && path === '/api/sessions/current') return deleteCurrentSession(request, env, corsHeaders);
       if ((request.method === 'PUT' || request.method === 'POST') && path === '/api/state') {
         const auth = await requireWriteAuth(request, env, corsHeaders);
