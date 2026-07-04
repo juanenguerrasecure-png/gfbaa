@@ -4,7 +4,7 @@ import { PhotoUploader } from '../../components/PhotoUploader';
 import { Save, Trash2, ArrowUp, ArrowDown, Image as ImageIcon, Sparkles } from 'lucide-react';
 
 export function GalleryTab() {
-  const { galleryPhotos = [], setGalleryPhotos, syncAfterLocalChange } = useStore();
+  const { galleryPhotos = [], saveGalleryPhotos } = useStore();
   const [photosList, setPhotosList] = useState([]);
   
   // New photo form state
@@ -88,13 +88,7 @@ export function GalleryTab() {
     try {
       // Sort list by their order value before saving
       const sortedList = [...photosList].sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0));
-      setGalleryPhotos(sortedList);
-      
-      // Explicitly trigger a backend save
-      const res = await syncAfterLocalChange({
-        ...JSON.parse(localStorage.getItem('gf_last_snapshot') || '{}'),
-        galleryPhotos: sortedList
-      });
+      const res = await saveGalleryPhotos(sortedList);
 
       if (res && res.error) {
         setStatus(`Error saving to cloud: ${res.error}`);

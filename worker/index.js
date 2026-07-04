@@ -85,6 +85,12 @@ function defaultState() {
     season: 'classic',
     pastCollections: [],
     galleryPhotos: [],
+    siteContent: {
+      homeIntro: 'Sourced with refinement, preserved for posterity',
+      shopIntro: 'Vetted designer handbags, fine pieces, and pristine seasonal acquisitions.',
+      galleryIntro: 'Visual diaries, styling stories, and close-up lifestyle curations.',
+      archiveIntro: 'An archival directory of previously loved curations now residing with new owners.'
+    },
   };
 }
 
@@ -110,6 +116,7 @@ function normalizeState(input) {
     season: typeof input.season === 'string' ? input.season : base.season,
     pastCollections: Array.isArray(input.pastCollections) ? input.pastCollections : [],
     galleryPhotos: Array.isArray(input.galleryPhotos) ? input.galleryPhotos : [],
+    siteContent: input.siteContent && typeof input.siteContent === 'object' ? { ...base.siteContent, ...input.siteContent } : base.siteContent,
   };
 }
 

@@ -4,7 +4,7 @@ import { PhotoUploader } from '../../components/PhotoUploader';
 import { Save, Trash2, BookOpen, ToggleLeft, ToggleRight, Sparkles, PlusCircle } from 'lucide-react';
 
 export function PastCollectionsTab() {
-  const { pastCollections = [], setPastCollections, syncAfterLocalChange } = useStore();
+  const { pastCollections = [], savePastCollections } = useStore();
   const [piecesList, setPiecesList] = useState([]);
 
   // New past piece form state
@@ -73,13 +73,7 @@ export function PastCollectionsTab() {
     setIsSaving(true);
     setStatus('');
     try {
-      setPastCollections(piecesList);
-
-      // Explicitly trigger a backend save
-      const res = await syncAfterLocalChange({
-        ...JSON.parse(localStorage.getItem('gf_last_snapshot') || '{}'),
-        pastCollections: piecesList
-      });
+      const res = await savePastCollections(piecesList);
 
       if (res && res.error) {
         setStatus(`Error saving to cloud: ${res.error}`);

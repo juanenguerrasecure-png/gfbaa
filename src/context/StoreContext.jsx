@@ -90,6 +90,7 @@ export function StoreProvider({ children }) {
   const savingRef = useRef(false);
   const lastCloudUpdatedAtRef = useRef(localStorage.getItem('gf_cloud_updated_at') || '');
   const latestSnapshotRef = useRef(null);
+  const lastSerializedSnapshotRef = useRef('');
 
   const buildSnapshot = useCallback(() => ({
     exchangeRate, products, batches, sales, purchaseRequests, catalogItems, socialLinks, paymentMethods, heroImage, season, pastCollections, galleryPhotos, siteContent
@@ -117,6 +118,8 @@ export function StoreProvider({ children }) {
 
   const applySnapshot = useCallback((snapshot) => {
     applyingRemoteRef.current = true;
+    lastSerializedSnapshotRef.current = JSON.stringify(snapshot);
+
     setExchangeRate(Number(snapshot.exchangeRate) || DEFAULT_EXCHANGE_RATE);
     setProducts(Array.isArray(snapshot.products) ? snapshot.products : []);
     setBatches(Array.isArray(snapshot.batches) ? snapshot.batches : []);
@@ -142,6 +145,7 @@ export function StoreProvider({ children }) {
       return { ok: false, authRequired: true, error: 'Admin session expired. Please log in again before syncing changes.' };
     }
 
+    lastSerializedSnapshotRef.current = JSON.stringify(snapshot);
     savingRef.current = true;
     try {
       const response = await fetch('/api/state', {
@@ -209,9 +213,17 @@ export function StoreProvider({ children }) {
   useEffect(() => {
     if (!cloudReady || applyingRemoteRef.current) return;
     if (!hasActiveSession()) return;
-    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+
     const snapshot = buildSnapshot();
-    saveTimerRef.current = setTimeout(() => { saveCloudState(snapshot); }, 600);
+    const serialized = JSON.stringify(snapshot);
+    if (serialized === lastSerializedSnapshotRef.current) {
+      return; // No local-only changes compared to what was loaded or saved
+    }
+
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = setTimeout(() => {
+      saveCloudState(snapshot);
+    }, 600);
     return () => { if (saveTimerRef.current) clearTimeout(saveTimerRef.current); };
   }, [cloudReady, buildSnapshot, saveCloudState]);
 
@@ -435,6 +447,22 @@ export function StoreProvider({ children }) {
     return saveCloudState(snapshot);
   }, [buildSnapshot, saveCloudState, writeLocalCache, siteContent]);
 
+  const savePastCollections = useCallback(async (nextPastCollections) => {
+    setPastCollections(nextPastCollections);
+    const snapshot = { ...buildSnapshot(), pastCollections: nextPastCollections };
+    latestSnapshotRef.current = snapshot;
+    writeLocalCache(snapshot);
+    return saveCloudState(snapshot);
+  }, [buildSnapshot, saveCloudState, writeLocalCache]);
+
+  const saveGalleryPhotos = useCallback(async (nextGalleryPhotos) => {
+    setGalleryPhotos(nextGalleryPhotos);
+    const snapshot = { ...buildSnapshot(), galleryPhotos: nextGalleryPhotos };
+    latestSnapshotRef.current = snapshot;
+    writeLocalCache(snapshot);
+    return saveCloudState(snapshot);
+  }, [buildSnapshot, saveCloudState, writeLocalCache]);
+
   const clearMockData = useCallback(() => {
     const emptySnapshot = { exchangeRate, products: [], batches: [], sales: [], purchaseRequests: [], catalogItems: [], socialLinks, paymentMethods, heroImage, season, pastCollections: [], galleryPhotos: [], siteContent };
     localStorage.setItem('gf_cleared', 'true');
@@ -457,8 +485,8 @@ export function StoreProvider({ children }) {
       paymentMethods, savePaymentMethods,
       heroImage, saveHeroImage,
       season, saveSeason,
-      pastCollections, setPastCollections,
-      galleryPhotos, setGalleryPhotos,
+      pastCollections, setPastCollections, savePastCollections,
+      galleryPhotos, setGalleryPhotos, saveGalleryPhotos,
       inquiryItem, setInquiryItem,
       siteContent, updateSiteContent,
       saveCloudState, syncCurrentState, syncAfterLocalChange,
