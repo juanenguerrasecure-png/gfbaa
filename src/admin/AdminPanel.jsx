@@ -1,5 +1,5 @@
 import { lazy, Suspense, useState } from 'react';
-import { Package, PlusCircle, BarChart2, LogOut, X, Menu, Code, Users, Bell, ShoppingCart, Share2, CreditCard } from 'lucide-react';
+import { Package, PlusCircle, BarChart2, LogOut, X, Menu, Code, Users, Bell, ShoppingCart, Share2, CreditCard, Image, BookOpen } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useStore } from '../context/StoreContext';
 import styles from './AdminPanel.module.css';
@@ -12,6 +12,8 @@ const UsersTab = lazy(() => import('./tabs/UsersTab').then(m => ({ default: m.Us
 const RequestsTab = lazy(() => import('./tabs/RequestsTab').then(m => ({ default: m.RequestsTab })));
 const SocialLinksTab = lazy(() => import('./tabs/SocialLinksTab').then(m => ({ default: m.SocialLinksTab })));
 const PaymentMethodsTab = lazy(() => import('./tabs/PaymentMethodsTab').then(m => ({ default: m.PaymentMethodsTab })));
+const GalleryTab = lazy(() => import('./tabs/GalleryTab').then(m => ({ default: m.GalleryTab })));
+const PastCollectionsTab = lazy(() => import('./tabs/PastCollectionsTab').then(m => ({ default: m.PastCollectionsTab })));
 const GlobalManualSaleModal = lazy(() => import('./components/GlobalManualSaleModal').then(m => ({ default: m.GlobalManualSaleModal })));
 
 function AdminContentFallback() {
@@ -29,6 +31,8 @@ const NAV = [
   { key: 'inventory', label: 'Products & Stock', icon: Package, tab: InventoryTab },
   { key: 'requests', label: 'Buyer Requests', icon: Bell, tab: RequestsTab },
   { key: 'add', label: 'Add Batch / Purchase', icon: PlusCircle, tab: AddItemTab },
+  { key: 'gallery', label: 'Storefront Gallery', icon: Image, tab: GalleryTab },
+  { key: 'past_collections', label: 'Past Collections', icon: BookOpen, tab: PastCollectionsTab },
   { key: 'reports', label: 'Reports & Logs', icon: BarChart2, tab: ReportsTab },
   { key: 'users', label: 'Users & Control', icon: Users, tab: UsersTab },
   { key: 'social', label: 'Social Links', icon: Share2, tab: SocialLinksTab },
@@ -37,7 +41,8 @@ const NAV = [
 ];
 
 const GROUPS = [
-  { title: 'Operations & Stock', items: ['inventory', 'add'] },
+  { title: 'Operations & Stock', items: ['inventory', 'add', 'past_collections'] },
+  { title: 'Editorial & Content', items: ['gallery'] },
   { title: 'Customer Management', items: ['requests'] },
   { title: 'System & Settings', items: ['reports', 'users', 'social', 'payments', 'design'] },
 ];

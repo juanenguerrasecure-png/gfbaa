@@ -2,7 +2,9 @@ import { ShoppingBag, Settings, ChevronLeft, Heart } from 'lucide-react';
 import { PriceToggle } from './PriceToggle';
 import styles from './Navbar.module.css';
 
-export function Navbar({ cartCount, onCartClick, onAdminClick, wishlistCount = 0, onWishlistClick, title, onBack }) {
+export function Navbar({ cartCount, onCartClick, onAdminClick, wishlistCount = 0, onWishlistClick, title, onBack, currentView, onViewChange }) {
+  const isStoreFrontView = ['home', 'store', 'gallery', 'archive'].includes(currentView);
+
   return (
     <header className={styles.nav}>
       <div className={styles.navInner}>
@@ -12,10 +14,43 @@ export function Navbar({ cartCount, onCartClick, onAdminClick, wishlistCount = 0
             <span className={styles.backLabel}>Store</span>
           </button>
         ) : (
-          <div className={styles.brand}>
+          <div className={styles.brand} onClick={() => onViewChange && onViewChange('home')} style={{ cursor: 'pointer' }}>
             <span className={styles.brandName}>Good Finds</span>
             <span className={styles.brandAccent}> by AA</span>
           </div>
+        )}
+
+        {isStoreFrontView && onViewChange && (
+          <nav className={styles.navLinks}>
+            <button 
+              className={`${styles.navLink} ${currentView === 'home' ? styles.activeNavLink : ''}`} 
+              onClick={() => onViewChange('home')}
+              id="nav_link_home"
+            >
+              Home
+            </button>
+            <button 
+              className={`${styles.navLink} ${currentView === 'gallery' ? styles.activeNavLink : ''}`} 
+              onClick={() => onViewChange('gallery')}
+              id="nav_link_gallery"
+            >
+              Gallery
+            </button>
+            <button 
+              className={`${styles.navLink} ${currentView === 'store' ? styles.activeNavLink : ''}`} 
+              onClick={() => onViewChange('store')}
+              id="nav_link_shop"
+            >
+              Shop
+            </button>
+            <button 
+              className={`${styles.navLink} ${currentView === 'archive' ? styles.activeNavLink : ''}`} 
+              onClick={() => onViewChange('archive')}
+              id="nav_link_archive"
+            >
+              Past Collections
+            </button>
+          </nav>
         )}
 
         {title && <h1 className={styles.navTitle}>{title}</h1>}

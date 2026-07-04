@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import { AlertCircle, Sparkles, Trash2, Upload } from 'lucide-react';
 import { compressImage } from '../lib/imageCompressor';
 
-export function PhotoUploader({ value, onChange }) {
+export function PhotoUploader({ value, onChange, label = 'Product Listing Photo' }) {
   const [compressStats, setCompressStats] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -97,7 +97,7 @@ export function PhotoUploader({ value, onChange }) {
   return (
     <div className="space-y-3">
       <label className="text-xs font-semibold tracking-wider text-stone-500 uppercase block">
-        Product Listing Photo
+        {label}
       </label>
 
       {isUploading && (

@@ -83,6 +83,8 @@ function defaultState() {
     paymentMethods: defaultPaymentMethods(),
     heroImage: defaultHeroImage(),
     season: 'classic',
+    pastCollections: [],
+    galleryPhotos: [],
   };
 }
 
@@ -106,6 +108,8 @@ function normalizeState(input) {
     paymentMethods: normalizePaymentMethods(input.paymentMethods),
     heroImage: normalizeHeroImage(input.heroImage),
     season: typeof input.season === 'string' ? input.season : base.season,
+    pastCollections: Array.isArray(input.pastCollections) ? input.pastCollections : [],
+    galleryPhotos: Array.isArray(input.galleryPhotos) ? input.galleryPhotos : [],
   };
 }
 

@@ -70,6 +70,8 @@ export function StoreProvider({ children }) {
   const [paymentMethods, setPaymentMethods] = useState(() => normalizePaymentMethods(readLocalJson('gf_payment_methods', DEFAULT_PAYMENT_METHODS)));
   const [heroImage, setHeroImage] = useState(() => normalizeHeroImage(readLocalJson('gf_hero_image', DEFAULT_HERO_IMAGE)));
   const [season, setSeason] = useState(() => normalizeSeason(localStorage.getItem('gf_season') || 'classic'));
+  const [pastCollections, setPastCollections] = useState(() => readLocalJson('gf_past_collections', []));
+  const [galleryPhotos, setGalleryPhotos] = useState(() => readLocalJson('gf_gallery_photos', []));
   const [cloudReady, setCloudReady] = useState(false);
 
   const applyingRemoteRef = useRef(false);
@@ -78,9 +80,13 @@ export function StoreProvider({ children }) {
   const lastCloudUpdatedAtRef = useRef(localStorage.getItem('gf_cloud_updated_at') || '');
   const latestSnapshotRef = useRef(null);
 
-  const buildSnapshot = useCallback(() => ({ exchangeRate, products, batches, sales, purchaseRequests, catalogItems, socialLinks, paymentMethods, heroImage, season }), [exchangeRate, products, batches, sales, purchaseRequests, catalogItems, socialLinks, paymentMethods, heroImage, season]);
+  const buildSnapshot = useCallback(() => ({
+    exchangeRate, products, batches, sales, purchaseRequests, catalogItems, socialLinks, paymentMethods, heroImage, season, pastCollections, galleryPhotos
+  }), [exchangeRate, products, batches, sales, purchaseRequests, catalogItems, socialLinks, paymentMethods, heroImage, season, pastCollections, galleryPhotos]);
 
-  const snapshotHasRecords = (snapshot) => Boolean(snapshot?.products?.length || snapshot?.batches?.length || snapshot?.catalogItems?.length || snapshot?.sales?.length || snapshot?.purchaseRequests?.length);
+  const snapshotHasRecords = (snapshot) => Boolean(
+    snapshot?.products?.length || snapshot?.batches?.length || snapshot?.catalogItems?.length || snapshot?.sales?.length || snapshot?.purchaseRequests?.length || snapshot?.pastCollections?.length || snapshot?.galleryPhotos?.length
+  );
 
   const writeLocalCache = useCallback((snapshot) => {
     localStorage.setItem('gf_exchange_rate', String(snapshot.exchangeRate ?? DEFAULT_EXCHANGE_RATE));
@@ -93,6 +99,8 @@ export function StoreProvider({ children }) {
     localStorage.setItem('gf_payment_methods', JSON.stringify(normalizePaymentMethods(snapshot.paymentMethods)));
     localStorage.setItem('gf_hero_image', JSON.stringify(normalizeHeroImage(snapshot.heroImage)));
     localStorage.setItem('gf_season', normalizeSeason(snapshot.season));
+    localStorage.setItem('gf_past_collections', JSON.stringify(snapshot.pastCollections || []));
+    localStorage.setItem('gf_gallery_photos', JSON.stringify(snapshot.galleryPhotos || []));
   }, []);
 
   const applySnapshot = useCallback((snapshot) => {
@@ -107,6 +115,8 @@ export function StoreProvider({ children }) {
     setPaymentMethods(normalizePaymentMethods(snapshot.paymentMethods));
     setHeroImage(normalizeHeroImage(snapshot.heroImage));
     setSeason(normalizeSeason(snapshot.season));
+    setPastCollections(Array.isArray(snapshot.pastCollections) ? snapshot.pastCollections : []);
+    setGalleryPhotos(Array.isArray(snapshot.galleryPhotos) ? snapshot.galleryPhotos : []);
     writeLocalCache(snapshot);
     window.setTimeout(() => { applyingRemoteRef.current = false; }, 0);
   }, [writeLocalCache]);
@@ -401,9 +411,9 @@ export function StoreProvider({ children }) {
   }, [buildSnapshot, purchaseRequests]);
 
   const clearMockData = useCallback(() => {
-    const emptySnapshot = { exchangeRate, products: [], batches: [], sales: [], purchaseRequests: [], catalogItems: [], socialLinks, paymentMethods, heroImage, season };
+    const emptySnapshot = { exchangeRate, products: [], batches: [], sales: [], purchaseRequests: [], catalogItems: [], socialLinks, paymentMethods, heroImage, season, pastCollections: [], galleryPhotos: [] };
     localStorage.setItem('gf_cleared', 'true');
-    setProducts([]); setBatches([]); setSales([]); setPurchaseRequests([]); setCatalogItems([]);
+    setProducts([]); setBatches([]); setSales([]); setPurchaseRequests([]); setCatalogItems([]); setPastCollections([]); setGalleryPhotos([]);
     latestSnapshotRef.current = emptySnapshot;
     writeLocalCache(emptySnapshot);
     return saveCloudState(emptySnapshot);
@@ -422,6 +432,8 @@ export function StoreProvider({ children }) {
       paymentMethods, savePaymentMethods,
       heroImage, saveHeroImage,
       season, saveSeason,
+      pastCollections, setPastCollections,
+      galleryPhotos, setGalleryPhotos,
       saveCloudState, syncCurrentState, syncAfterLocalChange,
       clearMockData
     }}>

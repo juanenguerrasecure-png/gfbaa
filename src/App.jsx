@@ -10,6 +10,9 @@ import { useCart }      from './hooks/useCart';
 import { useWishlist }  from './hooks/useWishlist';
 import { useAuth }      from './context/AuthContext';
 import { useStore }     from './context/StoreContext';
+import { HomeView }     from './components/HomeView';
+import { GalleryView }  from './components/GalleryView';
+import { ArchiveView }  from './components/ArchiveView';
 
 const AdminPanel = lazy(() => import('./admin/AdminPanel').then(module => ({ default: module.AdminPanel })));
 
@@ -24,7 +27,7 @@ function AdminLoadingFallback() {
   );
 }
 
-// View states: 'store' | 'login' | 'admin'
+// View states: 'home' | 'store' | 'gallery' | 'archive' | 'login' | 'admin'
 export default function App() {
   const { season } = useStore();
 
@@ -32,7 +35,7 @@ export default function App() {
     document.documentElement.setAttribute('data-season', season || 'classic');
   }, [season]);
 
-  const [view, setView] = useState('store');
+  const [view, setView] = useState('home');
   const [activeFilter, setActiveFilter] = useState('all');
   const [isWishlistOpen, setIsWishlistOpen] = useState(false);
 
@@ -60,7 +63,7 @@ export default function App() {
   // Admin login — redirect to admin if already logged in
   if (view === 'login') {
     if (isAdmin) { setView('admin'); return null; }
-    return <AdminLogin onSuccess={() => setView('admin')} onBack={() => setView('store')} />;
+    return <AdminLogin onSuccess={() => setView('admin')} onBack={() => setView('home')} />;
   }
 
   // Admin panel
@@ -68,10 +71,34 @@ export default function App() {
     if (!isAdmin) { setView('login'); return null; }
     return (
       <Suspense fallback={<AdminLoadingFallback />}>
-        <AdminPanel onExitAdmin={() => setView('store')} />
+        <AdminPanel onExitAdmin={() => setView('home')} />
       </Suspense>
     );
   }
+
+  // Render the selected view
+  const renderContent = () => {
+    switch (view) {
+      case 'home':
+        return <HomeView onViewChange={setView} onAddToCart={addToCart} />;
+      case 'gallery':
+        return <GalleryView />;
+      case 'archive':
+        return <ArchiveView />;
+      case 'store':
+      default:
+        return (
+          <>
+            <Hero onCategoryClick={setActiveFilter} />
+            <ProductGrid
+              activeFilter={activeFilter}
+              onFilterChange={setActiveFilter}
+              onAddToCart={addToCart}
+            />
+          </>
+        );
+    }
+  };
 
   // Storefront
   return (
@@ -82,13 +109,10 @@ export default function App() {
         onAdminClick={handleAdminClick}
         wishlistCount={wishlist.length}
         onWishlistClick={() => setIsWishlistOpen(true)}
+        currentView={view}
+        onViewChange={setView}
       />
-      <Hero onCategoryClick={setActiveFilter} />
-      <ProductGrid
-        activeFilter={activeFilter}
-        onFilterChange={setActiveFilter}
-        onAddToCart={addToCart}
-      />
+      {renderContent()}
       <CartModal
         isOpen={isCartOpen}
         onClose={() => setIsCartOpen(false)}

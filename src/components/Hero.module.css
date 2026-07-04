@@ -7,6 +7,16 @@
   transition: background-color 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+.heroSlim {
+  padding: 2.25rem 1.5rem !important;
+}
+
+@media (max-width: 768px) {
+  .heroSlim {
+    padding: 1.5rem 1.25rem !important;
+  }
+}
+
 .hero::before {
   content: '';
   position: absolute;
@@ -64,6 +74,75 @@
 }
 
 @keyframes gentleRotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.summerAmbientSun {
+  position: absolute;
+  top: -15%;
+  right: -10%;
+  width: 650px;
+  height: 650px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(201, 168, 76, 0.09) 0%, rgba(201, 168, 76, 0) 70%);
+  pointer-events: none;
+  z-index: 0;
+  overflow: visible;
+  animation: slowPulse 8s ease-in-out infinite;
+}
+
+.sunCore {
+  position: absolute;
+  top: 25%;
+  left: 25%;
+  width: 50%;
+  height: 50%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(201, 168, 76, 0.14) 0%, rgba(201, 168, 76, 0.02) 65%, transparent 100%);
+  filter: blur(20px);
+  animation: coreGlow 4s ease-in-out infinite alternate;
+}
+
+.sunRays {
+  position: absolute;
+  inset: 0;
+  background: repeating-conic-gradient(
+    from 0deg,
+    rgba(201, 168, 76, 0.04) 0deg 8deg,
+    transparent 8deg 16deg
+  );
+  border-radius: 50%;
+  animation: slowSpin 80s linear infinite;
+  mask-image: radial-gradient(circle, black 30%, transparent 70%);
+  -webkit-mask-image: radial-gradient(circle, black 30%, transparent 70%);
+}
+
+@keyframes slowPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.06);
+  }
+}
+
+@keyframes coreGlow {
+  0% {
+    opacity: 0.35;
+    transform: scale(0.96);
+  }
+  100% {
+    opacity: 0.85;
+    transform: scale(1.04);
+  }
+}
+
+@keyframes slowSpin {
   from {
     transform: rotate(0deg);
   }

@@ -27,9 +27,9 @@ const SEASONAL_DETAILS = {
     icon: Sun,
     symbol: '☀️',
     particleType: 'float',
-    title: 'Sun-Drenched Summer Edit.',
-    emphasis: 'Curated warm-toned terracotta leathers, honey-gold patinas, and glistening 18k gold jewelry.',
-    subtitle: 'Embrace the vibrant golden hour energy with our meticulously selected warm-hued designer handbags and radiant jewelry inspired by the brilliant summer sun.'
+    title: 'The Golden Hour Curation.',
+    emphasis: 'Bask in the radiant warmth of curated terracotta leathers, honey-toned luxury patinas, and shimmering 18k gold heirloom jewelry.',
+    subtitle: 'Embrace the high-summer sun with our meticulously handpicked collection of authentic pre-loved designer handbags and radiant accessories that capture the season’s vibrant, sun-kissed energy.'
   },
   autumn: {
     badge: 'Autumn Curation — Warm Crimson',
@@ -62,7 +62,7 @@ const STATIC_PARTICLES = [
   { left: '95%', delay: '7s', duration: '9s', size: '19px' },
 ];
 
-export function Hero({ onCategoryClick }) {
+export function Hero({ onCategoryClick, slim = false }) {
   const { heroImage, season } = useStore();
   const hasHeroImage = Boolean(heroImage?.url && String(heroImage.url).trim());
   
@@ -71,7 +71,15 @@ export function Hero({ onCategoryClick }) {
   const BadgeIcon = detail.icon || Sparkles;
 
   return (
-    <section className={styles.hero} id="store_hero">
+    <section className={`${styles.hero} ${slim ? styles.heroSlim : ''}`} id="store_hero">
+      {/* Sun-inspired ambient decorative circle & sunburst for summer */}
+      {currentSeason === 'summer' && (
+        <div className={styles.summerAmbientSun} id="hero_summer_ambient_sun">
+          <div className={styles.sunCore}></div>
+          <div className={styles.sunRays}></div>
+        </div>
+      )}
+
       {/* Ambient Seasonal Floating Particles */}
       {STATIC_PARTICLES.map((p, idx) => (
         <span
@@ -108,22 +116,24 @@ export function Hero({ onCategoryClick }) {
             {detail.subtitle}
           </p>
           <SocialLinks />
-          <div className={styles.actions}>
-            <button
-              id="hero_btn_bags"
-              onClick={() => onCategoryClick('bags')}
-              className={`${styles.btn} ${styles.btnPrimary}`}
-            >
-              Shop Luxury Bags
-            </button>
-            <button
-              id="hero_btn_jewelry"
-              onClick={() => onCategoryClick('jewelry')}
-              className={`${styles.btn} ${styles.btnSecondary}`}
-            >
-              Explore Fine Jewelry
-            </button>
-          </div>
+          {!slim && (
+            <div className={styles.actions}>
+              <button
+                id="hero_btn_bags"
+                onClick={() => onCategoryClick('bags')}
+                className={`${styles.btn} ${styles.btnPrimary}`}
+              >
+                Shop Luxury Bags
+              </button>
+              <button
+                id="hero_btn_jewelry"
+                onClick={() => onCategoryClick('jewelry')}
+                className={`${styles.btn} ${styles.btnSecondary}`}
+              >
+                Explore Fine Jewelry
+              </button>
+            </div>
+          )}
         </div>
 
         {hasHeroImage ? (
