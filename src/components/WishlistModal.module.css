@@ -45,7 +45,7 @@
 }
 
 .heartIcon {
-  color: #C9A84C;
+  color: var(--accent);
 }
 
 .title {
@@ -277,8 +277,8 @@
 }
 
 .addToBagBtn:hover {
-  background-color: #C9A84C;
-  border-color: #C9A84C;
+  background-color: var(--accent);
+  border-color: var(--accent);
 }
 
 .removeBtn {

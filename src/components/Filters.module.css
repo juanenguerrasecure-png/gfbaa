@@ -37,7 +37,7 @@
 }
 
 .pill:hover {
-  border-color: #C9A84C;
+  border-color: var(--accent);
   color: #1C1410;
 }
 

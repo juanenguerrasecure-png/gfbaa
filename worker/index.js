@@ -82,6 +82,7 @@ function defaultState() {
     socialLinks: {},
     paymentMethods: defaultPaymentMethods(),
     heroImage: defaultHeroImage(),
+    season: 'classic',
   };
 }
 
@@ -104,6 +105,7 @@ function normalizeState(input) {
     socialLinks: input.socialLinks && typeof input.socialLinks === 'object' ? input.socialLinks : {},
     paymentMethods: normalizePaymentMethods(input.paymentMethods),
     heroImage: normalizeHeroImage(input.heroImage),
+    season: typeof input.season === 'string' ? input.season : base.season,
   };
 }
 
@@ -136,6 +138,7 @@ async function saveState(env, inputState) {
   if (!Object.prototype.hasOwnProperty.call(incomingState, 'socialLinks')) state.socialLinks = existing.state.socialLinks || {};
   if (!Object.prototype.hasOwnProperty.call(incomingState, 'paymentMethods')) state.paymentMethods = normalizePaymentMethods(existing.state.paymentMethods);
   if (!Object.prototype.hasOwnProperty.call(incomingState, 'heroImage')) state.heroImage = normalizeHeroImage(existing.state.heroImage);
+  if (!Object.prototype.hasOwnProperty.call(incomingState, 'season')) state.season = existing.state.season || 'classic';
   state.sessions = pruneExpiredSessions(state.sessions);
   const updatedAt = new Date().toISOString();
   await env.DB.prepare(`INSERT INTO app_state (id, value, updated_at) VALUES (?, ?, ?) ON CONFLICT(id) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at`).bind(STATE_ID, JSON.stringify(state), updatedAt).run();

@@ -45,6 +45,11 @@ function normalizeHeroImage(value) {
   return { url: String(value.url || '').trim(), alt: String(value.alt || DEFAULT_HERO_IMAGE.alt).trim() || DEFAULT_HERO_IMAGE.alt };
 }
 
+function normalizeSeason(value) {
+  const allowed = ['classic', 'spring', 'summer', 'autumn', 'winter'];
+  return typeof value === 'string' && allowed.includes(value) ? value : 'classic';
+}
+
 export function StoreProvider({ children }) {
   const readLocalJson = (key, fallback) => {
     try { const saved = localStorage.getItem(key); return saved ? JSON.parse(saved) : fallback; } catch (_error) { return fallback; }
@@ -64,6 +69,7 @@ export function StoreProvider({ children }) {
   const [socialLinks, setSocialLinks] = useState(() => readLocalJson('gf_social_links', {}));
   const [paymentMethods, setPaymentMethods] = useState(() => normalizePaymentMethods(readLocalJson('gf_payment_methods', DEFAULT_PAYMENT_METHODS)));
   const [heroImage, setHeroImage] = useState(() => normalizeHeroImage(readLocalJson('gf_hero_image', DEFAULT_HERO_IMAGE)));
+  const [season, setSeason] = useState(() => normalizeSeason(localStorage.getItem('gf_season') || 'classic'));
   const [cloudReady, setCloudReady] = useState(false);
 
   const applyingRemoteRef = useRef(false);
@@ -72,7 +78,7 @@ export function StoreProvider({ children }) {
   const lastCloudUpdatedAtRef = useRef(localStorage.getItem('gf_cloud_updated_at') || '');
   const latestSnapshotRef = useRef(null);
 
-  const buildSnapshot = useCallback(() => ({ exchangeRate, products, batches, sales, purchaseRequests, catalogItems, socialLinks, paymentMethods, heroImage }), [exchangeRate, products, batches, sales, purchaseRequests, catalogItems, socialLinks, paymentMethods, heroImage]);
+  const buildSnapshot = useCallback(() => ({ exchangeRate, products, batches, sales, purchaseRequests, catalogItems, socialLinks, paymentMethods, heroImage, season }), [exchangeRate, products, batches, sales, purchaseRequests, catalogItems, socialLinks, paymentMethods, heroImage, season]);
 
   const snapshotHasRecords = (snapshot) => Boolean(snapshot?.products?.length || snapshot?.batches?.length || snapshot?.catalogItems?.length || snapshot?.sales?.length || snapshot?.purchaseRequests?.length);
 
@@ -86,6 +92,7 @@ export function StoreProvider({ children }) {
     localStorage.setItem('gf_social_links', JSON.stringify(snapshot.socialLinks || {}));
     localStorage.setItem('gf_payment_methods', JSON.stringify(normalizePaymentMethods(snapshot.paymentMethods)));
     localStorage.setItem('gf_hero_image', JSON.stringify(normalizeHeroImage(snapshot.heroImage)));
+    localStorage.setItem('gf_season', normalizeSeason(snapshot.season));
   }, []);
 
   const applySnapshot = useCallback((snapshot) => {
@@ -99,6 +106,7 @@ export function StoreProvider({ children }) {
     setSocialLinks(snapshot.socialLinks && typeof snapshot.socialLinks === 'object' ? snapshot.socialLinks : {});
     setPaymentMethods(normalizePaymentMethods(snapshot.paymentMethods));
     setHeroImage(normalizeHeroImage(snapshot.heroImage));
+    setSeason(normalizeSeason(snapshot.season));
     writeLocalCache(snapshot);
     window.setTimeout(() => { applyingRemoteRef.current = false; }, 0);
   }, [writeLocalCache]);
@@ -212,6 +220,15 @@ export function StoreProvider({ children }) {
     const normalized = normalizeHeroImage(nextHeroImage);
     setHeroImage(normalized);
     const snapshot = { ...buildSnapshot(), heroImage: normalized };
+    latestSnapshotRef.current = snapshot;
+    writeLocalCache(snapshot);
+    return saveCloudState(snapshot);
+  }, [buildSnapshot, saveCloudState, writeLocalCache]);
+
+  const saveSeason = useCallback(async (nextSeason) => {
+    const normalized = normalizeSeason(nextSeason);
+    setSeason(normalized);
+    const snapshot = { ...buildSnapshot(), season: normalized };
     latestSnapshotRef.current = snapshot;
     writeLocalCache(snapshot);
     return saveCloudState(snapshot);
@@ -384,13 +401,13 @@ export function StoreProvider({ children }) {
   }, [buildSnapshot, purchaseRequests]);
 
   const clearMockData = useCallback(() => {
-    const emptySnapshot = { exchangeRate, products: [], batches: [], sales: [], purchaseRequests: [], catalogItems: [], socialLinks, paymentMethods, heroImage };
+    const emptySnapshot = { exchangeRate, products: [], batches: [], sales: [], purchaseRequests: [], catalogItems: [], socialLinks, paymentMethods, heroImage, season };
     localStorage.setItem('gf_cleared', 'true');
     setProducts([]); setBatches([]); setSales([]); setPurchaseRequests([]); setCatalogItems([]);
     latestSnapshotRef.current = emptySnapshot;
     writeLocalCache(emptySnapshot);
     return saveCloudState(emptySnapshot);
-  }, [exchangeRate, socialLinks, paymentMethods, heroImage, saveCloudState, writeLocalCache]);
+  }, [exchangeRate, socialLinks, paymentMethods, heroImage, season, saveCloudState, writeLocalCache]);
 
   return (
     <StoreContext.Provider value={{
@@ -404,6 +421,7 @@ export function StoreProvider({ children }) {
       socialLinks, saveSocialLinks,
       paymentMethods, savePaymentMethods,
       heroImage, saveHeroImage,
+      season, saveSeason,
       saveCloudState, syncCurrentState, syncAfterLocalChange,
       clearMockData
     }}>

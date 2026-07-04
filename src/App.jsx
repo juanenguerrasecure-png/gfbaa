@@ -1,4 +1,4 @@
-import { lazy, Suspense, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { Navbar }       from './components/Navbar';
 import { Hero }         from './components/Hero';
 import { ProductGrid }  from './components/ProductGrid';
@@ -9,6 +9,7 @@ import { AdminLogin }   from './admin/AdminLogin';
 import { useCart }      from './hooks/useCart';
 import { useWishlist }  from './hooks/useWishlist';
 import { useAuth }      from './context/AuthContext';
+import { useStore }     from './context/StoreContext';
 
 const AdminPanel = lazy(() => import('./admin/AdminPanel').then(module => ({ default: module.AdminPanel })));
 
@@ -16,7 +17,7 @@ function AdminLoadingFallback() {
   return (
     <div className="min-h-screen bg-[#FAF8F5] flex items-center justify-center">
       <div className="flex flex-col items-center gap-3 text-stone-600">
-        <div className="h-8 w-8 rounded-full border-2 border-[#E5DFD8] border-t-[#C9A84C] animate-spin" />
+        <div className="h-8 w-8 rounded-full border-2 border-[#E5DFD8] border-t-accent animate-spin" />
         <span className="text-xs uppercase tracking-[0.2em] font-semibold">Loading admin</span>
       </div>
     </div>
@@ -25,6 +26,12 @@ function AdminLoadingFallback() {
 
 // View states: 'store' | 'login' | 'admin'
 export default function App() {
+  const { season } = useStore();
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-season', season || 'classic');
+  }, [season]);
+
   const [view, setView] = useState('store');
   const [activeFilter, setActiveFilter] = useState('all');
   const [isWishlistOpen, setIsWishlistOpen] = useState(false);

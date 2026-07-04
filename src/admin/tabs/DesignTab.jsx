@@ -5,11 +5,12 @@ import { Database, Link, GitMerge, Settings, HelpCircle, Save } from 'lucide-rea
 const DEFAULT_HERO_ALT = 'Good Finds by AA Featured Collection';
 
 export function DesignTab() {
-  const { exchangeRate, setExchangeRate, heroImage, saveHeroImage } = useStore();
+  const { exchangeRate, setExchangeRate, heroImage, saveHeroImage, season, saveSeason } = useStore();
   const [activeTab, setActiveTab] = useState('schema');
   const [heroForm, setHeroForm] = useState({ url: '', alt: DEFAULT_HERO_ALT });
   const [previewOk, setPreviewOk] = useState(false);
   const [saveStatus, setSaveStatus] = useState('');
+  const [seasonSaveStatus, setSeasonSaveStatus] = useState('');
   const [syncWarning, setSyncWarning] = useState(false);
   const [isSavingHero, setIsSavingHero] = useState(false);
 
@@ -86,9 +87,68 @@ export function DesignTab() {
         </div>
       </div>
 
+      {/* Seasonal Theme Picker Card */}
+      <div className="bg-white p-5 rounded-lg border border-[#E5DFD8] shadow-sm space-y-4">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h3 className="font-display text-xl text-stone-900">Seasonal Storefront Vibe</h3>
+            <p className="text-sm text-stone-500">
+              Customize the storefront accent palette for different seasons. The admin panel retains a neutral gold accent.
+            </p>
+          </div>
+          <span className="hidden sm:inline-flex text-[10px] uppercase tracking-wider text-amber-600 border border-[#E5DFD8] px-3 py-1 rounded-full">Storefront only</span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4 pt-2">
+          {[
+            { id: 'classic', label: 'Classic Gold', color: 'bg-[#C9A84C]', text: 'text-[#C9A84C]', desc: 'Warm, timeless legacy luxury.' },
+            { id: 'spring', label: 'Spring Mint', color: 'bg-[#5D7268]', text: 'text-[#5D7268]', desc: 'Soft pastel sage and fresh leaf.' },
+            { id: 'summer', label: 'Summer Amber', color: 'bg-[#C17A4C]', text: 'text-[#C17A4C]', desc: 'Radiant clay, linen, and terracotta.' },
+            { id: 'autumn', label: 'Autumn Crimson', color: 'bg-[#8E4A4A]', text: 'text-[#8E4A4A]', desc: 'Rustic rust, deep grape, and crimson.' },
+            { id: 'winter', label: 'Winter Sapphire', color: 'bg-[#4B6B88]', text: 'text-[#4B6B88]', desc: 'Frosted silver and ice-deep navy.' },
+          ].map((theme) => {
+            const isSelected = (season || 'classic') === theme.id;
+            return (
+              <button
+                key={theme.id}
+                type="button"
+                onClick={async () => {
+                  setSeasonSaveStatus('Applying...');
+                  const res = await saveSeason(theme.id);
+                  if (res?.ok) {
+                    setSeasonSaveStatus(`Theme updated to ${theme.label}.`);
+                  } else {
+                    setSeasonSaveStatus('Failed to update seasonal theme.');
+                  }
+                }}
+                className={`p-4 border rounded-lg text-left transition-all relative flex flex-col justify-between h-36 outline-none ${
+                  isSelected 
+                    ? 'border-stone-900 bg-stone-50 ring-2 ring-stone-900/10' 
+                    : 'border-stone-200 hover:border-stone-400 bg-white'
+                }`}
+              >
+                <div className="flex items-center justify-between w-full">
+                  <div className={`w-8 h-8 rounded-full ${theme.color} border border-black/10`} />
+                  {isSelected && (
+                    <span className="text-[9px] uppercase tracking-wider font-bold bg-stone-900 text-white px-2 py-0.5 rounded">Active</span>
+                  )}
+                </div>
+                <div className="mt-4">
+                  <p className="text-xs font-semibold text-stone-950 font-sans">{theme.label}</p>
+                  <p className="text-[10px] text-stone-500 font-sans mt-1 leading-normal">{theme.desc}</p>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+        {seasonSaveStatus && (
+          <p className="text-xs font-medium text-stone-500 pt-1">{seasonSaveStatus}</p>
+        )}
+      </div>
+
       <div className="flex border-b border-stone-200 overflow-x-auto">{[{ id: 'schema', label: 'Database Schema', icon: Database }, { id: 'endpoints', label: 'Suggested API Endpoints', icon: Link }, { id: 'logic', label: 'FIFO & Cost Matching Logic', icon: GitMerge }].map((t) => <button key={t.id} onClick={() => setActiveTab(t.id)} className={`flex items-center gap-2 px-5 py-3 text-sm font-medium border-b-2 transition-all -mb-px whitespace-nowrap ${activeTab === t.id ? 'border-amber-600 text-stone-900 font-semibold' : 'border-transparent text-stone-500 hover:text-stone-800'}`}><t.icon size={15} />{t.label}</button>)}</div>
 
-      {activeTab === 'schema' && <div className="grid grid-cols-1 lg:grid-cols-2 gap-6"><div className="bg-white p-5 rounded-lg border border-stone-200 shadow-sm"><h3 className="font-display text-lg text-stone-900 mb-2 flex items-center gap-2"><span className="p-1 bg-stone-100 rounded text-amber-700">1</span>App State Blob</h3><p className="text-xs text-stone-500 mb-4">The storefront and admin settings are synchronized through the single D1 app_state JSON record.</p><div className="overflow-x-auto"><table className="w-full text-left text-xs font-mono border border-stone-100"><thead><tr className="bg-stone-50 border-b border-stone-200 text-stone-600"><th className="p-2">Field</th><th className="p-2">Purpose</th></tr></thead><tbody className="divide-y divide-stone-100 text-stone-700"><tr><td className="p-2 font-semibold">products</td><td className="p-2">Product catalog and item metadata</td></tr><tr><td className="p-2 font-semibold">batches</td><td className="p-2">Purchase batches, stock, and cost data</td></tr><tr><td className="p-2 font-semibold">catalogItems</td><td className="p-2">Storefront listings and remaining quantities</td></tr><tr><td className="p-2 font-semibold">sales</td><td className="p-2">Completed sales and COGS records</td></tr><tr><td className="p-2 font-semibold">purchaseRequests</td><td className="p-2">Customer cart checkout requests</td></tr><tr><td className="p-2 font-semibold">socialLinks</td><td className="p-2">Storefront social media links</td></tr><tr><td className="p-2 font-semibold">paymentMethods</td><td className="p-2">Zelle and Venmo display information</td></tr><tr><td className="p-2 font-semibold">heroImage</td><td className="p-2">Configurable homepage hero image URL and alt text</td></tr></tbody></table></div></div><div className="bg-amber-50 p-5 rounded-lg border border-amber-200 shadow-sm space-y-3"><h4 className="font-semibold text-stone-800 text-sm flex items-center gap-2"><HelpCircle size={15} className="text-amber-700" />How image configuration works</h4><p className="text-xs text-stone-700 leading-relaxed">The admin saves only the image URL and accessibility description into D1. The image file itself remains hosted externally, so no new upload route or storage change is required.</p><div className="bg-white p-3 rounded font-mono text-xs text-amber-950 border border-amber-100">heroImage = &#123; url: "https://...", alt: "Good Finds by AA Featured Collection" &#125;</div></div></div>}
+      {activeTab === 'schema' && <div className="grid grid-cols-1 lg:grid-cols-2 gap-6"><div className="bg-white p-5 rounded-lg border border-stone-200 shadow-sm"><h3 className="font-display text-lg text-stone-900 mb-2 flex items-center gap-2"><span className="p-1 bg-stone-100 rounded text-amber-700">1</span>App State Blob</h3><p className="text-xs text-stone-500 mb-4">The storefront and admin settings are synchronized through the single D1 app_state JSON record.</p><div className="overflow-x-auto"><table className="w-full text-left text-xs font-mono border border-stone-100"><thead><tr className="bg-stone-50 border-b border-stone-200 text-stone-600"><th className="p-2">Field</th><th className="p-2">Purpose</th></tr></thead><tbody className="divide-y divide-stone-100 text-stone-700"><tr><td className="p-2 font-semibold">products</td><td className="p-2">Product catalog and item metadata</td></tr><tr><td className="p-2 font-semibold">batches</td><td className="p-2">Purchase batches, stock, and cost data</td></tr><tr><td className="p-2 font-semibold">catalogItems</td><td className="p-2">Storefront listings and remaining quantities</td></tr><tr><td className="p-2 font-semibold">sales</td><td className="p-2">Completed sales and COGS records</td></tr><tr><td className="p-2 font-semibold">purchaseRequests</td><td className="p-2">Customer cart checkout requests</td></tr><tr><td className="p-2 font-semibold">socialLinks</td><td className="p-2">Storefront social media links</td></tr><tr><td className="p-2 font-semibold">paymentMethods</td><td className="p-2">Zelle and Venmo display information</td></tr><tr><td className="p-2 font-semibold">heroImage</td><td className="p-2">Configurable homepage hero image URL and alt text</td></tr><tr><td className="p-2 font-semibold">season</td><td className="p-2">Active seasonal theme preset of the storefront</td></tr></tbody></table></div></div><div className="bg-amber-50 p-5 rounded-lg border border-amber-200 shadow-sm space-y-3"><h4 className="font-semibold text-stone-800 text-sm flex items-center gap-2"><HelpCircle size={15} className="text-amber-700" />How image configuration works</h4><p className="text-xs text-stone-700 leading-relaxed">The admin saves only the image URL and accessibility description into D1. The image file itself remains hosted externally, so no new upload route or storage change is required.</p><div className="bg-white p-3 rounded font-mono text-xs text-amber-950 border border-amber-100">heroImage = &#123; url: "https://...", alt: "Good Finds by AA Featured Collection" &#125;</div></div></div>}
       {activeTab === 'endpoints' && <div className="space-y-6"><div className="bg-white p-6 rounded-lg border border-stone-200 shadow-sm"><h3 className="font-display text-lg text-stone-900 mb-2">REST API Design</h3><p className="text-xs text-stone-500 mb-6">Current Worker routes used by the storefront and admin sync layer.</p><div className="space-y-4">{[{ method: 'GET', url: '/api/state', desc: 'Reads the public app state from D1.' }, { method: 'PUT', url: '/api/state', desc: 'Writes the full app state blob to D1 with Authorization header.' }, { method: 'POST', url: '/api/photos', desc: 'Uploads product photos to R2 with Authorization header.' }, { method: 'POST', url: '/api/requests', desc: 'Accepts public buyer purchase requests.' }].map((api) => <div key={`${api.method}-${api.url}`} className="border border-stone-200 rounded-lg overflow-hidden"><div className="flex flex-col sm:flex-row sm:items-center justify-between bg-stone-50 px-4 py-3 border-b border-stone-200"><div className="flex items-center gap-2"><span className={`px-2 py-1 rounded text-xs font-mono font-bold ${api.method === 'GET' ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-100 text-blue-800'}`}>{api.method}</span><code className="text-sm font-semibold text-stone-800">{api.url}</code></div><span className="text-xs text-stone-500 mt-1 sm:mt-0">{api.desc}</span></div></div>)}</div></div></div>}
       {activeTab === 'logic' && <div className="space-y-6"><div className="bg-white p-6 rounded-lg border border-stone-200 shadow-sm space-y-6"><div><h3 className="font-display text-lg text-stone-900 mb-2">Inventory Logic Blueprint</h3><p className="text-xs text-stone-500">How the system processes transactions with high precision and flexibility.</p></div><div className="grid grid-cols-1 md:grid-cols-2 gap-6"><div className="space-y-3 p-4 border border-stone-200 rounded-lg bg-stone-50"><h4 className="font-semibold text-stone-800 text-sm flex items-center gap-2"><span className="w-5 h-5 bg-amber-100 rounded-full flex items-center justify-center text-xs text-amber-800 font-bold">A</span>FIFO Algorithm</h4><p className="text-xs text-stone-600 leading-relaxed">When a sale is recorded as FIFO, the system draws from the oldest active batches first until the requested sales quantity is satisfied.</p></div><div className="space-y-3 p-4 border border-stone-200 rounded-lg bg-stone-50"><h4 className="font-semibold text-stone-800 text-sm flex items-center gap-2"><span className="w-5 h-5 bg-amber-100 rounded-full flex items-center justify-center text-xs text-amber-800 font-bold">B</span>Manual Batch Selection Option</h4><p className="text-xs text-stone-600 leading-relaxed">Admin users may bypass FIFO and manually select the exact batch to deduct during a manual sale entry.</p></div></div><div className="border border-amber-100 rounded-lg bg-amber-50 p-4 flex gap-4"><GitMerge className="text-amber-700 shrink-0" size={20} /><div><h4 className="font-semibold text-stone-800 text-xs uppercase tracking-wider mb-1">Precision Inventory Valuation Rule</h4><p className="text-xs text-stone-600 leading-relaxed">Inventory valuation is calculated by summing each batch's remaining quantity multiplied by its cost-per-item.</p><div className="mt-2 font-mono text-xs text-amber-900 font-bold">Valuation = SUM( Batch.remainingQty * Batch.costPerItem )</div></div></div></div></div>}
     </div>

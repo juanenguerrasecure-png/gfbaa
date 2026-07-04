@@ -40,7 +40,7 @@
   font-weight: 600;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: #C9A84C;
+  color: var(--accent);
   margin-bottom: 0.25rem;
 }
 

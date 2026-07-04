@@ -247,7 +247,7 @@ export function ProductGrid({ activeFilter: externalFilter, onFilterChange: onEx
       <div className="flex flex-col lg:flex-row gap-6 justify-between items-start lg:items-center mb-8 border-b border-stone-200/60 pb-6" id="grid_utility_panel">
         <div className="w-full lg:w-auto">
           <h2 className="font-display text-2xl md:text-3xl font-light tracking-tight text-stone-950 flex items-center gap-2">
-            <Sparkles size={18} className="text-[#C9A84C]" />
+            <Sparkles size={18} className="text-accent" />
             {getDisplayTitle()}
           </h2>
           <p className="text-stone-500 text-xs font-sans mt-1">
@@ -266,7 +266,7 @@ export function ProductGrid({ activeFilter: externalFilter, onFilterChange: onEx
               placeholder="Search brand, collection, model..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 bg-stone-50 hover:bg-stone-100/50 focus:bg-white text-stone-900 text-xs font-sans rounded border border-stone-200 focus:border-[#C9A84C] focus:outline-none focus:ring-1 focus:ring-[#C9A84C]/20 transition-all shadow-sm"
+              className="w-full pl-9 pr-4 py-2 bg-stone-50 hover:bg-stone-100/50 focus:bg-white text-stone-900 text-xs font-sans rounded border border-stone-200 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent/20 transition-all shadow-sm"
               id="grid_search_input"
             />
           </div>
@@ -328,7 +328,7 @@ export function ProductGrid({ activeFilter: externalFilter, onFilterChange: onEx
                 onClick={() => setActiveFilter(key)}
                 className={`px-3.5 py-1.5 text-xs font-medium rounded-full border transition-all cursor-pointer ${
                   activeFilter === key
-                    ? 'bg-[#C9A84C] text-white border-[#C9A84C] shadow-sm'
+                    ? 'bg-accent text-white border-accent shadow-sm'
                     : 'bg-stone-50 text-stone-500 border-stone-200 hover:bg-stone-100/70 hover:text-stone-850'
                 }`}
                 id={`filter_tab_brand_${normalizedId}`}
@@ -406,14 +406,16 @@ export function ProductGrid({ activeFilter: externalFilter, onFilterChange: onEx
                   <button
                     type="button"
                     onClick={(e) => toggleLike(item.id, e)}
-                    className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 hover:bg-white border border-stone-200 flex items-center justify-center text-stone-500 hover:text-amber-600 shadow-sm transition-all duration-200 focus:outline-none cursor-pointer"
+                    className={`absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 hover:bg-white border flex items-center justify-center shadow-sm transition-all duration-200 focus:outline-none cursor-pointer ${
+                      isLiked ? 'text-accent border-accent/30' : 'text-stone-500 hover:text-accent border-stone-200'
+                    }`}
                     aria-label="Toggle saved"
                     id={`grid_wishlist_heart_${item.id}`}
                   >
                     <Heart
                       size={14}
-                      fill={isLiked ? '#C9A84C' : 'none'}
-                      stroke={isLiked ? '#C9A84C' : 'currentColor'}
+                      fill={isLiked ? 'var(--accent)' : 'none'}
+                      stroke={isLiked ? 'var(--accent)' : 'currentColor'}
                       strokeWidth={2}
                     />
                   </button>
@@ -437,7 +439,7 @@ export function ProductGrid({ activeFilter: externalFilter, onFilterChange: onEx
                     </div>
 
                     {/* Title Name */}
-                    <h3 className="font-display text-sm font-medium text-stone-900 group-hover:text-[#C9A84C] transition-colors duration-200 line-clamp-1 mb-1">
+                    <h3 className="font-display text-sm font-medium text-stone-900 group-hover:text-accent transition-colors duration-200 line-clamp-1 mb-1">
                       {item.name}
                     </h3>
 
@@ -470,7 +472,7 @@ export function ProductGrid({ activeFilter: externalFilter, onFilterChange: onEx
                           onAddToCart(item);
                         }
                       }}
-                      className="w-8 h-8 rounded-full border border-stone-200 hover:border-[#C9A84C] hover:bg-[#C9A84C] hover:text-white flex items-center justify-center text-stone-600 transition-all duration-200 disabled:opacity-35 disabled:pointer-events-none cursor-pointer"
+                      className="w-8 h-8 rounded-full border border-stone-200 hover:border-accent hover:bg-accent hover:text-white flex items-center justify-center text-stone-600 transition-all duration-200 disabled:opacity-35 disabled:pointer-events-none cursor-pointer"
                       title={`Add ${item.name} to bag`}
                       id={`grid_cart_btn_${item.id}`}
                     >

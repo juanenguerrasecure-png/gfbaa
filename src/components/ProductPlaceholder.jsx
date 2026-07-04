@@ -25,8 +25,8 @@ export function ProductPlaceholder({ category }) {
               strokeLinecap="round" 
             />
             {/* Handle rings */}
-            <circle cx="32" cy="40" r="1.5" fill="#C9A84C" stroke="currentColor" strokeWidth="1" />
-            <circle cx="68" cy="40" r="1.5" fill="#C9A84C" stroke="currentColor" strokeWidth="1" />
+            <circle cx="32" cy="40" r="1.5" fill="var(--accent)" stroke="currentColor" strokeWidth="1" />
+            <circle cx="68" cy="40" r="1.5" fill="var(--accent)" stroke="currentColor" strokeWidth="1" />
             
             {/* Bag Body */}
             <path 
@@ -49,7 +49,7 @@ export function ProductPlaceholder({ category }) {
             {/* Gold Clasp */}
             <path 
               d="M47 62 H53 V67 H47 Z" 
-              fill="#C9A84C" 
+              fill="var(--accent)" 
               stroke="currentColor" 
               strokeWidth="1.2" 
             />
@@ -99,7 +99,7 @@ export function ProductPlaceholder({ category }) {
             cx="50" 
             cy="58" 
             r="15" 
-            stroke="#C9A84C" 
+            stroke="var(--accent)" 
             strokeWidth="1" 
             opacity="0.7"
           />
@@ -125,11 +125,11 @@ export function ProductPlaceholder({ category }) {
           <line x1="44" y1="31" x2="56" y2="31" stroke="currentColor" strokeWidth="0.8" />
 
           {/* Golden Sparkle Beams */}
-          <path d="M50 16 L50 11" stroke="#C9A84C" strokeWidth="1.5" strokeLinecap="round" />
-          <path d="M37 20 L33 16" stroke="#C9A84C" strokeWidth="1.2" strokeLinecap="round" />
-          <path d="M63 20 L67 16" stroke="#C9A84C" strokeWidth="1.2" strokeLinecap="round" />
-          <path d="M34 31 L29 31" stroke="#C9A84C" strokeWidth="1" strokeLinecap="round" />
-          <path d="M66 31 L71 31" stroke="#C9A84C" strokeWidth="1" strokeLinecap="round" />
+          <path d="M50 16 L50 11" stroke="var(--accent)" strokeWidth="1.5" strokeLinecap="round" />
+          <path d="M37 20 L33 16" stroke="var(--accent)" strokeWidth="1.2" strokeLinecap="round" />
+          <path d="M63 20 L67 16" stroke="var(--accent)" strokeWidth="1.2" strokeLinecap="round" />
+          <path d="M34 31 L29 31" stroke="var(--accent)" strokeWidth="1" strokeLinecap="round" />
+          <path d="M66 31 L71 31" stroke="var(--accent)" strokeWidth="1" strokeLinecap="round" />
         </svg>
       </div>
 

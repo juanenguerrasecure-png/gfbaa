@@ -57,7 +57,7 @@
 
 .fallbackPhoto {
   font-size: 6rem;
-  color: #C9A84C;
+  color: var(--accent);
   font-family: 'Cormorant Garamond', serif;
 }
 
@@ -99,8 +99,8 @@
 
 .activeDot {
   width: 1.2rem;
-  background: #C9A84C;
-  border-color: #C9A84C;
+  background: var(--accent);
+  border-color: var(--accent);
 }
 
 .infoPanel {
@@ -150,7 +150,7 @@
 .badgeMint { color: #5D7268; }
 .badgeGood { color: #7A695D; }
 .badgeFair { color: #8E6B6B; }
-.badgeNew { color: #8E7A4A; border-color: #C9A84C; }
+.badgeNew { color: var(--accent-deep, #8E7A4A); border-color: var(--accent); }
 .category { color: #8C7B6E; }
 
 .priceRow {
@@ -192,8 +192,8 @@
 .note {
   margin-top: 1.3rem;
   padding: 1rem;
-  border-left: 3px solid #C9A84C;
-  background: #FFF8E7;
+  border-left: 3px solid var(--accent);
+  background: var(--accent-soft);
 }
 
 .note span {
@@ -282,8 +282,8 @@
 
 .shareBtn:hover {
   background: #E5DFD8;
-  border-color: #C9A84C;
-  color: #C9A84C;
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 .shareBtnSuccess {

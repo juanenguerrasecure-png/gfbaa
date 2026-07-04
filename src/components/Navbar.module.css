@@ -56,7 +56,7 @@
   padding: 0.5rem 0;
 }
 
-.backBtn:hover { color: #C9A84C; }
+.backBtn:hover { color: var(--accent); }
 
 .backLabel {
   text-transform: uppercase;
@@ -102,7 +102,7 @@
 .iconBtn:hover,
 .cartBtn:hover,
 .wishlistBtn:hover {
-  color: #C9A84C;
+  color: var(--accent);
 }
 
 .cartBtn,
@@ -115,7 +115,7 @@
   position: absolute;
   top: -4px;
   right: -6px;
-  background-color: #C9A84C;
+  background-color: var(--accent);
   color: #FAF8F5;
   font-family: 'Inter', sans-serif;
   font-size: 0.65rem;

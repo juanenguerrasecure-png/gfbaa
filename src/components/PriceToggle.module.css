@@ -34,7 +34,7 @@
 }
 
 .active {
-  background: #C9A84C;
+  background: var(--accent);
   color: #0A0806;
 }
 

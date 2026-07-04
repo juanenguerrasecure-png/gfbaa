@@ -185,7 +185,7 @@ export function ProductCard({ item, onAddToCart }) {
             <ProductPlaceholder category={item.cat} />
           )}
           <span className={`${styles.badge} ${styles[badge.cls]}`} aria-label={`Condition: ${badge.label}`}>{badge.label}</span>
-          <button className={`${styles.wishlist} ${liked ? styles.liked : ''}`} onClick={e => { e.stopPropagation(); setLiked(l => !l); }} aria-label={liked ? 'Remove from wishlist' : 'Save to wishlist'} id={`wishlist_btn_${item.id}`}><Heart size={15} strokeWidth={1.8} fill={liked ? '#C9A84C' : 'none'} stroke={liked ? '#C9A84C' : 'currentColor'} /></button>
+          <button className={`${styles.wishlist} ${liked ? styles.liked : ''}`} onClick={e => { e.stopPropagation(); setLiked(l => !l); }} aria-label={liked ? 'Remove from wishlist' : 'Save to wishlist'} id={`wishlist_btn_${item.id}`}><Heart size={15} strokeWidth={1.8} fill={liked ? 'currentColor' : 'none'} stroke="currentColor" /></button>
 
           {(whatsappHref || viberHref || messengerHref) && (
             <div className={styles.contactStack}>

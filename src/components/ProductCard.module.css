@@ -13,7 +13,7 @@
 .card:hover {
   transform: translateY(-6px) scale(1.015);
   box-shadow: 0 20px 40px rgba(44, 34, 27, 0.08), 0 8px 20px rgba(44, 34, 27, 0.04);
-  border-color: #C9A84C;
+  border-color: var(--accent);
 }
 
 .imgWrap {
@@ -73,7 +73,7 @@
 .badgeMint { color: #5D7268; }
 .badgeGood { color: #7A695D; }
 .badgeFair { color: #8E6B6B; }
-.badgeNew { color: #8E7A4A; border-color: #C9A84C; }
+.badgeNew { color: var(--accent-deep, #8E7A4A); border-color: var(--accent); }
 
 .wishlist {
   position: absolute;
@@ -131,14 +131,14 @@
 .wishlist:hover,
 .contactBtn:hover {
   background-color: #FAF8F5;
-  color: #C9A84C;
-  border-color: #C9A84C;
+  color: var(--accent);
+  border-color: var(--accent);
   transform: scale(1.04);
 }
 
 .wishlist.liked {
-  color: #C9A84C;
-  border-color: #C9A84C;
+  color: var(--accent);
+  border-color: var(--accent);
 }
 
 .body {
@@ -299,8 +299,8 @@
 
 .carouselArrow:hover {
   background-color: #FAF8F5;
-  color: #C9A84C;
-  border-color: #C9A84C;
+  color: var(--accent);
+  border-color: var(--accent);
   transform: translateY(-50%) scale(1.08);
 }
 
@@ -330,7 +330,7 @@
 }
 
 .carouselDotActive {
-  background-color: #C9A84C;
+  background-color: var(--accent);
   transform: scale(1.25);
 }
 

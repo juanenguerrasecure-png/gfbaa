@@ -54,7 +54,7 @@
 .itemsSection { display: flex; flex-direction: column; }
 .itemsList { display: flex; flex-direction: column; gap: 0.85rem; max-height: 320px; overflow-y: auto; margin-bottom: 1rem; padding-right: 0.25rem; }
 .cartItem { display: flex; align-items: center; gap: 1rem; background-color: #FAF8F5; border: 1px solid #E5DFD8; border-radius: 4px; padding: 0.75rem 1rem; position: relative; transition: border-color 0.2s; }
-.cartItem:hover { border-color: #C9A84C; }
+.cartItem:hover { border-color: var(--accent); }
 .itemEmoji { font-size: 1.75rem; background-color: #FBF5E8; border-radius: 4px; width: 2.75rem; height: 2.75rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .itemInfo { flex: 1; min-width: 0; }
 .itemName { font-family: 'Inter', sans-serif; font-size: 0.85rem; font-weight: 500; color: #1C1410; margin: 0 0 0.15rem 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -83,7 +83,7 @@
 .input { padding-left: 2.25rem; }
 .inputIconWrap .textarea { padding-left: 2.25rem; }
 .textarea { resize: vertical; }
-.input:focus, .textarea:focus { border-color: #C9A84C; }
+.input:focus, .textarea:focus { border-color: var(--accent); }
 .actionBar { margin-top: 0.5rem; }
 .submitBtn { width: 100%; font-family: 'Inter', sans-serif; font-size: 0.8rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; background-color: #1C1410; color: #FAF8F5; border: 1px solid #1C1410; padding: 0.75rem 1.25rem; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem; transition: all 0.2s; margin-top: 0.5rem; }
 .submitBtn:hover:not(:disabled) { background-color: #382B24; }
@@ -120,5 +120,5 @@
   .itemsList { max-height: none !important; }
   .form { padding-bottom: 0 !important; }
   .actionBar { position: sticky !important; bottom: 0 !important; z-index: 25 !important; background: #FAF8F5 !important; border-top: 1px solid #E5DFD8 !important; padding: 0.85rem 1rem calc(0.85rem + env(safe-area-inset-bottom)) !important; margin: 0 -1rem -1rem -1rem !important; box-shadow: 0 -8px 20px rgba(28, 20, 16, 0.08) !important; }
-  .submitBtn { position: static !important; width: 100% !important; margin: 0 !important; border-radius: 4px !important; border-color: #C9A84C !important; background: #1C1410 !important; box-shadow: none !important; }
+  .submitBtn { position: static !important; width: 100% !important; margin: 0 !important; border-radius: 4px !important; border-color: var(--accent) !important; background: #1C1410 !important; box-shadow: none !important; }
 }
