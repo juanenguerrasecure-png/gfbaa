@@ -2,13 +2,8 @@ import { useState, useMemo } from 'react';
 import { useStore } from '../context/StoreContext';
 import { MessageCircle, Award, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
 
-const FALLBACK_PAST_PIECES = [
-  { id: 'p1', brand: 'Chanel', caption: 'Chevron Quilted Single Flap in rare lambskin caviar, double-chain gold plated hardware.', photos: ['https://images.unsplash.com/photo-1548036328-c9fa89d128fa?q=80&w=800&auto=format&fit=crop'], dateAdded: 'February 2026', sold: true },
-  { id: 'p2', brand: 'Cartier', caption: 'Classic Trinity Ring in 18K Yellow, White, and Rose Gold. Sourced from a Paris estate curation.', photos: ['https://images.unsplash.com/photo-1601121141461-9d6647bca1ed?q=80&w=800&auto=format&fit=crop'], dateAdded: 'March 2026', sold: true },
-  { id: 'p3', brand: 'Hermès', caption: 'Vintage Kelly 28 in Black Box Calfskin with Gold Hardware. Beautiful, naturally matured vintage sheen.', photos: ['https://images.unsplash.com/photo-1584917865442-de89df76afd3?q=80&w=800&auto=format&fit=crop'], dateAdded: 'April 2026', sold: true }
-];
-
-function ArchivePieceCard({ piece, getInquiryUrl }) {
+function ArchivePieceCard({ piece }) {
+  const { setInquiryItem } = useStore();
   const [activeIdx, setActiveIdx] = useState(0);
   const [touchStartX, setTouchStartX] = useState(0);
 
@@ -151,32 +146,27 @@ function ArchivePieceCard({ piece, getInquiryUrl }) {
         </div>
       </div>
 
-      {/* WhatsApp Inquiry CTA */}
+      {/* Inquiry CTA */}
       <div className="p-6 pt-0 border-t border-stone-100/60 mt-4">
-        <a
-          href={getInquiryUrl(piece)}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-stone-100 hover:bg-stone-200/60 hover:text-[var(--accent)] text-stone-700 text-xs font-semibold rounded tracking-wider uppercase transition-all shadow-sm focus:outline-none"
+        <button
+          type="button"
+          onClick={() => setInquiryItem({ ...piece, isPast: true })}
+          className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-stone-100 hover:bg-stone-200/60 hover:text-[var(--accent)] text-stone-700 text-xs font-semibold rounded tracking-wider uppercase transition-all shadow-sm focus:outline-none cursor-pointer"
           id={`archive_inquiry_btn_${piece.id}`}
         >
           <MessageCircle size={13} />
           <span>Inquire Similar Piece</span>
-        </a>
+        </button>
       </div>
     </div>
   );
 }
 
 export function ArchiveView() {
-  const { pastCollections, socialLinks } = useStore();
+  const { pastCollections, socialLinks, siteContent } = useStore();
 
   const pieces = useMemo(() => {
-    const list = [...(pastCollections || [])];
-    if (list.length === 0) {
-      return FALLBACK_PAST_PIECES;
-    }
-    return list;
+    return [...(pastCollections || [])];
   }, [pastCollections]);
 
   // Formats WhatsApp Link
@@ -197,21 +187,32 @@ export function ArchiveView() {
           Past Collections
         </h1>
         <p className="text-stone-500 font-sans text-xs md:text-sm max-w-lg mx-auto mt-4 leading-relaxed font-light">
-          A historical directory of our most coveted acquisitions that have found their permanent homes with new collectors.
+          {siteContent?.archiveIntro || 'A historical directory of our most coveted acquisitions that have found their permanent homes with new collectors.'}
         </p>
       </div>
 
-      {/* Grid */}
+      {/* Grid or Empty State */}
       <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" id="archive_portfolio_grid">
-          {pieces.map((piece, index) => (
-            <ArchivePieceCard
-              key={piece.id || index}
-              piece={piece}
-              getInquiryUrl={getInquiryUrl}
-            />
-          ))}
-        </div>
+        {pieces.length === 0 ? (
+          <div className="max-w-md mx-auto text-center py-20 px-6 border border-dashed border-stone-200 rounded-2xl bg-white shadow-xs" id="archive_empty_state">
+            <span className="text-stone-300 text-3xl block mb-3">✦</span>
+            <p className="text-stone-400 text-[10px] font-mono uppercase tracking-widest mb-2">Archive Queue Empty</p>
+            <p className="font-serif text-base text-stone-700 italic">"No prior items archived."</p>
+            <p className="text-stone-500 text-xs mt-3 leading-relaxed max-w-xs mx-auto">
+              Please sign into the admin portal to move items into the past collections repository.
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" id="archive_portfolio_grid">
+            {pieces.map((piece, index) => (
+              <ArchivePieceCard
+                key={piece.id || index}
+                piece={piece}
+                getInquiryUrl={getInquiryUrl}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -13,6 +13,8 @@ import { useStore }     from './context/StoreContext';
 import { HomeView }     from './components/HomeView';
 import { GalleryView }  from './components/GalleryView';
 import { ArchiveView }  from './components/ArchiveView';
+import { ShopHero }     from './components/ShopHero';
+import { InquirySheet }  from './components/InquirySheet';
 
 const AdminPanel = lazy(() => import('./admin/AdminPanel').then(module => ({ default: module.AdminPanel })));
 
@@ -89,7 +91,7 @@ export default function App() {
       default:
         return (
           <>
-            <Hero onCategoryClick={setActiveFilter} />
+            <ShopHero />
             <ProductGrid
               activeFilter={activeFilter}
               onFilterChange={setActiveFilter}
@@ -128,6 +130,7 @@ export default function App() {
         showToast={showToast}
       />
       <Toast visible={toast.visible} msg={toast.msg} />
+      <InquirySheet />
     </>
   );
 }

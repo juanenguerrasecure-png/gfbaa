@@ -5,7 +5,7 @@ import { Database, Link, GitMerge, Settings, HelpCircle, Save, Palette, Sparkles
 const DEFAULT_HERO_ALT = 'Good Finds by AA Featured Collection';
 
 export function DesignTab() {
-  const { exchangeRate, setExchangeRate, heroImage, saveHeroImage, season, saveSeason } = useStore();
+  const { exchangeRate, setExchangeRate, heroImage, saveHeroImage, season, saveSeason, siteContent, updateSiteContent } = useStore();
   const [activeTab, setActiveTab] = useState('schema');
   const [heroForm, setHeroForm] = useState({ url: '', alt: DEFAULT_HERO_ALT });
   const [previewOk, setPreviewOk] = useState(false);
@@ -13,6 +13,44 @@ export function DesignTab() {
   const [seasonSaveStatus, setSeasonSaveStatus] = useState('');
   const [syncWarning, setSyncWarning] = useState(false);
   const [isSavingHero, setIsSavingHero] = useState(false);
+
+  // Site Content Editorial states
+  const [siteContentForm, setSiteContentForm] = useState({
+    homeIntro: '',
+    shopIntro: '',
+    galleryIntro: '',
+    archiveIntro: ''
+  });
+  const [contentSaveStatus, setContentSaveStatus] = useState('');
+  const [isSavingContent, setIsSavingContent] = useState(false);
+
+  useEffect(() => {
+    if (siteContent) {
+      setSiteContentForm({
+        homeIntro: siteContent.homeIntro || '',
+        shopIntro: siteContent.shopIntro || '',
+        galleryIntro: siteContent.galleryIntro || '',
+        archiveIntro: siteContent.archiveIntro || ''
+      });
+    }
+  }, [siteContent]);
+
+  const handleContentField = (field, value) => {
+    setSiteContentForm(prev => ({ ...prev, [field]: value }));
+    setContentSaveStatus('');
+  };
+
+  const handleSaveSiteContent = async () => {
+    setIsSavingContent(true);
+    setContentSaveStatus('');
+    const result = await updateSiteContent(siteContentForm);
+    if (!result?.ok) {
+      setContentSaveStatus('Save failed. Sync issue.');
+    } else {
+      setContentSaveStatus('Editorial copy saved.');
+    }
+    setIsSavingContent(false);
+  };
 
   useEffect(() => {
     setHeroForm({ url: heroImage?.url || '', alt: heroImage?.alt || DEFAULT_HERO_ALT });
@@ -84,6 +122,97 @@ export function DesignTab() {
             <div className="flex flex-col sm:flex-row sm:items-center gap-3"><button type="button" onClick={handleSaveHeroImage} disabled={isSavingHero} className="inline-flex items-center justify-center gap-2 bg-stone-900 text-white px-5 py-2.5 rounded text-xs font-semibold uppercase tracking-wider hover:bg-stone-800 disabled:opacity-50"><Save size={14} />{isSavingHero ? 'Saving...' : 'Save Hero Image'}</button>{saveStatus && <span className="text-sm text-stone-500">{saveStatus}</span>}</div>
           </div>
           <div className="border border-[#E5DFD8] rounded bg-stone-50 min-h-[160px] flex items-center justify-center overflow-hidden">{heroForm.url && previewOk ? <img src={heroForm.url} alt={heroForm.alt || DEFAULT_HERO_ALT} className="w-full h-full max-h-[220px] object-contain" onLoad={() => setPreviewOk(true)} onError={() => setPreviewOk(false)} /> : <div className="text-center px-4 py-8"><div className="font-display text-4xl text-[#C9A84C]">GF</div><div className="text-[10px] uppercase tracking-wider text-stone-400 mt-2">Preview unavailable</div></div>}</div>
+        </div>
+      </div>
+
+      {/* Editorial Section Copywriting Card */}
+      <div className="bg-white p-5 rounded-lg border border-[#E5DFD8] shadow-sm space-y-4">
+        <div className="flex items-start justify-between gap-4 border-b border-stone-100 pb-3">
+          <div>
+            <h3 className="font-display text-xl text-stone-900 flex items-center gap-2">
+              <Palette size={18} className="text-[#C9A84C]" />
+              <span>Section Editorial Copywriting</span>
+            </h3>
+            <p className="text-xs text-stone-500 mt-1">
+              Customize the introductory subtitles and descriptions across key areas of your digital archive.
+            </p>
+          </div>
+          <span className="hidden sm:inline-flex text-[10px] uppercase tracking-wider text-[#C9A84C] border border-[#E5DFD8] px-3 py-1 rounded-full">Editorial</span>
+        </div>
+
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Home Intro */}
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-semibold text-stone-600 uppercase tracking-wider">
+                Home Hero Subtitle
+              </label>
+              <input 
+                type="text" 
+                value={siteContentForm.homeIntro} 
+                onChange={(e) => handleContentField('homeIntro', e.target.value)} 
+                placeholder="Sourced with refinement, preserved for posterity" 
+                className="w-full border border-stone-300 rounded px-3 py-2 text-sm text-stone-900 outline-none focus:border-[#C9A84C]" 
+              />
+            </div>
+
+            {/* Shop Intro */}
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-semibold text-stone-600 uppercase tracking-wider">
+                Current Selections Intro
+              </label>
+              <input 
+                type="text" 
+                value={siteContentForm.shopIntro} 
+                onChange={(e) => handleContentField('shopIntro', e.target.value)} 
+                placeholder="Vetted designer handbags, fine pieces, and pristine seasonal acquisitions." 
+                className="w-full border border-stone-300 rounded px-3 py-2 text-sm text-stone-900 outline-none focus:border-[#C9A84C]" 
+              />
+            </div>
+
+            {/* Gallery Intro */}
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-semibold text-stone-600 uppercase tracking-wider">
+                Gallery Intro Description
+              </label>
+              <input 
+                type="text" 
+                value={siteContentForm.galleryIntro} 
+                onChange={(e) => handleContentField('galleryIntro', e.target.value)} 
+                placeholder="Visual diaries, styling stories, and close-up lifestyle curations." 
+                className="w-full border border-stone-300 rounded px-3 py-2 text-sm text-stone-900 outline-none focus:border-[#C9A84C]" 
+              />
+            </div>
+
+            {/* Archive Intro */}
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-semibold text-stone-600 uppercase tracking-wider">
+                Past Collections (Archive) Description
+              </label>
+              <input 
+                type="text" 
+                value={siteContentForm.archiveIntro} 
+                onChange={(e) => handleContentField('archiveIntro', e.target.value)} 
+                placeholder="An archival directory of previously loved curations now residing with new owners." 
+                className="w-full border border-stone-300 rounded px-3 py-2 text-sm text-stone-900 outline-none focus:border-[#C9A84C]" 
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 pt-2">
+            <button 
+              type="button" 
+              onClick={handleSaveSiteContent} 
+              disabled={isSavingContent} 
+              className="inline-flex items-center justify-center gap-2 bg-stone-900 text-white px-5 py-2.5 rounded text-xs font-semibold uppercase tracking-wider hover:bg-stone-800 disabled:opacity-50 cursor-pointer"
+            >
+              <Save size={14} />
+              {isSavingContent ? 'Saving Copy...' : 'Save Editorial Copy'}
+            </button>
+            {contentSaveStatus && (
+              <span className="text-xs text-emerald-600 font-semibold">{contentSaveStatus}</span>
+            )}
+          </div>
         </div>
       </div>
 

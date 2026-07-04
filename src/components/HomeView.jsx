@@ -6,7 +6,7 @@ import { useWishlist } from '../hooks/useWishlist';
 import { Sparkles, ShoppingBag, Heart, ArrowRight } from 'lucide-react';
 
 export function HomeView({ onViewChange, onAddToCart }) {
-  const { catalogItems, getCatalogItemStock, exchangeRate } = useStore();
+  const { catalogItems, getCatalogItemStock, exchangeRate, siteContent, galleryPhotos, pastCollections } = useStore();
   const { currency } = useCurrency();
   const { toggleWishlist, isWishlisted } = useWishlist();
 
@@ -23,12 +23,17 @@ export function HomeView({ onViewChange, onAddToCart }) {
   }, [activeItems]);
 
   const tileImages = useMemo(() => {
+    // Check if we have actual user uploaded items or custom items
+    const galleryImg = galleryPhotos?.[0]?.url || null;
+    const shopImg = activeItems?.[0]?.photoUrl || activeItems?.[0]?.photos?.[0] || null;
+    const archiveImg = pastCollections?.[0]?.photos?.[0] || pastCollections?.[0]?.photoUrls?.[0] || pastCollections?.[0]?.photoUrl || null;
+
     return {
-      gallery: 'https://images.unsplash.com/photo-1512436991641-6745cdb1723f?q=80&w=600&auto=format&fit=crop',
-      shop: activeItems[0]?.photoUrl || activeItems[0]?.photos?.[0] || 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=600&auto=format&fit=crop',
-      archive: 'https://images.unsplash.com/photo-1509319117193-57bab727e09d?q=80&w=600&auto=format&fit=crop'
+      gallery: galleryImg,
+      shop: shopImg,
+      archive: archiveImg
     };
-  }, [activeItems]);
+  }, [activeItems, galleryPhotos, pastCollections]);
 
   const handleProductClick = (item) => {
     const url = new URL(window.location.href);
@@ -58,20 +63,26 @@ export function HomeView({ onViewChange, onAddToCart }) {
           <div 
             id="tile_gallery"
             onClick={() => onViewChange('gallery')}
-            className="group relative h-96 rounded-xl overflow-hidden cursor-pointer shadow-sm hover:shadow-md transition-all duration-500 border border-stone-200/40"
+            className="group relative h-96 rounded-xl overflow-hidden cursor-pointer shadow-sm hover:shadow-md transition-all duration-500 border border-stone-200/40 bg-gradient-to-b from-[#2a2621] to-[#141210]"
           >
             <div className="absolute inset-0 bg-stone-950/20 group-hover:bg-stone-950/45 transition-colors duration-500 z-10" />
-            <img 
-              src={tileImages.gallery} 
-              alt="Lifestyle Gallery" 
-              className="absolute inset-0 w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
-              loading="lazy"
-            />
+            {tileImages.gallery ? (
+              <img 
+                src={tileImages.gallery} 
+                alt="Lifestyle Gallery" 
+                className="absolute inset-0 w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
+                loading="lazy"
+              />
+            ) : (
+              <div className="absolute inset-0 flex items-center justify-center bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-stone-800 to-stone-950 opacity-40 group-hover:opacity-55 transition-opacity duration-500">
+                <span className="text-amber-200/10 text-9xl font-display font-light select-none">✦</span>
+              </div>
+            )}
             <div className="absolute inset-x-0 bottom-0 p-6 z-20 flex flex-col justify-end text-white">
               <span className="text-[10px] uppercase font-sans tracking-widest font-bold text-amber-100 mb-1">Editorial</span>
               <h3 className="font-display text-xl font-medium mb-1 tracking-tight">Gallery</h3>
               <p className="text-stone-200 text-xs font-sans line-clamp-2 mb-4 font-light leading-relaxed">
-                Visual diaries, styling stories, and close-up lifestyle curations.
+                {siteContent?.galleryIntro || 'Visual diaries, styling stories, and close-up lifestyle curations.'}
               </p>
               <div className="flex items-center gap-1.5 text-xs font-semibold text-white group-hover:translate-x-1 transition-transform">
                 <span>Explore</span>
@@ -84,20 +95,26 @@ export function HomeView({ onViewChange, onAddToCart }) {
           <div 
             id="tile_shop"
             onClick={() => onViewChange('store')}
-            className="group relative h-96 rounded-xl overflow-hidden cursor-pointer shadow-sm hover:shadow-md transition-all duration-500 border border-stone-200/40"
+            className="group relative h-96 rounded-xl overflow-hidden cursor-pointer shadow-sm hover:shadow-md transition-all duration-500 border border-stone-200/40 bg-gradient-to-b from-[#332b24] to-[#1a1511]"
           >
             <div className="absolute inset-0 bg-stone-950/20 group-hover:bg-stone-950/45 transition-colors duration-500 z-10" />
-            <img 
-              src={tileImages.shop} 
-              alt="Current Selections" 
-              className="absolute inset-0 w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
-              loading="lazy"
-            />
+            {tileImages.shop ? (
+              <img 
+                src={tileImages.shop} 
+                alt="Current Selections" 
+                className="absolute inset-0 w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
+                loading="lazy"
+              />
+            ) : (
+              <div className="absolute inset-0 flex items-center justify-center bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-stone-800 to-stone-950 opacity-40 group-hover:opacity-55 transition-opacity duration-500">
+                <span className="text-amber-200/10 text-9xl font-display font-light select-none">✦</span>
+              </div>
+            )}
             <div className="absolute inset-x-0 bottom-0 p-6 z-20 flex flex-col justify-end text-white">
               <span className="text-[10px] uppercase font-sans tracking-widest font-bold text-amber-100 mb-1">Available Curation</span>
               <h3 className="font-display text-xl font-medium mb-1 tracking-tight">Current Selections</h3>
               <p className="text-stone-200 text-xs font-sans line-clamp-2 mb-4 font-light leading-relaxed">
-                Vetted designer handbags, fine pieces, and pristine seasonal acquisitions.
+                {siteContent?.shopIntro || 'Vetted designer handbags, fine pieces, and pristine seasonal acquisitions.'}
               </p>
               <div className="flex items-center gap-1.5 text-xs font-semibold text-white group-hover:translate-x-1 transition-transform">
                 <span>Explore</span>
@@ -110,20 +127,26 @@ export function HomeView({ onViewChange, onAddToCart }) {
           <div 
             id="tile_archive"
             onClick={() => onViewChange('archive')}
-            className="group relative h-96 rounded-xl overflow-hidden cursor-pointer shadow-sm hover:shadow-md transition-all duration-500 border border-stone-200/40"
+            className="group relative h-96 rounded-xl overflow-hidden cursor-pointer shadow-sm hover:shadow-md transition-all duration-500 border border-stone-200/40 bg-gradient-to-b from-[#26262b] to-[#121214]"
           >
             <div className="absolute inset-0 bg-stone-950/20 group-hover:bg-stone-950/45 transition-colors duration-500 z-10" />
-            <img 
-              src={tileImages.archive} 
-              alt="Past Collections" 
-              className="absolute inset-0 w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
-              loading="lazy"
-            />
+            {tileImages.archive ? (
+              <img 
+                src={tileImages.archive} 
+                alt="Past Collections" 
+                className="absolute inset-0 w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
+                loading="lazy"
+              />
+            ) : (
+              <div className="absolute inset-0 flex items-center justify-center bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-stone-800 to-stone-950 opacity-40 group-hover:opacity-55 transition-opacity duration-500">
+                <span className="text-amber-200/10 text-9xl font-display font-light select-none">✦</span>
+              </div>
+            )}
             <div className="absolute inset-x-0 bottom-0 p-6 z-20 flex flex-col justify-end text-white">
               <span className="text-[10px] uppercase font-sans tracking-widest font-bold text-amber-100 mb-1">Archive Portfolio</span>
               <h3 className="font-display text-xl font-medium mb-1 tracking-tight">Past Collections</h3>
               <p className="text-stone-200 text-xs font-sans line-clamp-2 mb-4 font-light leading-relaxed">
-                An archival directory of previously loved curations now residing with new owners.
+                {siteContent?.archiveIntro || 'An archival directory of previously loved curations now residing with new owners.'}
               </p>
               <div className="flex items-center gap-1.5 text-xs font-semibold text-white group-hover:translate-x-1 transition-transform">
                 <span>Explore</span>

@@ -50,7 +50,7 @@ function openContact(event, href, item) {
 export function ProductCard({ item, onAddToCart }) {
   const [liked, setLiked] = useState(false);
   const [detailOpen, setDetailOpen] = useState(false);
-  const { getCatalogItemStock, socialLinks = {}, exchangeRate } = useStore();
+  const { getCatalogItemStock, socialLinks = {}, exchangeRate, setInquiryItem } = useStore();
   const { currency } = useCurrency();
 
   const badge = BADGE[item.condition] ?? BADGE.good;
@@ -202,7 +202,17 @@ export function ProductCard({ item, onAddToCart }) {
           {item.detail && <p className={styles.detail}>{item.detail}</p>}
           <div className={styles.footer}>
             <div className={styles.pricing}><span className={styles.price}>{formatProductPrice(item, currency, exchangeRate)}</span>{item.orig && <span className={styles.orig}>${(Number(item.orig) || 0).toLocaleString()}</span>}</div>
-            <button id={`add_to_cart_btn_${item.id}`} className={styles.addBtn} onClick={(e) => { e.stopPropagation(); if (!soldOut) onAddToCart(item); }} disabled={soldOut} aria-label={`Add ${item.name} to bag`}><ShoppingBag size={13} strokeWidth={1.8} /></button>
+            <div className="flex items-center gap-1.5">
+              <button 
+                type="button"
+                onClick={(e) => { e.stopPropagation(); setInquiryItem(item); }}
+                className="px-2.5 py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-700 text-[10px] font-sans font-semibold uppercase tracking-wider rounded transition-colors"
+                id={`product_inquire_btn_${item.id}`}
+              >
+                Inquire
+              </button>
+              <button id={`add_to_cart_btn_${item.id}`} className={styles.addBtn} onClick={(e) => { e.stopPropagation(); if (!soldOut) onAddToCart(item); }} disabled={soldOut} aria-label={`Add ${item.name} to bag`}><ShoppingBag size={13} strokeWidth={1.8} /></button>
+            </div>
           </div>
         </div>
       </article>

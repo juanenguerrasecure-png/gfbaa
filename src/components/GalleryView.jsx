@@ -2,25 +2,13 @@ import { useState, useMemo } from 'react';
 import { useStore } from '../context/StoreContext';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 
-const FALLBACK_GALLERY_PHOTOS = [
-  { id: 'g1', url: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?q=80&w=800&auto=format&fit=crop', caption: 'Prismatic autumn focus — structured silhouette with hand-finished edge glazing.', order: 1 },
-  { id: 'g2', url: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?q=80&w=800&auto=format&fit=crop', caption: 'Heirloom tier rings, cast in molten 18-karat yellow gold and set with diamonds.', order: 2 },
-  { id: 'g3', url: 'https://images.unsplash.com/photo-1509319117193-57bab727e09d?q=80&w=800&auto=format&fit=crop', caption: 'The quiet warmth of early morning fittings. Sourcing journeys, autumn 2026.', order: 3 },
-  { id: 'g4', url: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?q=80&w=800&auto=format&fit=crop', caption: 'Pebbled leather surfaces designed to accumulate rich, warm patina.', order: 4 },
-  { id: 'g5', url: 'https://images.unsplash.com/photo-1601121141461-9d6647bca1ed?q=80&w=800&auto=format&fit=crop', caption: 'Linked collars catching light. A delicate balance of weight and structure.', order: 5 },
-  { id: 'g6', url: 'https://images.unsplash.com/photo-1512436991641-6745cdb1723f?q=80&w=800&auto=format&fit=crop', caption: 'Curated styling accessories: a complete expression of seasonal texture and grace.', order: 6 },
-];
-
 export function GalleryView() {
-  const { galleryPhotos } = useStore();
+  const { galleryPhotos, siteContent } = useStore();
   const [lightboxIndex, setLightboxIndex] = useState(null);
 
   // Combine loaded gallery photos with default editorial seeding
   const photos = useMemo(() => {
     const list = [...(galleryPhotos || [])];
-    if (list.length === 0) {
-      return FALLBACK_GALLERY_PHOTOS;
-    }
     return list.sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0));
   }, [galleryPhotos]);
 
@@ -49,39 +37,50 @@ export function GalleryView() {
           Visual Curation
         </h1>
         <p className="text-stone-500 font-sans text-xs md:text-sm max-w-lg mx-auto mt-4 leading-relaxed font-light">
-          A purely visual journal of styling setups, fine-grained details, and lifestyle concepts from our sourcing diaries.
+          {siteContent?.galleryIntro || 'A purely visual journal of styling setups, fine-grained details, and lifestyle concepts from our sourcing diaries.'}
         </p>
       </div>
 
-      {/* Masonry Grid */}
+      {/* Masonry Grid or Empty State */}
       <div className="max-w-7xl mx-auto">
-        <div className="columns-1 sm:columns-2 lg:columns-3 gap-6 space-y-6 [column-fill:_balance]" id="gallery_masonry_grid">
-          {photos.map((photo, index) => (
-            <div
-              key={photo.id || index}
-              onClick={() => setLightboxIndex(index)}
-              className="break-inside-avoid relative overflow-hidden rounded-xl border border-stone-200/40 bg-stone-100 group cursor-zoom-in transition-all duration-300 shadow-sm hover:shadow-md"
-              id={`gallery_photo_item_${index}`}
-            >
-              <img
-                src={photo.url}
-                alt={photo.caption || 'Editorial curation'}
-                className="w-full h-auto object-cover group-hover:scale-[1.02] transition-transform duration-500 ease-out"
-                loading="lazy"
-                referrerPolicy="no-referrer"
-              />
-              {/* Elegant Caption Overlay on Hover */}
-              <div className="absolute inset-0 bg-stone-950/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-5 z-10 text-white">
-                <span className="text-[9px] uppercase tracking-widest font-bold text-amber-200 mb-1">View Detail</span>
-                {photo.caption && (
-                  <p className="font-serif italic text-sm md:text-base font-light text-stone-100 leading-snug line-clamp-3">
-                    {photo.caption}
-                  </p>
-                )}
+        {photos.length === 0 ? (
+          <div className="max-w-md mx-auto text-center py-20 px-6 border border-dashed border-stone-200 rounded-2xl bg-white shadow-xs" id="gallery_empty_state">
+            <span className="text-stone-300 text-3xl block mb-3">✦</span>
+            <p className="text-stone-400 text-[10px] font-mono uppercase tracking-widest mb-2">Editorial Queue Empty</p>
+            <p className="font-serif text-base text-stone-700 italic">"Pristine layouts under curatorial view."</p>
+            <p className="text-stone-500 text-xs mt-3 leading-relaxed max-w-xs mx-auto">
+              Please log into the concierge desk dashboard to seed your custom visual stories.
+            </p>
+          </div>
+        ) : (
+          <div className="columns-1 sm:columns-2 lg:columns-3 gap-6 space-y-6 [column-fill:_balance]" id="gallery_masonry_grid">
+            {photos.map((photo, index) => (
+              <div
+                key={photo.id || index}
+                onClick={() => setLightboxIndex(index)}
+                className="break-inside-avoid relative overflow-hidden rounded-xl border border-stone-200/40 bg-stone-100 group cursor-zoom-in transition-all duration-300 shadow-sm hover:shadow-md"
+                id={`gallery_photo_item_${index}`}
+              >
+                <img
+                  src={photo.url}
+                  alt={photo.caption || 'Editorial curation'}
+                  className="w-full h-auto object-cover group-hover:scale-[1.02] transition-transform duration-500 ease-out"
+                  loading="lazy"
+                  referrerPolicy="no-referrer"
+                />
+                {/* Elegant Caption Overlay on Hover */}
+                <div className="absolute inset-0 bg-stone-950/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-5 z-10 text-white">
+                  <span className="text-[9px] uppercase tracking-widest font-bold text-amber-200 mb-1">View Detail</span>
+                  {photo.caption && (
+                    <p className="font-serif italic text-sm md:text-base font-light text-stone-100 leading-snug line-clamp-3">
+                      {photo.caption}
+                    </p>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Elegant Lightbox Modal */}
