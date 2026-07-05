@@ -1145,7 +1145,7 @@ Good Finds by AA Logistics Curation Team`;
                               )}
                               <div>
                                 <span className="block font-medium text-stone-900 text-xs sm:text-sm">{item.name}</span>
-                                <span className="block text-[10px] text-stone-400 uppercase tracking-wider font-semibold md:hidden mt-0.5">{item.brand}</span>
+                                <span className="block text-[10px] text-stone-400 uppercase tracking-wider font-semibold md:hidden mt-0.5 print:hidden">{item.brand}</span>
                               </div>
                             </div>
                           </td>

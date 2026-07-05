@@ -130,15 +130,17 @@ select {
     print-color-adjust: exact !important;
   }
 
-  /* Collapse and reset ALL outer layouts, grids, flex containers and wrappers */
+  /* Collapse and reset ALL outer layouts, grids, flex containers, wrappers, and their ancestors */
+  html,
+  body,
   #root,
-  #root > *,
-  .shell,
-  .body,
-  main,
-  .main,
-  .mainInner,
-  section {
+  div:has(#print_area_backdrop),
+  main:has(#print_area_backdrop),
+  section:has(#print_area_backdrop),
+  [class*="shell_"],
+  [class*="body_"],
+  [class*="main_"],
+  [class*="mainInner_"] {
     display: block !important;
     position: static !important;
     width: 100% !important;
@@ -156,9 +158,13 @@ select {
 
   /* Hide all interface chrome, sidebars, headers, overlay, buttons and toolbars completely */
   header,
+  aside,
+  [class*="topBar_"],
+  [class*="sidebar_"],
+  [class*="header_"],
+  [class*="overlay_"],
   .topBar,
   .sidebar,
-  aside,
   .overlay,
   #print_buttons,
   button,
