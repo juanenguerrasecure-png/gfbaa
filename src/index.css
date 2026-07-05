@@ -109,6 +109,11 @@ select {
 
 /* Print CSS Styles for Elegant PDF Invoices */
 @media print {
+  @page {
+    size: letter;
+    margin: 0.5in;
+  }
+
   html, body {
     background: white !important;
     color: black !important;
@@ -170,14 +175,14 @@ select {
     z-index: auto !important;
   }
 
-  /* Style the printed invoice card to take full printable space cleanly */
+  /* Style the printed invoice card to take full printable space cleanly without compounding margins */
   #print_area {
     display: block !important;
     width: 100% !important;
     max-width: 100% !important;
     border: none !important;
     box-shadow: none !important;
-    padding: 0.3in !important;
+    padding: 0 !important;
     margin: 0 !important;
     background: white !important;
   }
@@ -194,6 +199,13 @@ select {
     break-inside: avoid !important;
   }
 
+  /* Image height constraints to prevent giant scaling or clipping on page boundaries */
+  img {
+    max-height: 100% !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
   /* Perfect forced page break */
   .page-break {
     page-break-before: always !important;
@@ -202,5 +214,6 @@ select {
     height: 0 !important;
     margin: 0 !important;
     padding: 0 !important;
+    visibility: hidden !important;
   }
 }
