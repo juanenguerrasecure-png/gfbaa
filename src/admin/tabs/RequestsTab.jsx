@@ -13,7 +13,9 @@ export function RequestsTab() {
     recordSale, 
     getCatalogItemStock, 
     syncAfterLocalChange,
-    paymentMethods = {}
+    paymentMethods = {},
+    catalogItems = [],
+    products = []
   } = useStore();
 
   const [activeTab, setActiveTab] = useState('all'); // 'all' | 'submitted' | 'awaiting_payment' | 'verifying' | 'shipped' | 'cancelled'
@@ -37,6 +39,38 @@ export function RequestsTab() {
   const [syncWarning, setSyncWarning] = useState(false);
   const [syncStatus, setSyncStatus] = useState('');
   const [isSyncing, setIsSyncing] = useState(false);
+
+  const getItemPhoto = (item) => {
+    if (!item) return null;
+    const itemPhotos = [];
+    if (Array.isArray(item.photos)) itemPhotos.push(...item.photos);
+    if (Array.isArray(item.photoUrls)) itemPhotos.push(...item.photoUrls);
+    if (item.photoUrl) itemPhotos.push(item.photoUrl);
+    if (item.photo) itemPhotos.push(item.photo);
+    
+    if (itemPhotos.length === 0 && item.productId) {
+      const catalogItem = catalogItems.find(c => String(c.id) === String(item.productId));
+      if (catalogItem) {
+        if (Array.isArray(catalogItem.photos)) itemPhotos.push(...catalogItem.photos);
+        if (Array.isArray(catalogItem.photoUrls)) itemPhotos.push(...catalogItem.photoUrls);
+        if (catalogItem.photoUrl) itemPhotos.push(catalogItem.photoUrl);
+        if (catalogItem.photo) itemPhotos.push(catalogItem.photo);
+      }
+    }
+    
+    if (itemPhotos.length === 0 && item.productId) {
+      const product = products?.find(p => String(p.id) === String(item.productId));
+      if (product) {
+        if (Array.isArray(product.photos)) itemPhotos.push(...product.photos);
+        if (Array.isArray(product.photoUrls)) itemPhotos.push(...product.photoUrls);
+        if (product.photoUrl) itemPhotos.push(product.photoUrl);
+        if (product.photo) itemPhotos.push(product.photo);
+      }
+    }
+
+    const uniquePhotos = [...new Set(itemPhotos.filter(Boolean))];
+    return uniquePhotos[0] || null;
+  };
 
   const handleSyncResult = async () => {
     const result = await syncAfterLocalChange();
@@ -1036,172 +1070,293 @@ Good Finds by AA Logistics Curation Team`;
         
         return (
           <div id="print_area_backdrop" className="fixed inset-0 bg-stone-900/50 backdrop-blur-3xs z-50 flex items-center justify-center p-4 overflow-y-auto" onClick={() => setInvoicePreviewRequest(null)}>
-            <div className="bg-white rounded w-full max-w-2xl p-8 space-y-6 shadow-2xl border border-stone-200 font-sans" id="print_area" onClick={e => e.stopPropagation()}>
+            <div className="bg-white rounded w-full max-w-2xl p-8 space-y-8 shadow-2xl border border-stone-200 font-sans" id="print_area" onClick={e => e.stopPropagation()}>
               
-              {/* Invoice Header */}
-              <div className="flex justify-between items-start border-b-2 border-stone-900 pb-5">
-                <div>
-                  <h2 className="font-serif text-3xl font-light text-stone-950 tracking-tight">GOOD FINDS<span className="text-[#C9A84C] font-normal"> by AA</span></h2>
-                  <span className="text-[10px] uppercase font-semibold tracking-widest text-stone-400 block mt-1">Luxury Resale & Curation Invoice</span>
-                </div>
-                <div className="text-right">
-                  <span className="text-xs font-bold uppercase tracking-wider text-[#C9A84C] block">Curation Bill</span>
-                  <span className="font-mono text-xs text-stone-700 block mt-1 font-semibold">INVOICE NO: #{invoicePreviewRequest.requestNumber || invoicePreviewRequest.id.toString().slice(-6)}</span>
-                  <span className="text-2xs text-stone-500 block mt-0.5">Date: {new Date(invoicePreviewRequest.approvedAt || invoicePreviewRequest.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}</span>
-                </div>
-              </div>
-
-              {/* Billing and Payment Meta Details */}
-              <div className="grid grid-cols-2 gap-8 text-xs border-b border-stone-100 pb-5">
-                <div>
-                  <span className="text-stone-400 font-bold uppercase tracking-wider text-[9px] block mb-1.5">BILL / SHIP TO</span>
-                  <strong className="text-stone-950 block text-sm font-medium">{invoicePreviewRequest.buyerName}</strong>
-                  <span className="text-stone-600 block mt-0.5">{invoicePreviewRequest.buyerEmail || invoicePreviewRequest.buyerContact}</span>
-                  <p className="text-stone-500 mt-1 leading-relaxed whitespace-pre-line">{invoicePreviewRequest.buyerAddress}</p>
-                </div>
-                <div className="space-y-1.5">
-                  <span className="text-stone-400 font-bold uppercase tracking-wider text-[9px] block mb-1">SETTLEMENT OVERVIEW</span>
-                  <div className="flex justify-between">
-                    <span className="text-stone-500 text-2xs uppercase">Intended Option:</span>
-                    <span className="font-bold text-stone-900">{methodLabel}</span>
+              {/* PAGE 1: CORE INVOICE BILL */}
+              <div className="space-y-6">
+                {/* Invoice Header */}
+                <div className="flex justify-between items-start border-b-2 border-stone-900 pb-5">
+                  <div>
+                    <h2 className="font-serif text-3xl font-light text-stone-950 tracking-tight">GOOD FINDS<span className="text-[#C9A84C] font-normal"> by AA</span></h2>
+                    <span className="text-[10px] uppercase font-semibold tracking-widest text-stone-400 block mt-1">Luxury Resale & Curation Invoice</span>
                   </div>
-                  {invoicePreviewRequest.paymentDeadline && (
+                  <div className="text-right">
+                    <span className="text-xs font-bold uppercase tracking-wider text-[#C9A84C] block">Curation Bill</span>
+                    <span className="font-mono text-xs text-stone-700 block mt-1 font-semibold">INVOICE NO: #{invoicePreviewRequest.requestNumber || invoicePreviewRequest.id.toString().slice(-6)}</span>
+                    <span className="text-2xs text-stone-500 block mt-0.5">Date: {new Date(invoicePreviewRequest.approvedAt || invoicePreviewRequest.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                  </div>
+                </div>
+
+                {/* Billing and Payment Meta Details */}
+                <div className="grid grid-cols-2 gap-8 text-xs border-b border-stone-100 pb-5">
+                  <div>
+                    <span className="text-stone-400 font-bold uppercase tracking-wider text-[9px] block mb-1.5">BILL / SHIP TO</span>
+                    <strong className="text-stone-950 block text-sm font-medium">{invoicePreviewRequest.buyerName}</strong>
+                    <span className="text-stone-600 block mt-0.5">{invoicePreviewRequest.buyerEmail || invoicePreviewRequest.buyerContact}</span>
+                    <p className="text-stone-500 mt-1 leading-relaxed whitespace-pre-line">{invoicePreviewRequest.buyerAddress}</p>
+                  </div>
+                  <div className="space-y-1.5">
+                    <span className="text-stone-400 font-bold uppercase tracking-wider text-[9px] block mb-1">SETTLEMENT OVERVIEW</span>
                     <div className="flex justify-between">
-                      <span className="text-stone-500 text-2xs uppercase">Payment Deadline:</span>
-                      <span className="font-mono text-red-700 font-semibold">{new Date(invoicePreviewRequest.paymentDeadline).toLocaleString()}</span>
+                      <span className="text-stone-500 text-2xs uppercase">Intended Option:</span>
+                      <span className="font-bold text-stone-900">{methodLabel}</span>
                     </div>
-                  )}
-                  <div className="flex justify-between">
-                    <span className="text-stone-500 text-2xs uppercase">Reservation Hold:</span>
-                    <span className="text-stone-600">24 Hours Guaranteed</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Table of Items */}
-              <table className="w-full text-xs text-left font-sans">
-                <thead>
-                  <tr className="border-b border-stone-200 text-stone-400 text-[10px] font-bold uppercase tracking-wider">
-                    <th className="pb-2.5">Curation Item Description</th>
-                    <th className="pb-2.5 text-right">Brand</th>
-                    <th className="pb-2.5 text-right">Qty</th>
-                    <th className="pb-2.5 text-right">Price</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-stone-100">
-                  {(invoicePreviewRequest.items || []).map((item, idx) => (
-                    <tr key={idx} className="text-stone-800">
-                      <td className="py-3 font-medium text-stone-900">{item.name}</td>
-                      <td className="py-3 text-right uppercase tracking-wider text-[10px] text-stone-500 font-medium">{item.brand}</td>
-                      <td className="py-3 text-right font-mono font-medium text-stone-600">{item.qty || 1}</td>
-                      <td className="py-3 text-right font-mono font-bold">${Number(item.price).toLocaleString()}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-
-              {/* Pricing breakdown and payment methods */}
-              <div className="grid grid-cols-1 md:grid-cols-5 gap-6 pt-5 border-t border-stone-200">
-                {/* Custom direct payment details block */}
-                <div className="md:col-span-3 space-y-3 text-left">
-                  <div className="bg-stone-50 p-4 rounded border border-stone-100 flex flex-col sm:flex-row justify-between gap-4">
-                    <div className="space-y-1.5 flex-1">
-                      <div className="flex items-center gap-1.5">
-                        <span className={`inline-flex h-5 w-5 items-center justify-center rounded text-[9px] font-bold text-white uppercase ${accentBg}`}>
-                          {methodLabel[0]}
-                        </span>
-                        <h4 className="font-bold text-stone-900 text-xs uppercase tracking-wider">
-                          Intended Payment ({methodLabel})
-                        </h4>
-                      </div>
-                      
-                      {methodDetails.handle ? (
-                        <div className="text-stone-800 text-xs pt-1">
-                          <span className="text-stone-400 uppercase tracking-wider text-[8px] font-bold block">Account / Handle</span>
-                          <strong className="text-stone-950 select-all font-mono bg-stone-200/80 px-1 py-0.5 rounded text-2xs">{methodDetails.handle}</strong>
-                          {methodDetails.accountName && (
-                            <span className="text-[10px] text-stone-500 block mt-0.5 font-medium">Account Name: {methodDetails.accountName}</span>
-                          )}
-                        </div>
-                      ) : (
-                        <p className="text-2xs text-stone-500 italic pt-1">No payment details set up yet for {methodLabel}. Please contact the administrator.</p>
-                      )}
-
-                      {methodDetails.instructions && (
-                        <div className="pt-2 text-2xs text-stone-600 leading-relaxed">
-                          <span className="text-stone-400 uppercase tracking-wider text-[8px] font-bold block mb-0.5">Instructions</span>
-                          <p className="whitespace-pre-line bg-white/50 p-1.5 border border-stone-100 rounded text-stone-700 font-medium leading-relaxed">{methodDetails.instructions}</p>
-                        </div>
-                      )}
-                    </div>
-
-                    {methodDetails.qrUrl && (
-                      <div className="flex flex-col items-center justify-center p-2 bg-white border border-stone-200/60 rounded shrink-0 self-center">
-                        <img 
-                          src={methodDetails.qrUrl} 
-                          alt={`${methodLabel} QR Code`} 
-                          className="w-24 h-24 object-contain rounded"
-                          referrerPolicy="no-referrer"
-                        />
-                        <span className="text-[8px] font-bold text-stone-400 uppercase tracking-wider mt-1">Scan to Pay</span>
+                    {invoicePreviewRequest.paymentDeadline && (
+                      <div className="flex justify-between">
+                        <span className="text-stone-500 text-2xs uppercase">Payment Deadline:</span>
+                        <span className="font-mono text-red-700 font-semibold">{new Date(invoicePreviewRequest.paymentDeadline).toLocaleString()}</span>
                       </div>
                     )}
+                    <div className="flex justify-between">
+                      <span className="text-stone-500 text-2xs uppercase">Reservation Hold:</span>
+                      <span className="text-stone-600">24 Hours Guaranteed</span>
+                    </div>
                   </div>
                 </div>
 
-                {/* Subtotals & Grand Total */}
-                <div className="md:col-span-2 space-y-2 text-right text-xs">
-                  <div className="flex justify-between text-stone-500">
-                    <span>Subtotal:</span>
-                    <span className="font-mono font-medium">${itemSubtotal(invoicePreviewRequest).toLocaleString()}</span>
+                {/* Table of Items */}
+                <table className="w-full text-xs text-left font-sans">
+                  <thead>
+                    <tr className="border-b border-stone-200 text-stone-400 text-[10px] font-bold uppercase tracking-wider">
+                      <th className="pb-2.5">Curation Item Description</th>
+                      <th className="pb-2.5 text-right">Brand</th>
+                      <th className="pb-2.5 text-right">Qty</th>
+                      <th className="pb-2.5 text-right">Price</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-stone-100">
+                    {(invoicePreviewRequest.items || []).map((item, idx) => {
+                      const photoUrl = getItemPhoto(item);
+                      return (
+                        <tr key={idx} className="text-stone-800">
+                          <td className="py-3 font-medium text-stone-900">
+                            <div className="flex items-center gap-3">
+                              {photoUrl ? (
+                                <img 
+                                  src={photoUrl} 
+                                  alt={item.name} 
+                                  className="w-12 h-12 rounded object-cover border border-stone-200 shrink-0 bg-stone-50"
+                                  referrerPolicy="no-referrer"
+                                />
+                              ) : (
+                                <div className="w-12 h-12 rounded bg-stone-100 border border-stone-200 flex items-center justify-center text-stone-400 shrink-0">
+                                  <ShoppingBag size={14} />
+                                </div>
+                              )}
+                              <div>
+                                <span className="block font-medium text-stone-900 text-xs sm:text-sm">{item.name}</span>
+                                <span className="block text-[10px] text-stone-400 uppercase tracking-wider font-semibold md:hidden mt-0.5">{item.brand}</span>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="py-3 text-right uppercase tracking-wider text-[10px] text-stone-500 font-medium">{item.brand}</td>
+                          <td className="py-3 text-right font-mono font-medium text-stone-600">{item.qty || 1}</td>
+                          <td className="py-3 text-right font-mono font-bold">${Number(item.price).toLocaleString()}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+
+                {/* Pricing breakdown and payment methods */}
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-6 pt-5 border-t border-stone-200">
+                  {/* Custom direct payment details block */}
+                  <div className="md:col-span-3 space-y-3 text-left">
+                    <div className="bg-stone-50 p-4 rounded border border-stone-100 flex flex-col sm:flex-row justify-between gap-4">
+                      <div className="space-y-1.5 flex-1">
+                        <div className="flex items-center gap-1.5">
+                          <span className={`inline-flex h-5 w-5 items-center justify-center rounded text-[9px] font-bold text-white uppercase ${accentBg}`}>
+                            {methodLabel[0]}
+                          </span>
+                          <h4 className="font-bold text-stone-900 text-xs uppercase tracking-wider">
+                            Intended Payment ({methodLabel})
+                          </h4>
+                        </div>
+                        
+                        {methodDetails.handle ? (
+                          <div className="text-stone-800 text-xs pt-1">
+                            <span className="text-stone-400 uppercase tracking-wider text-[8px] font-bold block">Account / Handle</span>
+                            <strong className="text-stone-950 select-all font-mono bg-stone-200/80 px-1 py-0.5 rounded text-xs block mt-1 w-max">{methodDetails.handle}</strong>
+                            {methodDetails.accountName && (
+                              <span className="text-[10px] text-stone-500 block mt-1 font-medium">Account Name: {methodDetails.accountName}</span>
+                            )}
+                          </div>
+                        ) : (
+                          <p className="text-2xs text-stone-500 italic pt-1">No payment details set up yet for {methodLabel}. Please contact the administrator.</p>
+                        )}
+
+                        {methodDetails.instructions && (
+                          <div className="pt-2 text-2xs text-stone-600 leading-relaxed">
+                            <span className="text-stone-400 uppercase tracking-wider text-[8px] font-bold block mb-0.5">Instructions</span>
+                            <p className="whitespace-pre-line bg-white/50 p-1.5 border border-stone-100 rounded text-stone-700 font-medium leading-relaxed">{methodDetails.instructions}</p>
+                          </div>
+                        )}
+                      </div>
+
+                      {methodDetails.qrUrl && (
+                        <div className="flex flex-col items-center justify-center p-3 bg-white border border-stone-200/60 rounded shrink-0 self-center shadow-3xs">
+                          <img 
+                            src={methodDetails.qrUrl} 
+                            alt={`${methodLabel} QR Code`} 
+                            className="w-36 h-36 sm:w-44 sm:h-44 object-contain rounded"
+                            referrerPolicy="no-referrer"
+                          />
+                          <span className="text-[8px] font-bold text-stone-500 uppercase tracking-wider mt-2.5 bg-stone-100 px-2 py-0.5 rounded">Scan to Pay</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  {invoicePreviewRequest.shippingCost !== null && (
+
+                  {/* Subtotals & Grand Total */}
+                  <div className="md:col-span-2 space-y-2 text-right text-xs">
                     <div className="flex justify-between text-stone-500">
-                      <span>Shipping Logistics:</span>
-                      <span className="font-mono font-medium">${invoicePreviewRequest.shippingCost.toLocaleString()}</span>
+                      <span>Subtotal:</span>
+                      <span className="font-mono font-medium">${itemSubtotal(invoicePreviewRequest).toLocaleString()}</span>
                     </div>
-                  )}
-                  {invoicePreviewRequest.insuranceCost > 0 && (
-                    <div className="flex justify-between text-stone-500">
-                      <span>Insurance:</span>
-                      <span className="font-mono font-medium">${invoicePreviewRequest.insuranceCost.toLocaleString()}</span>
+                    {invoicePreviewRequest.shippingCost !== null && (
+                      <div className="flex justify-between text-stone-500">
+                        <span>Shipping Logistics:</span>
+                        <span className="font-mono font-medium">${invoicePreviewRequest.shippingCost.toLocaleString()}</span>
+                      </div>
+                    )}
+                    {invoicePreviewRequest.insuranceCost > 0 && (
+                      <div className="flex justify-between text-stone-500">
+                        <span>Insurance:</span>
+                        <span className="font-mono font-medium">${invoicePreviewRequest.insuranceCost.toLocaleString()}</span>
+                      </div>
+                    )}
+                    {invoicePreviewRequest.taxAmount > 0 && (
+                      <div className="flex justify-between text-stone-500">
+                        <span>Duties & Taxes:</span>
+                        <span className="font-mono font-medium">${invoicePreviewRequest.taxAmount.toLocaleString()}</span>
+                      </div>
+                    )}
+                    {invoicePreviewRequest.otherFee > 0 && (
+                      <div className="flex justify-between text-stone-500">
+                        <span>Special Handling:</span>
+                        <span className="font-mono font-medium">${invoicePreviewRequest.otherFee.toLocaleString()}</span>
+                      </div>
+                    )}
+                    {invoicePreviewRequest.discountAmount > 0 && (
+                      <div className="flex justify-between text-emerald-800 font-medium">
+                        <span>Discount:</span>
+                        <span className="font-mono">-${invoicePreviewRequest.discountAmount.toLocaleString()}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between text-stone-950 font-bold border-t border-stone-200 pt-2 text-sm">
+                      <span>Grand Total:</span>
+                      <span className="font-mono">${(invoicePreviewRequest.finalTotal || itemsTotal + (invoicePreviewRequest.shippingCost || 0)).toLocaleString()}</span>
                     </div>
-                  )}
-                  {invoicePreviewRequest.taxAmount > 0 && (
-                    <div className="flex justify-between text-stone-500">
-                      <span>Duties & Taxes:</span>
-                      <span className="font-mono font-medium">${invoicePreviewRequest.taxAmount.toLocaleString()}</span>
-                    </div>
-                  )}
-                  {invoicePreviewRequest.otherFee > 0 && (
-                    <div className="flex justify-between text-stone-500">
-                      <span>Special Handling:</span>
-                      <span className="font-mono font-medium">${invoicePreviewRequest.otherFee.toLocaleString()}</span>
-                    </div>
-                  )}
-                  {invoicePreviewRequest.discountAmount > 0 && (
-                    <div className="flex justify-between text-emerald-800 font-medium">
-                      <span>Discount:</span>
-                      <span className="font-mono">-${invoicePreviewRequest.discountAmount.toLocaleString()}</span>
-                    </div>
-                  )}
-                  <div className="flex justify-between text-stone-950 font-bold border-t border-stone-200 pt-2 text-sm">
-                    <span>Grand Total:</span>
-                    <span className="font-mono">${(invoicePreviewRequest.finalTotal || itemsTotal + (invoicePreviewRequest.shippingCost || 0)).toLocaleString()}</span>
                   </div>
+                </div>
+
+                {/* Memo/Notice footer */}
+                <div className="text-[9px] text-stone-400 leading-relaxed border-t border-stone-100 pt-4 font-sans text-center">
+                  <span>Thank you for choosing Good Finds by AA. To complete settlement, please scan the large QR code above or send payments to the specified handler account. Curation reservations are automatically released if left unpaid. Please see Page 2 for complete buyer steps.</span>
                 </div>
               </div>
 
-              {/* Memo/Notice footer */}
-              <div className="text-[9px] text-stone-400 leading-relaxed border-t border-stone-100 pt-4 font-sans text-center">
-                <span>Thank you for choosing Good Finds by AA. To complete settlement, please scan the QR code above or send payments to the specified handler account. Curation reservations are automatically released if left unpaid.</span>
+              {/* PAGE BREAK FOR PRINTING & VISUAL DIVIDER ON SCREEN */}
+              <div className="page-break my-10 border-t border-dashed border-stone-300 relative">
+                <span className="absolute left-1/2 -top-3 -translate-x-1/2 bg-stone-100 border border-stone-200 text-stone-500 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider print:hidden">
+                  Page 2 (Transaction & Shipping Steps)
+                </span>
+              </div>
+
+              {/* PAGE 2: CLIENT TRANSACTION & CURATION GUIDE */}
+              <div className="space-y-6 pt-4 print:pt-0">
+                {/* Header for Page 2 */}
+                <div className="flex justify-between items-start border-b-2 border-stone-900 pb-5">
+                  <div>
+                    <h2 className="font-serif text-2xl font-light text-stone-950 tracking-tight">GOOD FINDS<span className="text-[#C9A84C] font-normal"> by AA</span></h2>
+                    <span className="text-[10px] uppercase font-semibold tracking-widest text-stone-400 block mt-1">Direct Settlement & Logistics Guide</span>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-2xs text-stone-500 block uppercase tracking-wider font-semibold text-[#C9A84C]">Client Companion</span>
+                    <span className="font-mono text-[11px] text-stone-600 block mt-0.5">INVOICE NO: #{invoicePreviewRequest.requestNumber || invoicePreviewRequest.id.toString().slice(-6)}</span>
+                  </div>
+                </div>
+
+                <div className="space-y-5">
+                  <p className="text-xs text-stone-600 leading-relaxed font-medium">
+                    To ensure absolute safety, provenance preservation, and seamless dispatch of your curated luxury purchase, please follow our structured step-by-step settlement workflow:
+                  </p>
+
+                  <div className="space-y-3 font-sans">
+                    {/* Step 1 */}
+                    <div className="flex gap-4 p-3.5 bg-stone-50 rounded border border-stone-200/60 items-start">
+                      <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-stone-950 text-white text-[11px] font-bold font-mono">01</span>
+                      <div className="space-y-0.5">
+                        <h4 className="font-bold text-stone-900 text-xs uppercase tracking-wider">Purchase & Curation Request</h4>
+                        <p className="text-2xs text-stone-500 leading-relaxed">
+                          Your chosen high-end items are temporarily reserved upon request. This places a secure 24-hour hold on the catalog, removing the listings from our public collection to protect your procurement.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Step 2 */}
+                    <div className="flex gap-4 p-3.5 bg-stone-50 rounded border border-stone-200/60 items-start">
+                      <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#C9A84C] text-white text-[11px] font-bold font-mono">02</span>
+                      <div className="space-y-0.5">
+                        <h4 className="font-bold text-stone-900 text-xs uppercase tracking-wider">Shipping Logistics & Quotation Approval</h4>
+                        <p className="text-2xs text-stone-500 leading-relaxed">
+                          The curation administrator evaluates your delivery address, calculates optimized courier values, secures optional transit insurance, and issues your customized multi-tier invoice.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Step 3 */}
+                    <div className="flex gap-4 p-3.5 bg-stone-50 rounded border border-stone-200/60 items-start">
+                      <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#6D1ED4] text-white text-[11px] font-bold font-mono">03</span>
+                      <div className="space-y-0.5">
+                        <h4 className="font-bold text-stone-900 text-xs uppercase tracking-wider">Direct Payment Settlement</h4>
+                        <p className="text-2xs text-stone-500 leading-relaxed">
+                          Scan the large custom QR code on Page 1 or copy the account handler details exactly. Submit your total outstanding balance using your choice of Zelle, Venmo, or PayPal within the 24-hour guarantee window.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Step 4 */}
+                    <div className="flex gap-4 p-3.5 bg-stone-50 rounded border border-stone-200/60 items-start">
+                      <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#3D95CE] text-white text-[11px] font-bold font-mono">04</span>
+                      <div className="space-y-0.5">
+                        <h4 className="font-bold text-stone-900 text-xs uppercase tracking-wider">Receipt Upload & Verification</h4>
+                        <p className="text-2xs text-stone-500 leading-relaxed">
+                          Take a clear screenshot of your bank or mobile app's successful payment receipt. Go to your shopper dashboard's tracking area and upload it. The administrator will match the transaction with the bank log and approve.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Step 5 */}
+                    <div className="flex gap-4 p-3.5 bg-stone-50 rounded border border-stone-200/60 items-start">
+                      <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-700 text-white text-[11px] font-bold font-mono">05</span>
+                      <div className="space-y-0.5">
+                        <h4 className="font-bold text-stone-900 text-xs uppercase tracking-wider">Luxury Dispatch & Delivery</h4>
+                        <p className="text-2xs text-stone-500 leading-relaxed">
+                          Verified orders are packed with professional curation standards (dust bags, premium insulation box). Tracking links are registered and shared via email, providing high-visibility logistics straight to your door.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Warning terms for Page 2 */}
+                  <div className="bg-[#FFF8E7]/40 border border-amber-200 p-3.5 rounded text-left text-2xs text-amber-900 leading-relaxed font-sans">
+                    <span className="font-bold uppercase tracking-wider text-[8px] block mb-1 text-amber-800">⚠️ TRANSACTION & RETURN ADVISORY</span>
+                    Authenticity of all items is 100% unconditionally guaranteed. Due to the high value, rare vintage provenance, and exclusive consignment nature of curated items, all approved transactions are final. For priority logistics assistance, contact our concierge at aa@goodfindsbyaa.com.
+                  </div>
+                </div>
+
+                {/* Guide Page Footer */}
+                <div className="text-[9px] text-stone-400 leading-relaxed border-t border-stone-100 pt-4 font-sans text-center">
+                  <span>Thank you for your patronage. Good Finds by AA — Curated Fine Pieces & Timeless Luxury collectibles.</span>
+                </div>
               </div>
 
               {/* Printable buttons */}
-              <div className="flex justify-between border-t border-stone-100 pt-4" id="print_buttons">
+              <div className="flex justify-between border-t border-stone-100 pt-5" id="print_buttons">
                 <button 
                   onClick={() => window.print()}
-                  className="inline-flex items-center gap-1.5 bg-stone-900 hover:bg-stone-800 text-white px-4 py-2 rounded text-xs font-semibold uppercase tracking-wider cursor-pointer transition-colors shadow-3xs"
+                  className="inline-flex items-center gap-1.5 bg-stone-900 hover:bg-stone-800 text-white px-4 py-2.5 rounded text-xs font-semibold uppercase tracking-wider cursor-pointer transition-colors shadow-3xs"
                 >
                   <Printer size={13} /> Print Invoice (PDF)
                 </button>

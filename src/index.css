@@ -115,14 +115,34 @@ select {
     width: 100% !important;
     height: auto !important;
     overflow: visible !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
 
-  /* Reset layout constraints on React parent elements so they don't clip the printable content */
-  #root, #root * {
+  /* Force exact color reproduction for background shades, warnings, and QR code boxes */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Reset layout constraints on React layout/parent wrappers so they do not clip or limit height */
+  #root,
+  #root > *,
+  main,
+  header,
+  footer,
+  aside,
+  nav,
+  section {
+    display: block !important;
     height: auto !important;
     min-height: 0 !important;
+    max-height: none !important;
     overflow: visible !important;
+    position: static !important;
     box-shadow: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
 
   /* Hide the rest of the application by default using visibility */
@@ -136,12 +156,10 @@ select {
     visibility: visible !important;
   }
 
-  /* Position the backdrop to cover the entire page nicely */
+  /* Position the backdrop as a natural relative block element so normal page-breaks trigger */
   #print_area_backdrop {
     display: block !important;
-    position: absolute !important;
-    left: 0 !important;
-    top: 0 !important;
+    position: relative !important;
     width: 100% !important;
     height: auto !important;
     background: white !important;
@@ -149,17 +167,17 @@ select {
     box-shadow: none !important;
     padding: 0 !important;
     margin: 0 !important;
-    z-index: 99999 !important;
+    z-index: auto !important;
   }
 
-  /* Style the printed invoice card to take full width cleanly */
+  /* Style the printed invoice card to take full printable space cleanly */
   #print_area {
     display: block !important;
     width: 100% !important;
     max-width: 100% !important;
     border: none !important;
     box-shadow: none !important;
-    padding: 0.4in !important;
+    padding: 0.3in !important;
     margin: 0 !important;
     background: white !important;
   }
@@ -167,5 +185,22 @@ select {
   /* Hide UI Buttons (Print and Close) on paper */
   #print_buttons {
     display: none !important;
+  }
+
+  /* Prevent row and panel splitting awkwardly across pages */
+  tr, 
+  .avoid-break {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* Perfect forced page break */
+  .page-break {
+    page-break-before: always !important;
+    break-before: page !important;
+    border-top: none !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
 }
