@@ -130,32 +130,56 @@ select {
     print-color-adjust: exact !important;
   }
 
-  /* Reset layout constraints on React layout/parent wrappers so they do not clip or limit height */
+  /* Collapse and reset ALL outer layouts, grids, flex containers and wrappers */
   #root,
   #root > *,
+  .shell,
+  .body,
   main,
-  header,
-  footer,
-  aside,
-  nav,
+  .main,
+  .mainInner,
   section {
     display: block !important;
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
     height: auto !important;
     min-height: 0 !important;
     max-height: none !important;
     overflow: visible !important;
-    position: static !important;
     box-shadow: none !important;
     margin: 0 !important;
     padding: 0 !important;
+    border: none !important;
+    background: transparent !important;
   }
 
-  /* Hide the rest of the application by default using visibility */
+  /* Hide all interface chrome, sidebars, headers, overlay, buttons and toolbars completely */
+  header,
+  .topBar,
+  .sidebar,
+  aside,
+  .overlay,
+  #print_buttons,
+  button,
+  .print-hidden,
+  .no-print {
+    display: none !important;
+    visibility: hidden !important;
+    width: 0 !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    border: none !important;
+  }
+
+  /* Hide the rest of the application using visibility to be absolutely sure they do not leak */
   body * {
     visibility: hidden;
   }
 
-  /* Keep only the print backdrop and its children visible */
+  /* Keep only the print backdrop and its children visible and displayable */
   #print_area_backdrop,
   #print_area_backdrop * {
     visibility: visible !important;
@@ -187,14 +211,54 @@ select {
     background: white !important;
   }
 
-  /* Hide UI Buttons (Print and Close) on paper */
-  #print_buttons {
-    display: none !important;
-  }
-
   /* Prevent row and panel splitting awkwardly across pages */
   tr, 
-  .avoid-break {
+  .avoid-break,
+  #print_area table,
+  #print_area .bg-stone-50 {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* Forcing a consistent 2-column layout for the payment blocks and subtotals in printing */
+  #print_area .grid.grid-cols-1 {
+    display: grid !important;
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    gap: 1.5rem !important;
+  }
+  #print_area .grid.grid-cols-1 .md\:col-span-3 {
+    grid-column: span 3 / span 3 !important;
+  }
+  #print_area .grid.grid-cols-1 .md\:col-span-2 {
+    grid-column: span 2 / span 2 !important;
+  }
+
+  /* Force payment details and QR code block horizontal structure on print */
+  #print_area .bg-stone-50 {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    gap: 1.5rem !important;
+    padding: 1rem !important;
+  }
+  #print_area .bg-stone-50 .space-y-1\.5 {
+    flex: 1 !important;
+  }
+  #print_area .bg-stone-50 img {
+    width: 120px !important;
+    height: 120px !important;
+    max-width: 120px !important;
+    max-height: 120px !important;
+    object-fit: contain !important;
+  }
+
+  /* Force Companion Guide steps on page 2 to remain beautifully row-oriented and avoid page breaking */
+  #print_area .space-y-3 > .flex {
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 1rem !important;
+    align-items: start !important;
     page-break-inside: avoid !important;
     break-inside: avoid !important;
   }
