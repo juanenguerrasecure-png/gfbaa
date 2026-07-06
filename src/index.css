@@ -132,15 +132,24 @@ select {
 
   /* Collapse and reset ALL outer layouts, grids, flex containers, wrappers, and their ancestors */
   html,
-  body,
+  body {
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    background: white !important;
+  }
+
+  /* Reset layout constraints on ancestors of the print area backdrop to ensure they are plain block elements */
   #root,
-  div:has(#print_area_backdrop),
-  main:has(#print_area_backdrop),
-  section:has(#print_area_backdrop),
-  [class*="shell_"],
-  [class*="body_"],
-  [class*="main_"],
-  [class*="mainInner_"] {
+  #root *:has(#print_area_backdrop) {
     display: block !important;
     position: static !important;
     width: 100% !important;
@@ -154,6 +163,17 @@ select {
     padding: 0 !important;
     border: none !important;
     background: transparent !important;
+    transform: none !important;
+  }
+
+  /* Hide all elements inside #root by default, EXCEPT descendants/ancestors of #print_area_backdrop */
+  #root *:not(:has(#print_area_backdrop)):not(#print_area_backdrop):not(#print_area_backdrop *) {
+    display: none !important;
+  }
+
+  /* Hide any other top-level non-root elements */
+  body > :not(#root) {
+    display: none !important;
   }
 
   /* Hide all interface chrome, sidebars, headers, overlay, buttons and toolbars completely */
@@ -178,17 +198,6 @@ select {
     padding: 0 !important;
     overflow: hidden !important;
     border: none !important;
-  }
-
-  /* Hide the rest of the application using visibility to be absolutely sure they do not leak */
-  body * {
-    visibility: hidden;
-  }
-
-  /* Keep only the print backdrop and its children visible and displayable */
-  #print_area_backdrop,
-  #print_area_backdrop * {
-    visibility: visible !important;
   }
 
   /* Position the backdrop as a natural relative block element so normal page-breaks trigger */

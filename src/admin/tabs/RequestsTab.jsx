@@ -1069,8 +1069,8 @@ Good Finds by AA Logistics Curation Team`;
         const itemsTotal = (invoicePreviewRequest.items || []).reduce((sum, i) => sum + (Number(i.price) || 0), 0);
         
         return (
-          <div id="print_area_backdrop" className="fixed inset-0 bg-stone-900/50 backdrop-blur-3xs z-50 flex items-center justify-center p-4 overflow-y-auto" onClick={() => setInvoicePreviewRequest(null)}>
-            <div className="bg-white rounded w-full max-w-2xl p-8 space-y-8 shadow-2xl border border-stone-200 font-sans" id="print_area" onClick={e => e.stopPropagation()}>
+          <div id="print_area_backdrop" className="fixed inset-0 bg-stone-900/50 backdrop-blur-3xs z-50 flex items-start justify-center p-4 overflow-y-auto" onClick={() => setInvoicePreviewRequest(null)}>
+            <div className="bg-white rounded w-full max-w-2xl p-8 space-y-8 shadow-2xl border border-stone-200 font-sans my-4 md:my-8" id="print_area" onClick={e => e.stopPropagation()}>
               
               {/* PAGE 1: CORE INVOICE BILL */}
               <div className="space-y-6">
