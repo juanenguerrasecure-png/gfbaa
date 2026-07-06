@@ -226,6 +226,17 @@ select {
     background: white !important;
   }
 
+  /* Standard header and footer borders to printed pages inside the invoice print area */
+  #print_area .invoice-page {
+    border-top: 2px solid #1c1917 !important; /* stone-900 */
+    border-bottom: 2px solid #1c1917 !important; /* stone-900 */
+    padding-top: 2rem !important;
+    padding-bottom: 2rem !important;
+    margin-top: 1.5rem !important;
+    margin-bottom: 1.5rem !important;
+    box-sizing: border-box !important;
+  }
+
   /* Prevent row and panel splitting awkwardly across pages */
   tr, 
   .avoid-break,
