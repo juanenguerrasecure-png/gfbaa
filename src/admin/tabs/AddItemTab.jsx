@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { Archive, CheckCircle, HelpCircle, PlusCircle, Tag } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
 import { PhotoUploader } from '../../components/PhotoUploader';
+import { MultiPhotoEditor } from '../../components/MultiPhotoEditor';
 import styles from './AddItemTab.module.css';
 
 const DEFAULT_PRODUCT = {
@@ -35,7 +36,8 @@ const DEFAULT_CATALOG_ITEM = {
   emoji: '👜',
   condition: 'mint',
   quantity: '1',
-  photoUrl: null
+  photoUrl: null,
+  photos: []
 };
 
 const STEP_LABELS = ['Item Identity', 'Pricing', 'Photos', 'Review + Submit'];
@@ -88,6 +90,7 @@ export function AddItemTab() {
       return;
     }
     const product = products.find(p => p.id === batch.productId);
+    const initialPhotos = product ? (product.photos || (product.photoUrl ? [{ url: product.photoUrl, description: '' }] : [])) : [];
     setCatalogItemForm({
       batchId,
       name: product ? product.name : '',
@@ -99,7 +102,8 @@ export function AddItemTab() {
       emoji: product ? product.emoji : '👜',
       condition: batch.condition || 'mint',
       quantity: '1',
-      photoUrl: product ? product.photoUrl : null
+      photoUrl: product ? product.photoUrl : null,
+      photos: initialPhotos
     });
     setCatalogErrors({});
   };
@@ -418,7 +422,23 @@ export function AddItemTab() {
         </StepShell>
       );
     }
-    if (currentStep === 3) return <StepShell><PhotoUploader value={catalogItemForm.photoUrl} onChange={(url) => handleCatalogChange('photoUrl', url)} /></StepShell>;
+    if (currentStep === 3) {
+      return (
+        <StepShell>
+          <MultiPhotoEditor
+            photos={catalogItemForm.photos || []}
+            onChange={(updatedPhotos) => {
+              handleCatalogChange('photos', updatedPhotos);
+              if (updatedPhotos.length > 0) {
+                handleCatalogChange('photoUrl', updatedPhotos[0].url);
+              } else {
+                handleCatalogChange('photoUrl', null);
+              }
+            }}
+          />
+        </StepShell>
+      );
+    }
     return (
       <StepShell>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

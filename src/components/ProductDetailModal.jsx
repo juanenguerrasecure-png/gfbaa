@@ -56,11 +56,26 @@ const CONDITION_DATA = {
 
 function getPhotos(product) {
   const list = [];
-  if (Array.isArray(product?.photos)) list.push(...product.photos);
-  if (Array.isArray(product?.photoUrls)) list.push(...product.photoUrls);
-  if (product?.photoUrl) list.push(product.photoUrl);
-  if (product?.photo) list.push(product.photo);
-  return [...new Set(list.filter(Boolean))];
+  const rawPhotos = [];
+  if (Array.isArray(product?.photos)) rawPhotos.push(...product.photos);
+  else if (Array.isArray(product?.photoUrls)) rawPhotos.push(...product.photoUrls);
+  
+  rawPhotos.forEach(p => {
+    if (p && typeof p === 'object' && p.url) {
+      list.push(p);
+    } else if (p && typeof p === 'string') {
+      list.push({ url: p, description: '' });
+    }
+  });
+
+  if (product?.photoUrl && !list.some(p => p.url === product.photoUrl)) {
+    list.push({ url: product.photoUrl, description: '' });
+  }
+  if (product?.photo && !list.some(p => p.url === product.photo)) {
+    list.push({ url: product.photo, description: '' });
+  }
+
+  return list.filter(p => p.url);
 }
 
 function getMessengerHref(baseUrl) {
@@ -270,7 +285,7 @@ export function ProductDetailModal({ isOpen, onClose, product, onAddToCart }) {
                 >
                   {photos.length ? (
                     <img
-                      src={photos[activePhoto]}
+                      src={photos[activePhoto]?.url}
                       alt={`${product.brand} ${product.name}`}
                       className="w-full h-full object-contain p-4 transition-transform duration-500 group-hover:scale-101"
                       loading="lazy"
@@ -280,6 +295,14 @@ export function ProductDetailModal({ isOpen, onClose, product, onAddToCart }) {
                   ) : (
                     <div className="absolute inset-0 w-full h-full bg-stone-100 flex items-center justify-center">
                       <ProductPlaceholder category={product.cat} />
+                    </div>
+                  )}
+
+                  {/* Photo description */}
+                  {photos[activePhoto]?.description && (
+                    <div className="absolute bottom-12 left-3 right-3 bg-stone-900/85 text-[#FAF8F5] text-xs font-sans tracking-wide leading-relaxed px-4 py-2.5 rounded-lg border border-stone-800/30 backdrop-blur-md shadow-md z-10 select-text">
+                      <p className="font-medium text-[10px] uppercase tracking-wider text-[#C9A84C] mb-0.5">Photo Detail</p>
+                      <p className="font-light">{photos[activePhoto].description}</p>
                     </div>
                   )}
 
@@ -322,7 +345,7 @@ export function ProductDetailModal({ isOpen, onClose, product, onAddToCart }) {
                         className={`w-12 h-12 rounded overflow-hidden border-2 transition-all cursor-pointer flex-shrink-0 ${index === activePhoto ? 'border-[#C9A84C] scale-105 shadow-sm' : 'border-transparent opacity-60 hover:opacity-100'}`}
                         aria-label={`Show photo ${index + 1}`}
                       >
-                        <img src={photo} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                        <img src={photo.url} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                       </button>
                     ))}
                   </div>
@@ -541,7 +564,7 @@ export function ProductDetailModal({ isOpen, onClose, product, onAddToCart }) {
                   animate={{ scale: 1, opacity: 1 }}
                   exit={{ scale: 0.9, opacity: 0 }}
                   transition={{ type: 'spring', damping: 25 }}
-                  src={photos[activePhoto]}
+                  src={photos[activePhoto]?.url}
                   alt={`${product.brand} ${product.name} High-Res`}
                   className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl"
                   referrerPolicy="no-referrer"

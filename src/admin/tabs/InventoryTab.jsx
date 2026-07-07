@@ -2,6 +2,7 @@ import { lazy, Suspense, useMemo, useState } from 'react';
 import { Pencil, PlusCircle, Search, ShoppingBag, Trash2 } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
 import { PhotoUploader } from '../../components/PhotoUploader';
+import { MultiPhotoEditor } from '../../components/MultiPhotoEditor';
 import styles from './InventoryTab.module.css';
 
 const GlobalManualSaleModal = lazy(() => import('../components/GlobalManualSaleModal').then(m => ({ default: m.GlobalManualSaleModal })));
@@ -73,7 +74,17 @@ function CatalogItemEditModal({ item, onSave, onClose }) {
         </div>
 
         <div className="mt-4 border-t border-stone-200 pt-4">
-          <PhotoUploader value={form.photoUrl} onChange={url => set('photoUrl', url)} />
+          <MultiPhotoEditor
+            photos={form.photos || (form.photoUrl ? [{ url: form.photoUrl, description: '' }] : [])}
+            onChange={updatedPhotos => {
+              set('photos', updatedPhotos);
+              if (updatedPhotos.length > 0) {
+                set('photoUrl', updatedPhotos[0].url);
+              } else {
+                set('photoUrl', null);
+              }
+            }}
+          />
         </div>
 
         <div className={styles.modalActions}>

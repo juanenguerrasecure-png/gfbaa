@@ -65,11 +65,26 @@ export function ProductCard({ item, onAddToCart }) {
   // Extract all photos
   const photos = useMemo(() => {
     const list = [];
-    if (Array.isArray(item?.photos)) list.push(...item.photos);
-    if (Array.isArray(item?.photoUrls)) list.push(...item.photoUrls);
-    if (item?.photoUrl) list.push(item.photoUrl);
-    if (item?.photo) list.push(item.photo);
-    return [...new Set(list.filter(Boolean))];
+    const rawPhotos = [];
+    if (Array.isArray(item?.photos)) rawPhotos.push(...item.photos);
+    else if (Array.isArray(item?.photoUrls)) rawPhotos.push(...item.photoUrls);
+    
+    rawPhotos.forEach(p => {
+      if (p && typeof p === 'object' && p.url) {
+        list.push(p);
+      } else if (p && typeof p === 'string') {
+        list.push({ url: p, description: '' });
+      }
+    });
+
+    if (item?.photoUrl && !list.some(p => p.url === item.photoUrl)) {
+      list.push({ url: item.photoUrl, description: '' });
+    }
+    if (item?.photo && !list.some(p => p.url === item.photo)) {
+      list.push({ url: item.photo, description: '' });
+    }
+
+    return list.filter(p => p.url);
   }, [item]);
 
   const [activePhoto, setActivePhoto] = useState(0);
@@ -127,7 +142,9 @@ export function ProductCard({ item, onAddToCart }) {
                 onScroll={handleScroll}
                 id={`product_carousel_${item.id}`}
               >
-                {visiblePhotos.map((url, index) => {
+                {visiblePhotos.map((photoObj, index) => {
+                  const url = photoObj.url;
+                  const desc = photoObj.description;
                   const isLoaded = loadedPhotos[index];
                   return (
                     <div className={styles.carouselSlide} key={`${url}-${index}`}>
@@ -141,6 +158,11 @@ export function ProductCard({ item, onAddToCart }) {
                         loading="lazy"
                         decoding="async"
                       />
+                      {desc && (
+                        <div className="absolute bottom-0 left-0 right-0 bg-stone-900/80 backdrop-blur-xs text-white p-2 text-[10px] text-center font-sans tracking-wide leading-tight line-clamp-2 z-10">
+                          {desc}
+                        </div>
+                      )}
                     </div>
                   );
                 })}
