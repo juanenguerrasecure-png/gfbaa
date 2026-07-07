@@ -1,8 +1,7 @@
 import { lazy, Suspense, useMemo, useState } from 'react';
 import { Pencil, PlusCircle, Search, ShoppingBag, Trash2 } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
-import { PhotoUploader } from '../../components/PhotoUploader';
-import { MultiPhotoEditor } from '../../components/MultiPhotoEditor';
+import { CatalogItemEditModal } from '../../components/CatalogItemEditModal';
 import styles from './InventoryTab.module.css';
 
 const GlobalManualSaleModal = lazy(() => import('../components/GlobalManualSaleModal').then(m => ({ default: m.GlobalManualSaleModal })));
@@ -13,84 +12,6 @@ function AdminModalFallback() {
       <div className="flex flex-col items-center gap-3 rounded bg-white p-6 text-stone-500 shadow-xl">
         <div className="h-7 w-7 rounded-full border-2 border-[#E5DFD8] border-t-[#C9A84C] animate-spin" />
         <span className="text-[10px] uppercase tracking-[0.18em] font-semibold">Loading sale entry</span>
-      </div>
-    </div>
-  );
-}
-
-function CatalogItemEditModal({ item, onSave, onClose }) {
-  const [form, setForm] = useState({ ...item });
-  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
-
-  return (
-    <div className={styles.overlay} onClick={onClose}>
-      <div className={styles.modal} onClick={e => e.stopPropagation()} style={{ maxWidth: 520 }}>
-        <h3 className={styles.modalTitle}>Edit Catalog Listing</h3>
-        <p className="text-xs text-stone-500 mb-4">Update storefront catalog parameters for {item.brand} {item.name}</p>
-
-        <div className={styles.editGrid}>
-          {[['name', 'Name'], ['brand', 'Brand'], ['detail', 'Public Details']].map(([k, l]) => (
-            <div key={k} className={styles.editField}>
-              <label className={styles.mLabel}>{l}</label>
-              <input className={styles.mInput} value={form[k] || ''} onChange={e => set(k, e.target.value)} />
-            </div>
-          ))}
-          <div className={styles.editField}>
-            <label className={styles.mLabel}>Category</label>
-            <select className={styles.mInput} value={form.cat} onChange={e => set('cat', e.target.value)}>
-              <option value="bags">Bags</option>
-              <option value="jewelry">Jewelry</option>
-            </select>
-          </div>
-          <div className={styles.editField}>
-            <label className={styles.mLabel}>Emoji Icon</label>
-            <input className={styles.mInput} value={form.emoji || ''} onChange={e => set('emoji', e.target.value)} />
-          </div>
-          <div className={styles.editField}>
-            <label className={styles.mLabel}>Quality Condition</label>
-            <select className={styles.mInput} value={form.condition} onChange={e => set('condition', e.target.value)}>
-              <option value="new">New</option>
-              <option value="mint">Mint</option>
-              <option value="good">Good</option>
-              <option value="fair">Fair</option>
-            </select>
-          </div>
-          <div className={styles.editField}>
-            <label className={styles.mLabel}>Listing Price (USD $)</label>
-            <input className={styles.mInput} type="number" value={form.price} onChange={e => set('price', Number(e.target.value))} />
-          </div>
-          <div className={styles.editField}>
-            <label className={styles.mLabel}>Comparison MSRP Price ($)</label>
-            <input className={styles.mInput} type="number" value={form.orig || ''} onChange={e => set('orig', e.target.value ? Number(e.target.value) : null)} />
-          </div>
-          <div className={styles.editField}>
-            <label className={styles.mLabel}>Initial Qty</label>
-            <input className={styles.mInput} type="number" value={form.quantity !== undefined ? form.quantity : 1} onChange={e => set('quantity', Number(e.target.value))} />
-          </div>
-          <div className={styles.editField}>
-            <label className={styles.mLabel}>Remaining Stock</label>
-            <input className={styles.mInput} type="number" value={form.remainingQty !== undefined ? form.remainingQty : 1} onChange={e => set('remainingQty', Number(e.target.value))} />
-          </div>
-        </div>
-
-        <div className="mt-4 border-t border-stone-200 pt-4">
-          <MultiPhotoEditor
-            photos={form.photos || (form.photoUrl ? [{ url: form.photoUrl, description: '' }] : [])}
-            onChange={updatedPhotos => {
-              set('photos', updatedPhotos);
-              if (updatedPhotos.length > 0) {
-                set('photoUrl', updatedPhotos[0].url);
-              } else {
-                set('photoUrl', null);
-              }
-            }}
-          />
-        </div>
-
-        <div className={styles.modalActions}>
-          <button className={styles.cancelBtn} onClick={onClose}>Cancel</button>
-          <button className={styles.confirmBtn} onClick={() => onSave(form)}>Save Changes</button>
-        </div>
       </div>
     </div>
   );

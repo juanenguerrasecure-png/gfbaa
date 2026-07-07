@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ChevronLeft, ChevronRight, ShoppingBag, X, Share2, Check, ShieldCheck, Info, Sparkles, Maximize2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ShoppingBag, X, Share2, Check, ShieldCheck, Info, Sparkles, Maximize2, Pencil } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useStore } from '../context/StoreContext';
 import { CommentBoard } from './CommentBoard';
@@ -10,6 +10,8 @@ import WhatsAppIcon from '../assets/icons/WhatsAppIcon';
 import ViberIcon from '../assets/icons/ViberIcon';
 import MessengerIcon from '../assets/icons/MessengerIcon';
 import { buildInquiryText, appendTextParam, getViberHref } from '../utils/inquiryHelpers';
+import { useAuth } from '../context/AuthContext';
+import { CatalogItemEditModal } from './CatalogItemEditModal';
 
 const CONDITION_DATA = {
   new: {
@@ -106,33 +108,42 @@ function openContact(event, href, product) {
 }
 
 export function ProductDetailModal({ isOpen, onClose, product, onAddToCart }) {
-  const { socialLinks = {}, getCatalogItemStock, isItemReserved, exchangeRate } = useStore();
+  const { catalogItems, updateCatalogItem, socialLinks = {}, getCatalogItemStock, isItemReserved, exchangeRate } = useStore();
   const { currency } = useCurrency();
+  const { isAdmin } = useAuth();
+
   const [activePhoto, setActivePhoto] = useState(0);
   const [touchStart, setTouchStart] = useState(null);
   const [shareSuccess, setShareSuccess] = useState(false);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
-  const photos = useMemo(() => getPhotos(product), [product]);
+  // Reactive lookup to support real-time state synchronization when editing storefront items
+  const currentItem = useMemo(() => {
+    if (!product) return null;
+    return catalogItems.find(c => String(c.id) === String(product.id)) || product;
+  }, [catalogItems, product]);
+
+  const photos = useMemo(() => getPhotos(currentItem), [currentItem]);
   const condInfo = useMemo(() => {
-    const rawCond = product?.condition?.toLowerCase() || 'good';
+    const rawCond = currentItem?.condition?.toLowerCase() || 'good';
     return CONDITION_DATA[rawCond] || CONDITION_DATA.good;
-  }, [product?.condition]);
+  }, [currentItem?.condition]);
 
-  const stock = product ? getCatalogItemStock(product.id) : 0;
-  const isReserved = product ? isItemReserved(product.id) : false;
+  const stock = currentItem ? getCatalogItemStock(currentItem.id) : 0;
+  const isReserved = currentItem ? isItemReserved(currentItem.id) : false;
   const soldOut = stock <= 0;
-  const whatsappHref = product ? appendTextParam(socialLinks?.whatsapp, product) : '';
-  const viberHref = product ? getViberHref(socialLinks?.viber, product) : '';
-  const messengerHref = product ? getMessengerHref(socialLinks?.messenger || socialLinks?.facebook) : '';
-  const allowUsd = hasUsdPrice(product);
+  const whatsappHref = currentItem ? appendTextParam(socialLinks?.whatsapp, currentItem) : '';
+  const viberHref = currentItem ? getViberHref(socialLinks?.viber, currentItem) : '';
+  const messengerHref = currentItem ? getMessengerHref(socialLinks?.messenger || socialLinks?.facebook) : '';
+  const allowUsd = hasUsdPrice(currentItem);
   const displayCurrency = allowUsd ? currency : 'PHP';
 
   // Savings / Retail value metrics
   const savingsMetrics = useMemo(() => {
-    if (!product || !product.orig || Number(product.orig) <= Number(product.price)) return null;
-    const originalPrice = Number(product.orig);
-    const sellingPrice = Number(product.price);
+    if (!currentItem || !currentItem.orig || Number(currentItem.orig) <= Number(currentItem.price)) return null;
+    const originalPrice = Number(currentItem.orig);
+    const sellingPrice = Number(currentItem.price);
     const savingsUSD = originalPrice - sellingPrice;
     const savingsPercent = Math.round((savingsUSD / originalPrice) * 100);
     return {
@@ -140,13 +151,13 @@ export function ProductDetailModal({ isOpen, onClose, product, onAddToCart }) {
       savingsPercent,
       originalPrice
     };
-  }, [product]);
+  }, [currentItem]);
 
   const handleShare = async (e) => {
     e.stopPropagation();
-    const shareUrl = `${window.location.origin}?product=${product.id}`;
-    const shareTitle = `${product.brand || 'Luxury Find'} - ${product.name}`;
-    const shareText = `Check out this vintage preloved curation: ${product.brand || ''} ${product.name} on Good Finds by AA!`;
+    const shareUrl = `${window.location.origin}?product=${currentItem.id}`;
+    const shareTitle = `${currentItem.brand || 'Luxury Find'} - ${currentItem.name}`;
+    const shareText = `Check out this vintage preloved curation: ${currentItem.brand || ''} ${currentItem.name} on Good Finds by AA!`;
 
     if (navigator.share) {
       try {
@@ -209,7 +220,7 @@ export function ProductDetailModal({ isOpen, onClose, product, onAddToCart }) {
     };
   }, [isOpen]);
 
-  if (!product) return null;
+  if (!currentItem) return null;
 
   const goPrev = (e) => {
     e.stopPropagation();
@@ -232,7 +243,7 @@ export function ProductDetailModal({ isOpen, onClose, product, onAddToCart }) {
 
   const handleAdd = () => {
     if (soldOut) return;
-    onAddToCart(product);
+    onAddToCart(currentItem);
   };
 
   return (
@@ -257,7 +268,7 @@ export function ProductDetailModal({ isOpen, onClose, product, onAddToCart }) {
               className="relative w-full h-[94vh] md:h-[80vh] md:max-h-[720px] md:min-h-[580px] md:max-w-4xl bg-[#FAF8F5] md:rounded-2xl shadow-2xl flex flex-col md:grid md:grid-cols-12 overflow-hidden cursor-default select-text border-t md:border border-stone-200/80"
               aria-modal="true"
               role="dialog"
-              aria-label={`${product.brand} ${product.name}`}
+              aria-label={`${currentItem.brand} ${currentItem.name}`}
             >
               {/* Floating Close Button */}
               <button
@@ -286,7 +297,7 @@ export function ProductDetailModal({ isOpen, onClose, product, onAddToCart }) {
                   {photos.length ? (
                     <img
                       src={photos[activePhoto]?.url}
-                      alt={`${product.brand} ${product.name}`}
+                      alt={`${currentItem.brand} ${currentItem.name}`}
                       className="w-full h-full object-contain p-4 transition-transform duration-500 group-hover:scale-101"
                       loading="lazy"
                       decoding="async"
@@ -294,7 +305,7 @@ export function ProductDetailModal({ isOpen, onClose, product, onAddToCart }) {
                     />
                   ) : (
                     <div className="absolute inset-0 w-full h-full bg-stone-100 flex items-center justify-center">
-                      <ProductPlaceholder category={product.cat} />
+                      <ProductPlaceholder category={currentItem.cat} />
                     </div>
                   )}
 
@@ -356,21 +367,34 @@ export function ProductDetailModal({ isOpen, onClose, product, onAddToCart }) {
               <div className="md:col-span-5 flex flex-col h-[calc(54vh-36px)] md:h-full overflow-hidden relative">
                 <div className="p-6 md:p-8 space-y-6 overflow-y-auto flex-1">
                   {/* Brand & Category Header */}
-                  <div>
-                    <span className="text-[10px] font-sans font-bold uppercase tracking-widest text-[#8C7B6E] block mb-1">
-                      {product.brand || 'Luxury Find'}
-                    </span>
-                    <h2 className="font-serif font-light text-stone-900 text-2xl md:text-3xl leading-tight tracking-tight">
-                      {product.name}
-                    </h2>
-                    <div className="flex items-center gap-2 mt-2">
-                      <span className="text-[9px] font-sans font-semibold uppercase tracking-wider text-stone-500 bg-stone-100 px-2 py-0.5 rounded border border-stone-200/50">
-                        {product.cat || 'Curation'}
+                  <div className="flex justify-between items-start gap-4">
+                    <div className="flex-1">
+                      <span className="text-[10px] font-sans font-bold uppercase tracking-widest text-[#8C7B6E] block mb-1">
+                        {currentItem.brand || 'Luxury Find'}
                       </span>
-                      <span className={`text-[9px] font-sans font-semibold uppercase tracking-wider px-2 py-0.5 rounded border ${condInfo.borderColor} ${condInfo.bgColor} ${condInfo.textColor}`}>
-                        {condInfo.label}
-                      </span>
+                      <h2 className="font-serif font-light text-stone-900 text-2xl md:text-3xl leading-tight tracking-tight">
+                        {currentItem.name}
+                      </h2>
+                      <div className="flex items-center gap-2 mt-2">
+                        <span className="text-[9px] font-sans font-semibold uppercase tracking-wider text-stone-500 bg-stone-100 px-2 py-0.5 rounded border border-stone-200/50">
+                          {currentItem.cat || 'Curation'}
+                        </span>
+                        <span className={`text-[9px] font-sans font-semibold uppercase tracking-wider px-2 py-0.5 rounded border ${condInfo.borderColor} ${condInfo.bgColor} ${condInfo.textColor}`}>
+                          {condInfo.label}
+                        </span>
+                      </div>
                     </div>
+                    {isAdmin && (
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); setIsEditing(true); }}
+                        className="px-3 py-1.5 bg-stone-100 hover:bg-[#C9A84C]/15 border border-stone-200 hover:border-[#C9A84C]/60 text-stone-800 hover:text-[#C9A84C] text-[10px] font-sans font-semibold uppercase tracking-wider rounded transition-all cursor-pointer flex items-center gap-1 shadow-xs shrink-0 mt-1"
+                        id="storefront_edit_item_btn"
+                      >
+                        <Pencil size={11} />
+                        Edit Listing
+                      </button>
+                    )}
                   </div>
 
                   {/* Pricing and Original MSRP Block */}
@@ -379,7 +403,7 @@ export function ProductDetailModal({ isOpen, onClose, product, onAddToCart }) {
                       <div>
                         <span className="text-[10px] uppercase font-bold tracking-wider text-stone-400 block mb-0.5">Current Pricing</span>
                         <span className="font-sans font-bold text-2xl text-stone-950">
-                          {formatProductPrice(product, displayCurrency, exchangeRate)}
+                          {formatProductPrice(currentItem, displayCurrency, exchangeRate)}
                         </span>
                       </div>
                       <PriceToggle compact allowUsd={allowUsd} />
@@ -440,13 +464,13 @@ export function ProductDetailModal({ isOpen, onClose, product, onAddToCart }) {
                   </div>
 
                   {/* Public Listing Details & Notes */}
-                  {(product.detail || product.description) && (
+                  {(currentItem.detail || currentItem.description) && (
                     <div className="space-y-2">
                       <h4 className="text-[10px] uppercase font-bold tracking-widest text-stone-400">Specifications & Description</h4>
                       <div className="text-xs text-stone-600 leading-relaxed space-y-2 font-sans font-light bg-[#FAF8F5] p-4 rounded-xl border border-stone-200/40">
-                        {product.detail && <p className="font-normal text-stone-800 whitespace-pre-line">{product.detail}</p>}
-                        {product.description && product.description !== product.detail && (
-                          <p className="border-t border-stone-200/40 pt-2 text-stone-500 whitespace-pre-line">{product.description}</p>
+                        {currentItem.detail && <p className="font-normal text-stone-800 whitespace-pre-line">{currentItem.detail}</p>}
+                        {currentItem.description && currentItem.description !== currentItem.detail && (
+                          <p className="border-t border-stone-200/40 pt-2 text-stone-500 whitespace-pre-line">{currentItem.description}</p>
                         )}
                       </div>
                     </div>
@@ -460,17 +484,17 @@ export function ProductDetailModal({ isOpen, onClose, product, onAddToCart }) {
                     <p className="text-[11px] text-stone-600 leading-relaxed font-sans">
                       Each curated item undergoes a meticulous dual-verifier authentication process. Verified genuine. Unconditional authenticity guarantee.
                     </p>
-                    {product.authenticityNotes && (
+                    {currentItem.authenticityNotes && (
                       <p className="text-[11px] text-stone-500 italic border-t border-stone-200/60 pt-1.5 mt-1.5">
                         <strong className="text-stone-700 not-italic block text-[9px] uppercase tracking-wider mb-0.5">Verification Notes:</strong>
-                        {product.authenticityNotes}
+                        {currentItem.authenticityNotes}
                       </p>
                     )}
                   </div>
 
                   {/* Comment Board for Active Curation / Catalog Item */}
-                  {product && (
-                    <CommentBoard itemId={product.id} itemType="catalog_item" />
+                  {currentItem && (
+                    <CommentBoard itemId={currentItem.id} itemType="catalog_item" />
                   )}
                 </div>
 
@@ -517,7 +541,7 @@ export function ProductDetailModal({ isOpen, onClose, product, onAddToCart }) {
                       <a
                         className="flex-1 min-h-[38px] inline-flex items-center justify-center gap-1.5 rounded-md font-sans text-[10px] font-bold uppercase tracking-wider bg-[#7360F2] hover:brightness-95 transition-all text-white"
                         href={viberHref}
-                        onClick={event => openContact(event, viberHref, product)}
+                        onClick={event => openContact(event, viberHref, currentItem)}
                         aria-label="Inquire via Viber"
                       >
                         <ViberIcon size={14} /> Viber
@@ -529,7 +553,7 @@ export function ProductDetailModal({ isOpen, onClose, product, onAddToCart }) {
                         href={messengerHref}
                         target="_blank"
                         rel="noopener noreferrer"
-                        onClick={() => copyInquiryText(product)}
+                        onClick={() => copyInquiryText(currentItem)}
                         aria-label="Inquire via Messenger"
                       >
                         <MessengerIcon size={14} /> Messenger
@@ -565,7 +589,7 @@ export function ProductDetailModal({ isOpen, onClose, product, onAddToCart }) {
                   exit={{ scale: 0.9, opacity: 0 }}
                   transition={{ type: 'spring', damping: 25 }}
                   src={photos[activePhoto]?.url}
-                  alt={`${product.brand} ${product.name} High-Res`}
+                  alt={`${currentItem.brand} ${currentItem.name} High-Res`}
                   className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl"
                   referrerPolicy="no-referrer"
                 />
@@ -575,6 +599,17 @@ export function ProductDetailModal({ isOpen, onClose, product, onAddToCart }) {
               </motion.div>
             )}
           </AnimatePresence>
+
+          {isEditing && (
+            <CatalogItemEditModal
+              item={currentItem}
+              onClose={() => setIsEditing(false)}
+              onSave={(updatedForm) => {
+                updateCatalogItem(currentItem.id, updatedForm);
+                setIsEditing(false);
+              }}
+            />
+          )}
         </>
       )}
     </AnimatePresence>
