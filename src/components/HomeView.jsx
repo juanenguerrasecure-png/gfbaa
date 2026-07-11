@@ -4,8 +4,9 @@ import { useStore } from '../context/StoreContext';
 import { useCurrency, formatProductPrice } from '../hooks/useCurrency';
 import { useWishlist } from '../hooks/useWishlist';
 import { Sparkles, ShoppingBag, Heart, ArrowRight, Mail } from 'lucide-react';
+import { AskMeBanner } from './AskMeBanner';
 
-export function HomeView({ onViewChange, onAddToCart, showToast }) {
+export function HomeView({ onViewChange, onAddToCart, showToast, onOpenAskMe }) {
   const { catalogItems, getCatalogItemStock, exchangeRate, siteContent, galleryPhotos, pastCollections } = useStore();
   const { currency } = useCurrency();
   const { toggleWishlist, isWishlisted } = useWishlist();
@@ -287,6 +288,9 @@ export function HomeView({ onViewChange, onAddToCart, showToast }) {
             </div>
           </div>
         )}
+
+        {/* Personal Shopper Wishlist Banner */}
+        <AskMeBanner onOpen={onOpenAskMe} />
 
         {/* Elegant Newsletter Section */}
         <div className="mt-24 border-t border-stone-200/60 pt-16 pb-8 max-w-3xl mx-auto text-center" id="home_newsletter_section">

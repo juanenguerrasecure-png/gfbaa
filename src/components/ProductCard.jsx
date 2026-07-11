@@ -1,7 +1,9 @@
 import { useState, useRef, useMemo } from 'react';
 import { Heart, ShoppingBag, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
+import { useAuth } from '../context/AuthContext';
 import { ProductDetailModal } from './ProductDetailModal';
+import { CatalogItemEditModal } from './CatalogItemEditModal';
 import { formatProductPrice, useCurrency } from '../hooks/useCurrency';
 import { ProductPlaceholder } from './ProductPlaceholder';
 import WhatsAppIcon from '../assets/icons/WhatsAppIcon';
@@ -50,7 +52,9 @@ function openContact(event, href, item) {
 export function ProductCard({ item, onAddToCart }) {
   const [liked, setLiked] = useState(false);
   const [detailOpen, setDetailOpen] = useState(false);
-  const { getCatalogItemStock, isItemReserved, socialLinks = {}, exchangeRate, setInquiryItem } = useStore();
+  const [isEditing, setIsEditing] = useState(false);
+  const { getCatalogItemStock, isItemReserved, socialLinks = {}, exchangeRate, setInquiryItem, updateCatalogItem } = useStore();
+  const { isAdmin } = useAuth();
   const { currency } = useCurrency();
 
   const badge = BADGE[item.condition] ?? BADGE.good;
@@ -235,6 +239,16 @@ export function ProductCard({ item, onAddToCart }) {
           <div className={styles.footer}>
             <div className={styles.pricing}><span className={styles.price}>{formatProductPrice(item, currency, exchangeRate)}</span>{item.orig && <span className={styles.orig}>${(Number(item.orig) || 0).toLocaleString()}</span>}</div>
             <div className="flex items-center gap-1.5">
+              {isAdmin && (
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); setIsEditing(true); }}
+                  className="px-2.5 py-1.5 bg-stone-900 hover:bg-stone-850 text-[#C9A84C] text-[10px] font-sans font-bold uppercase tracking-wider rounded transition-colors border border-stone-800 cursor-pointer"
+                  title="Edit listing details (Admin Only)"
+                >
+                  Edit
+                </button>
+              )}
               <button 
                 type="button"
                 onClick={(e) => { e.stopPropagation(); setInquiryItem(item); }}
@@ -249,6 +263,16 @@ export function ProductCard({ item, onAddToCart }) {
         </div>
       </article>
       <ProductDetailModal isOpen={detailOpen} onClose={() => setDetailOpen(false)} product={item} onAddToCart={onAddToCart} />
+      {isEditing && (
+        <CatalogItemEditModal
+          item={item}
+          onSave={(form) => {
+            updateCatalogItem(item.id, form);
+            setIsEditing(false);
+          }}
+          onClose={() => setIsEditing(false)}
+        />
+      )}
     </>
   );
 }

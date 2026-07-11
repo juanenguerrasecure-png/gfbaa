@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ChevronLeft, ChevronRight, ShoppingBag, X, Share2, Check, ShieldCheck, Info, Sparkles, Maximize2, Pencil } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ShoppingBag, X, Share2, Check, ShieldCheck, Info, Sparkles, Maximize2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useStore } from '../context/StoreContext';
+import { useAuth } from '../context/AuthContext';
+import { CatalogItemEditModal } from './CatalogItemEditModal';
 import { CommentBoard } from './CommentBoard';
 import { formatProductPrice, hasUsdPrice, useCurrency } from '../hooks/useCurrency';
 import { PriceToggle } from './PriceToggle';
@@ -10,8 +12,6 @@ import WhatsAppIcon from '../assets/icons/WhatsAppIcon';
 import ViberIcon from '../assets/icons/ViberIcon';
 import MessengerIcon from '../assets/icons/MessengerIcon';
 import { buildInquiryText, appendTextParam, getViberHref } from '../utils/inquiryHelpers';
-import { useAuth } from '../context/AuthContext';
-import { CatalogItemEditModal } from './CatalogItemEditModal';
 
 const CONDITION_DATA = {
   new: {
@@ -108,9 +108,9 @@ function openContact(event, href, product) {
 }
 
 export function ProductDetailModal({ isOpen, onClose, product, onAddToCart }) {
-  const { catalogItems, updateCatalogItem, socialLinks = {}, getCatalogItemStock, isItemReserved, exchangeRate } = useStore();
-  const { currency } = useCurrency();
+  const { catalogItems, socialLinks = {}, getCatalogItemStock, isItemReserved, exchangeRate, updateCatalogItem } = useStore();
   const { isAdmin } = useAuth();
+  const { currency } = useCurrency();
 
   const [activePhoto, setActivePhoto] = useState(0);
   const [touchStart, setTouchStart] = useState(null);
@@ -384,15 +384,14 @@ export function ProductDetailModal({ isOpen, onClose, product, onAddToCart }) {
                         </span>
                       </div>
                     </div>
+
                     {isAdmin && (
                       <button
                         type="button"
-                        onClick={(e) => { e.stopPropagation(); setIsEditing(true); }}
-                        className="px-3 py-1.5 bg-stone-100 hover:bg-[#C9A84C]/15 border border-stone-200 hover:border-[#C9A84C]/60 text-stone-800 hover:text-[#C9A84C] text-[10px] font-sans font-semibold uppercase tracking-wider rounded transition-all cursor-pointer flex items-center gap-1 shadow-xs shrink-0 mt-1"
-                        id="storefront_edit_item_btn"
+                        onClick={() => setIsEditing(true)}
+                        className="px-3 py-1.5 bg-[#C9A84C] hover:bg-[#b59740] text-white text-[10px] font-sans font-bold uppercase tracking-wider rounded-lg transition-colors shadow-2xs cursor-pointer select-none"
                       >
-                        <Pencil size={11} />
-                        Edit Listing
+                        Edit
                       </button>
                     )}
                   </div>
@@ -603,11 +602,11 @@ export function ProductDetailModal({ isOpen, onClose, product, onAddToCart }) {
           {isEditing && (
             <CatalogItemEditModal
               item={currentItem}
-              onClose={() => setIsEditing(false)}
-              onSave={(updatedForm) => {
-                updateCatalogItem(currentItem.id, updatedForm);
+              onSave={(form) => {
+                updateCatalogItem(currentItem.id, form);
                 setIsEditing(false);
               }}
+              onClose={() => setIsEditing(false)}
             />
           )}
         </>

@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useStore } from '../../context/StoreContext';
-import { MessageSquare, Calendar, Mail, Trash2, CheckSquare } from 'lucide-react';
+import { MessageSquare, Calendar, Mail, Trash2, CheckSquare, Sparkles, Send, Eye, RefreshCw } from 'lucide-react';
 
 export function MessageBoardTab() {
   const {
@@ -12,12 +12,53 @@ export function MessageBoardTab() {
     syncCurrentState
   } = useStore();
 
-  const [activeSubTab, setActiveSubTab] = useState('comments'); // 'comments' | 'messages'
+  const [activeSubTab, setActiveSubTab] = useState('comments'); // 'comments' | 'messages' | 'shopper_requests'
   const [syncStatus, setSyncStatus] = useState('');
   const [isSyncing, setIsSyncing] = useState(false);
 
+  // Shopper Requests States
+  const [shopperRequests, setShopperRequests] = useState([]);
+  const [requestsFilter, setRequestsFilter] = useState('all'); // 'all' | 'new' | 'in_progress' | 'fulfilled'
+  const [loadingRequests, setLoadingRequests] = useState(false);
+  const [requestsError, setRequestsError] = useState('');
+
   const pendingCommentsCount = (comments || []).filter(c => !c.reviewed).length;
   const pendingMessagesCount = (messages || []).filter(m => !m.reviewed).length;
+
+  // Fetch Shopper Requests from D1 backend
+  const fetchShopperRequests = async (statusFilter = 'all') => {
+    setLoadingRequests(true);
+    setRequestsError('');
+    try {
+      const token = localStorage.getItem('gf_session_token') || '';
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      
+      let url = '/api/admin/requests';
+      if (statusFilter !== 'all') {
+        url += `?status=${statusFilter}`;
+      }
+      
+      const response = await fetch(url, { headers });
+      const result = await response.json();
+      if (response.ok && result.ok) {
+        setShopperRequests(result.requests || []);
+      } else {
+        setRequestsError(result.error || 'Failed to load shopper requests.');
+      }
+    } catch (err) {
+      console.error(err);
+      setRequestsError('Connection error while loading shopper requests.');
+    } finally {
+      setLoadingRequests(false);
+    }
+  };
+
+  // Fetch shopper requests when sub-tab or status filter changes
+  useEffect(() => {
+    if (activeSubTab === 'shopper_requests') {
+      fetchShopperRequests(requestsFilter);
+    }
+  }, [activeSubTab, requestsFilter]);
 
   const handleSync = async () => {
     setIsSyncing(true);
@@ -89,6 +130,34 @@ export function MessageBoardTab() {
     }, 100);
   };
 
+  const handleUpdateStatus = async (requestId, nextStatus) => {
+    try {
+      const token = localStorage.getItem('gf_session_token') || '';
+      const headers = {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+      };
+      
+      const response = await fetch(`/api/admin/requests/${requestId}`, {
+        method: 'PATCH',
+        headers,
+        body: JSON.stringify({ status: nextStatus })
+      });
+      const result = await response.json();
+      if (response.ok && result.ok) {
+        setSyncStatus(`Request ID ${requestId.substring(0, 8)}... status updated to "${nextStatus}".`);
+        setTimeout(() => setSyncStatus(''), 4000);
+        // Refresh local requests list
+        fetchShopperRequests(requestsFilter);
+      } else {
+        alert(result.error || 'Failed to update request status.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Network error while updating request status.');
+    }
+  };
+
   const formatDate = (isoStr) => {
     try {
       const d = new Date(isoStr);
@@ -109,7 +178,7 @@ export function MessageBoardTab() {
       <div className="border-b border-stone-200 pb-5">
         <h2 className="font-serif font-light text-3xl text-stone-900 tracking-tight">Message Board Review</h2>
         <p className="text-sm text-stone-500 font-sans font-light mt-1">
-          Review visitor thoughts, feedback comments, and direct inquiries. Strike out entries to mark them as addressed or reviewed.
+          Review visitor thoughts, feedback comments, direct inquiries, and custom shopper requests.
         </p>
       </div>
 
@@ -122,7 +191,7 @@ export function MessageBoardTab() {
       )}
 
       {/* Navigation sub-tabs */}
-      <div className="flex border-b border-stone-200/60 max-w-md">
+      <div className="flex border-b border-stone-200/60 max-w-xl">
         <button
           onClick={() => setActiveSubTab('comments')}
           className={`flex-1 py-3 text-center text-xs font-semibold uppercase tracking-wider transition-all border-b-2 cursor-pointer ${
@@ -158,10 +227,23 @@ export function MessageBoardTab() {
             )}
           </span>
         </button>
+
+        <button
+          onClick={() => setActiveSubTab('shopper_requests')}
+          className={`flex-1 py-3 text-center text-xs font-semibold uppercase tracking-wider transition-all border-b-2 cursor-pointer ${
+            activeSubTab === 'shopper_requests'
+              ? 'border-[#C9A84C] text-stone-900'
+              : 'border-transparent text-stone-400 hover:text-stone-600'
+          }`}
+        >
+          <span className="flex items-center justify-center gap-2">
+            Shopper Wishlists ("Ask Me")
+          </span>
+        </button>
       </div>
 
       {/* Tab Content Panels */}
-      {activeSubTab === 'comments' ? (
+      {activeSubTab === 'comments' && (
         <div className="space-y-4">
           {(comments || []).length === 0 ? (
             <div className="bg-white rounded-2xl border border-stone-200 p-12 text-center">
@@ -196,7 +278,6 @@ export function MessageBoardTab() {
                     </div>
 
                     <div className="space-y-4">
-                      {/* Text box with strike-through conditional styling */}
                       <p
                         className={`text-sm font-sans leading-relaxed break-words ${
                           comment.reviewed
@@ -249,7 +330,9 @@ export function MessageBoardTab() {
             </div>
           )}
         </div>
-      ) : (
+      )}
+
+      {activeSubTab === 'messages' && (
         <div className="space-y-4">
           {(messages || []).length === 0 ? (
             <div className="bg-white rounded-2xl border border-stone-200 p-12 text-center">
@@ -287,7 +370,6 @@ export function MessageBoardTab() {
                     </div>
 
                     <div className="space-y-4">
-                      {/* Text box with strike-through conditional styling */}
                       <p
                         className={`text-sm font-sans leading-relaxed break-words ${
                           message.reviewed
@@ -337,6 +419,223 @@ export function MessageBoardTab() {
                     </div>
                   </div>
                 ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {activeSubTab === 'shopper_requests' && (
+        <div className="space-y-5">
+          {/* Controls Panel */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white p-4 rounded-xl border border-stone-200/60 shadow-2xs">
+            <div className="flex flex-wrap gap-1.5">
+              {['all', 'new', 'in_progress', 'fulfilled'].map((filterVal) => (
+                <button
+                  key={filterVal}
+                  onClick={() => setRequestsFilter(filterVal)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer ${
+                    requestsFilter === filterVal
+                      ? 'bg-stone-900 text-white shadow-xs border border-stone-900'
+                      : 'bg-stone-50 hover:bg-stone-100 text-stone-600 border border-stone-200/40'
+                  }`}
+                >
+                  {filterVal === 'all' ? 'All Requests' : filterVal === 'in_progress' ? 'Sourcing' : filterVal}
+                </button>
+              ))}
+            </div>
+
+            <button
+              onClick={() => fetchShopperRequests(requestsFilter)}
+              disabled={loadingRequests}
+              className="px-4 py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-semibold uppercase tracking-wider rounded-lg transition-all border border-stone-200/40 flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+            >
+              <RefreshCw size={12} className={loadingRequests ? 'animate-spin' : ''} />
+              <span>Refresh</span>
+            </button>
+          </div>
+
+          {/* Loader or Error or Listing */}
+          {loadingRequests ? (
+            <div className="bg-white rounded-2xl border border-stone-200 p-16 text-center flex flex-col items-center justify-center gap-3">
+              <div className="h-7 w-7 rounded-full border-2 border-stone-200 border-t-accent animate-spin" />
+              <span className="text-xs text-stone-400 font-mono uppercase tracking-widest">Loading Personal Sourcing Queue...</span>
+            </div>
+          ) : requestsError ? (
+            <div className="bg-red-50 border border-red-200/40 rounded-xl p-8 text-center text-red-800 space-y-3">
+              <p className="text-sm font-semibold">{requestsError}</p>
+              <button
+                onClick={() => fetchShopperRequests(requestsFilter)}
+                className="px-5 py-2 bg-red-100 hover:bg-red-200 text-red-950 text-xs font-bold rounded-lg transition-colors cursor-pointer"
+              >
+                Retry Fetching
+              </button>
+            </div>
+          ) : shopperRequests.length === 0 ? (
+            <div className="bg-white rounded-2xl border border-stone-200 p-16 text-center space-y-2">
+              <Sparkles className="mx-auto text-stone-300 mb-2 animate-pulse" size={32} />
+              <h3 className="font-serif text-lg text-stone-700 font-light">No shopper requests found</h3>
+              <p className="text-xs text-stone-500 max-w-sm mx-auto leading-relaxed">
+                When visitors submit personal shopper sourcing wishlists, they will appear here under the selected status.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-5">
+              {shopperRequests.map((req) => (
+                <div
+                  key={req.id}
+                  className="bg-white rounded-2xl border border-stone-200 p-5 shadow-sm hover:shadow-md transition-all relative overflow-hidden flex flex-col justify-between"
+                  id={`shopper_req_card_${req.id}`}
+                >
+                  <div>
+                    {/* Header bar */}
+                    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-stone-100 pb-3 mb-4">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-semibold text-stone-900">{req.name}</span>
+                        <span className="text-[9px] font-mono font-bold bg-stone-100 text-stone-400 px-1.5 py-0.5 rounded uppercase">
+                          ID: {req.id.substring(0, 8)}...
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-2 text-[10px] text-stone-400 font-mono">
+                        <Calendar size={11} />
+                        <span>{formatDate(req.created_at)}</span>
+                      </div>
+                    </div>
+
+                    {/* Content Section */}
+                    <div className="flex flex-col md:flex-row gap-5 items-start">
+                      
+                      {/* Wishlist text detail */}
+                      <div className="flex-1 space-y-1.5 min-w-0">
+                        <span className="text-[9px] font-mono font-bold uppercase tracking-widest text-stone-400 block">
+                          Wishlist & Sourcing Description
+                        </span>
+                        <p className="text-sm font-sans font-light text-stone-700 leading-relaxed whitespace-pre-line bg-stone-50 border border-stone-100/50 p-4 rounded-xl">
+                          {req.message}
+                        </p>
+                      </div>
+
+                      {/* Right panel: Reference photo and Contact handles */}
+                      <div className="w-full md:w-44 shrink-0 space-y-4">
+                        
+                        {/* Reference Photo display */}
+                        {req.photo_key ? (
+                          <div className="space-y-1">
+                            <span className="text-[9px] font-mono font-bold uppercase tracking-widest text-stone-400 block">
+                              Reference Photo
+                            </span>
+                            <a
+                              href={`/api/photos/${req.photo_key}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="block aspect-square rounded-lg overflow-hidden border border-stone-200/60 bg-stone-50 hover:border-accent hover:opacity-90 transition-all shadow-3xs"
+                              title="Click to view full image in a new window"
+                            >
+                              <img
+                                src={`/api/photos/${req.photo_key}`}
+                                alt="Reference photo uploaded by customer"
+                                className="w-full h-full object-cover"
+                                referrerPolicy="no-referrer"
+                              />
+                            </a>
+                          </div>
+                        ) : (
+                          <div className="space-y-1">
+                            <span className="text-[9px] font-mono font-bold uppercase tracking-widest text-stone-400 block">
+                              Reference Photo
+                            </span>
+                            <div className="aspect-square rounded-lg border border-stone-200/40 bg-stone-50/50 flex flex-col items-center justify-center text-stone-300">
+                              <span className="text-2xl">✦</span>
+                              <span className="text-[9px] font-mono tracking-wider text-stone-400 mt-1 uppercase">No Photo</span>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Contact badges */}
+                        <div className="space-y-1.5">
+                          <span className="text-[9px] font-mono font-bold uppercase tracking-widest text-stone-400 block">
+                            Customer Contact
+                          </span>
+                          
+                          {req.contact_method === 'email' ? (
+                            <a
+                              href={`mailto:${req.contact_value}`}
+                              className="w-full text-[11px] text-stone-600 hover:text-accent font-sans truncate block border border-stone-200 bg-stone-50/50 px-2 py-1.5 rounded-lg text-center font-medium"
+                              title={`Email: ${req.contact_value}`}
+                            >
+                              ✉ Send Email
+                            </a>
+                          ) : (
+                            <a
+                              href={`https://wa.me/${req.contact_value.replace(/[^0-9]/g, '')}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="w-full text-[11px] text-emerald-700 hover:text-emerald-800 font-sans truncate block border border-emerald-200 bg-emerald-50 px-2 py-1.5 rounded-lg text-center font-semibold"
+                              title={`WhatsApp: ${req.contact_value}`}
+                            >
+                              💬 Open WhatsApp
+                            </a>
+                          )}
+                        </div>
+
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Actions Bar Footer */}
+                  <div className="flex flex-wrap items-center justify-between pt-4 mt-4 border-t border-stone-100 gap-3 shrink-0">
+                    <div>
+                      {req.status === 'new' && (
+                        <span className="text-[10px] uppercase font-bold tracking-wider text-blue-600 bg-blue-50 border border-blue-200/50 px-2.5 py-1 rounded-full">
+                          ● New Request
+                        </span>
+                      )}
+                      {req.status === 'in_progress' && (
+                        <span className="text-[10px] uppercase font-bold tracking-wider text-amber-600 bg-amber-50 border border-amber-200/50 px-2.5 py-1 rounded-full">
+                          ● Sourcing Piece
+                        </span>
+                      )}
+                      {req.status === 'fulfilled' && (
+                        <span className="text-[10px] uppercase font-bold tracking-wider text-emerald-600 bg-emerald-50 border border-emerald-200/50 px-2.5 py-1 rounded-full">
+                          ✓ Wishlist Fulfilled
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[9px] font-mono uppercase tracking-wider text-stone-400 mr-1">Change Status:</span>
+                      
+                      {req.status !== 'new' && (
+                        <button
+                          onClick={() => handleUpdateStatus(req.id, 'new')}
+                          className="px-2.5 py-1.5 bg-stone-50 hover:bg-stone-100 border border-stone-200 text-[10px] font-bold uppercase tracking-wider text-stone-700 rounded-lg transition-colors cursor-pointer"
+                        >
+                          Mark New
+                        </button>
+                      )}
+
+                      {req.status !== 'in_progress' && (
+                        <button
+                          onClick={() => handleUpdateStatus(req.id, 'in_progress')}
+                          className="px-2.5 py-1.5 bg-amber-50 hover:bg-amber-100 border border-amber-200 text-[10px] font-bold uppercase tracking-wider text-amber-800 rounded-lg transition-colors cursor-pointer"
+                        >
+                          Sourcing
+                        </button>
+                      )}
+
+                      {req.status !== 'fulfilled' && (
+                        <button
+                          onClick={() => handleUpdateStatus(req.id, 'fulfilled')}
+                          className="px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-[10px] font-bold uppercase tracking-wider text-emerald-800 rounded-lg transition-colors cursor-pointer"
+                        >
+                          Fulfill
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                </div>
+              ))}
             </div>
           )}
         </div>

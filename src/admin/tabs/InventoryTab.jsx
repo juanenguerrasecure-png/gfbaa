@@ -2,6 +2,7 @@ import { lazy, Suspense, useMemo, useState } from 'react';
 import { Pencil, PlusCircle, Search, ShoppingBag, Trash2 } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
 import { CatalogItemEditModal } from '../../components/CatalogItemEditModal';
+import { ProductImagePreviewModal } from '../../components/ProductImagePreviewModal';
 import styles from './InventoryTab.module.css';
 
 const GlobalManualSaleModal = lazy(() => import('../components/GlobalManualSaleModal').then(m => ({ default: m.GlobalManualSaleModal })));
@@ -25,6 +26,7 @@ export function InventoryTab({ onSwitchTab }) {
 
   const [search, setSearch] = useState('');
   const [editTarget, setEditTarget] = useState(null);
+  const [previewTarget, setPreviewTarget] = useState(null);
   const [manualSaleTarget, setManualSaleTarget] = useState(null);
   const [activeSubView, setActiveSubView] = useState('catalog'); // 'catalog' | 'batches'
 
@@ -84,7 +86,20 @@ export function InventoryTab({ onSwitchTab }) {
                 const batch = batches.find(b => b.id === item.batchId);
                 return (
                   <tr key={item.id}>
-                    <td><div className={styles.itemCell}><span className={styles.itemEmoji}>{item.emoji}</span><div><div className={styles.itemName}>{item.name}</div><div className={styles.itemBrand}>{item.brand}</div>{item.detail && <div className="text-[10px] text-stone-400 line-clamp-1">{item.detail}</div>}</div></div></td>
+                    <td>
+                      <div 
+                        className={`${styles.itemCell} cursor-pointer hover:opacity-80 transition-opacity`}
+                        onClick={() => setPreviewTarget(item)}
+                        title="Click to view full-size product image preview"
+                      >
+                        <span className={styles.itemEmoji}>{item.emoji}</span>
+                        <div>
+                          <div className={`${styles.itemName} hover:text-[#C9A84C] transition-colors`}>{item.name}</div>
+                          <div className={styles.itemBrand}>{item.brand}</div>
+                          {item.detail && <div className="text-[10px] text-stone-400 line-clamp-1">{item.detail}</div>}
+                        </div>
+                      </div>
+                    </td>
                     <td><span className={styles.catBadge}>{item.cat}</span></td>
                     <td>{batch ? <div className="font-mono text-xs"><div className="text-stone-800 font-semibold">{batch.batchNumber}</div><div className="text-[10px] text-stone-500">Cost: ${batch.costPerItem}/ea</div></div> : <span className="text-stone-400 italic text-xs">Unlinked</span>}</td>
                     <td><span className={`px-2.5 py-1 text-xs font-bold rounded-full ${stock > 0 ? 'bg-emerald-50 text-emerald-800 border border-emerald-100' : 'bg-stone-100 text-stone-400'}`}>{stock} available</span></td>
@@ -115,7 +130,16 @@ export function InventoryTab({ onSwitchTab }) {
                 return (
                   <tr key={batch.id}>
                     <td className="font-semibold text-xs font-mono">{batch.batchNumber}</td>
-                    <td><div className="text-xs"><div className="font-semibold text-stone-800">{prod.brand} {prod.name}</div>{batch.enteredInPhp && <div className="text-[10px] text-amber-700 font-semibold font-mono">PHP-Converted ({batch.exchangeRateUsed}x)</div>}</div></td>
+                    <td>
+                      <div 
+                        className="text-xs cursor-pointer hover:opacity-80 transition-opacity"
+                        onClick={() => setPreviewTarget({ ...prod, cat: prod.cat || batch.cat || 'bags', condition: batch.condition })}
+                        title="Click to view full-size product image preview"
+                      >
+                        <div className="font-semibold text-stone-800 hover:text-[#C9A84C] transition-colors">{prod.brand} {prod.name}</div>
+                        {batch.enteredInPhp && <div className="text-[10px] text-amber-700 font-semibold font-mono">PHP-Converted ({batch.exchangeRateUsed}x)</div>}
+                      </div>
+                    </td>
                     <td><span className={styles.condBadge} style={{ background: COND_BG[batch.condition], color: COND_COLORS[batch.condition] }}>{batch.condition}</span></td>
                     <td className={styles.dateCell}>{batch.date}</td>
                     <td className="text-center font-mono text-xs">{batch.quantity}</td>
@@ -141,6 +165,8 @@ export function InventoryTab({ onSwitchTab }) {
       )}
 
       {editTarget && <CatalogItemEditModal item={editTarget} onSave={(form) => { updateCatalogItem(editTarget.id, form); setEditTarget(null); }} onClose={() => setEditTarget(null)} />}
+
+      <ProductImagePreviewModal isOpen={Boolean(previewTarget)} onClose={() => setPreviewTarget(null)} item={previewTarget} />
     </div>
   );
 }

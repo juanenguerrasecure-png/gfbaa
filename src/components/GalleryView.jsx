@@ -3,8 +3,9 @@ import { useStore } from '../context/StoreContext';
 import { X, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { CommentBoard } from './CommentBoard';
+import { AskMeBanner } from './AskMeBanner';
 
-export function GalleryView() {
+export function GalleryView({ onOpenAskMe }) {
   const { galleryPhotos, siteContent } = useStore();
   const [lightboxIndex, setLightboxIndex] = useState(null);
 
@@ -134,6 +135,9 @@ export function GalleryView() {
           </div>
         )}
       </div>
+
+      {/* Personal Shopper Wishlist Banner */}
+      <AskMeBanner onOpen={onOpenAskMe} />
 
       {/* Elegant Full-Screen Scrollable Lightbox Modal */}
       <AnimatePresence>

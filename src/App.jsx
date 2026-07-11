@@ -16,6 +16,7 @@ import { ShopHero }     from './components/ShopHero';
 import { InquirySheet }  from './components/InquirySheet';
 import { MessageMeModal } from './components/MessageMeModal';
 import { TrackRequestModal } from './components/TrackRequestModal';
+import { AskMeModal }   from './components/AskMeModal';
 
 const AdminPanel = lazy(() => import('./admin/AdminPanel').then(module => ({ default: module.AdminPanel })));
 
@@ -43,6 +44,7 @@ export default function App() {
   const [isWishlistOpen, setIsWishlistOpen] = useState(false);
   const [isMessageMeOpen, setIsMessageMeOpen] = useState(false);
   const [isTrackRequestOpen, setIsTrackRequestOpen] = useState(false);
+  const [isAskMeOpen, setIsAskMeOpen] = useState(false);
 
   const {
     cart,
@@ -85,9 +87,9 @@ export default function App() {
   const renderContent = () => {
     switch (view) {
       case 'home':
-        return <HomeView onViewChange={setView} onAddToCart={addToCart} showToast={showToast} />;
+        return <HomeView onViewChange={setView} onAddToCart={addToCart} showToast={showToast} onOpenAskMe={() => setIsAskMeOpen(true)} />;
       case 'gallery':
-        return <GalleryView />;
+        return <GalleryView onOpenAskMe={() => setIsAskMeOpen(true)} />;
       case 'archive':
         return <ArchiveView showToast={showToast} />;
       case 'store':
@@ -142,6 +144,10 @@ export default function App() {
         isOpen={isTrackRequestOpen}
         onClose={() => setIsTrackRequestOpen(false)}
         showToast={showToast}
+      />
+      <AskMeModal
+        isOpen={isAskMeOpen}
+        onClose={() => setIsAskMeOpen(false)}
       />
       <Toast visible={toast.visible} msg={toast.msg} />
       <InquirySheet />

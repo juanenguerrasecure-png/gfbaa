@@ -128,6 +128,18 @@ async function ensureSchema(env) {
   if (!env.DB) throw new Error('D1 binding DB is not available.');
   await env.DB.prepare(`CREATE TABLE IF NOT EXISTS app_state (id TEXT PRIMARY KEY, value TEXT NOT NULL, updated_at TEXT NOT NULL)`).run();
   await env.DB.prepare(`CREATE TABLE IF NOT EXISTS subscribers (id TEXT PRIMARY KEY, email TEXT UNIQUE NOT NULL, created_at TEXT NOT NULL, source TEXT)`).run();
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS requests (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    contact_method TEXT NOT NULL CHECK (contact_method IN ('email', 'whatsapp')),
+    contact_value TEXT NOT NULL,
+    message TEXT NOT NULL,
+    photo_key TEXT,
+    status TEXT NOT NULL DEFAULT 'new' CHECK (status IN ('new', 'in_progress', 'fulfilled')),
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  )`).run();
+  await env.DB.prepare(`CREATE INDEX IF NOT EXISTS idx_requests_status ON requests(status)`).run();
+  await env.DB.prepare(`CREATE INDEX IF NOT EXISTS idx_requests_created_at ON requests(created_at DESC)`).run();
 }
 
 async function getState(env) {
@@ -531,6 +543,144 @@ async function deleteSubscriber(request, env, corsHeaders) {
   }
 }
 
+async function handleCreateRequest(request, env, corsHeaders) {
+  await ensureSchema(env);
+  
+  let formData;
+  try {
+    formData = await request.formData();
+  } catch (err) {
+    return json({ ok: false, error: 'Invalid multipart/form-data request.' }, { status: 400 }, corsHeaders);
+  }
+
+  const name = String(formData.get('name') || '').trim();
+  const contactMethod = String(formData.get('contact_method') || '').trim();
+  const contactValue = String(formData.get('contact_value') || '').trim();
+  const message = String(formData.get('message') || '').trim();
+
+  if (!name) {
+    return json({ ok: false, error: 'Name is required.' }, { status: 400 }, corsHeaders);
+  }
+  if (!['email', 'whatsapp'].includes(contactMethod)) {
+    return json({ ok: false, error: 'Contact method must be email or whatsapp.' }, { status: 400 }, corsHeaders);
+  }
+  if (!contactValue) {
+    return json({ ok: false, error: 'Contact details are required.' }, { status: 400 }, corsHeaders);
+  }
+  if (!message) {
+    return json({ ok: false, error: 'Message is required.' }, { status: 400 }, corsHeaders);
+  }
+
+  // Validate contact value
+  if (contactMethod === 'email') {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(contactValue)) {
+      return json({ ok: false, error: 'Please enter a valid email address.' }, { status: 400 }, corsHeaders);
+    }
+  } else if (contactMethod === 'whatsapp') {
+    const digitsOnly = contactValue.replace(/\D/g, '');
+    if (digitsOnly.length < 5) {
+      return json({ ok: false, error: 'Please enter a valid WhatsApp number (must include digits).' }, { status: 400 }, corsHeaders);
+    }
+  }
+
+  let photoKey = null;
+  const file = formData.get('photo');
+  if (file && typeof file !== 'string') {
+    const contentType = file.type || 'image/jpeg';
+    if (!contentType.startsWith('image/')) {
+      return json({ ok: false, error: 'Only image files are allowed.' }, { status: 400 }, corsHeaders);
+    }
+    if (!env.PHOTOS) {
+      return json({ ok: false, error: 'R2 binding PHOTOS is not available.' }, { status: 500 }, corsHeaders);
+    }
+    const ext = extensionFromContentType(contentType);
+    photoKey = `requests/${Date.now()}-${crypto.randomUUID()}.${ext}`;
+    try {
+      await env.PHOTOS.put(photoKey, file.stream(), {
+        httpMetadata: { contentType, cacheControl: 'public, max-age=31536000, immutable' }
+      });
+    } catch (err) {
+      return json({ ok: false, error: 'Failed to upload photo to R2.', details: err.message }, { status: 500 }, corsHeaders);
+    }
+  }
+
+  const id = `req-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`;
+  const createdAt = new Date().toISOString();
+
+  try {
+    await env.DB.prepare(`
+      INSERT INTO requests (id, name, contact_method, contact_value, message, photo_key, status, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, 'new', ?)
+    `).bind(id, name, contactMethod, contactValue, message, photoKey, createdAt).run();
+
+    const newRequest = {
+      id,
+      name,
+      contact_method: contactMethod,
+      contact_value: contactValue,
+      message,
+      photo_key: photoKey,
+      status: 'new',
+      created_at: createdAt
+    };
+
+    return json({ ok: true, request: newRequest }, { status: 201 }, corsHeaders);
+  } catch (err) {
+    return json({ ok: false, error: 'Failed to save request to database.', details: err.message }, { status: 500 }, corsHeaders);
+  }
+}
+
+async function getAdminRequests(request, env, corsHeaders) {
+  const auth = await requireWriteAuth(request, env, corsHeaders);
+  if (!auth.authorized) return auth.response;
+
+  await ensureSchema(env);
+  const url = new URL(request.url);
+  const statusFilter = url.searchParams.get('status');
+
+  try {
+    let query = 'SELECT id, name, contact_method, contact_value, message, photo_key, status, created_at FROM requests';
+    let params = [];
+    if (statusFilter) {
+      query += ' WHERE status = ?';
+      params.push(statusFilter);
+    }
+    query += ' ORDER BY created_at DESC';
+
+    const { results } = await env.DB.prepare(query).bind(...params).all();
+    return json({ ok: true, data: results || [] }, { status: 200 }, corsHeaders);
+  } catch (err) {
+    return json({ ok: false, error: 'Failed to retrieve requests.', details: err.message }, { status: 500 }, corsHeaders);
+  }
+}
+
+async function updateAdminRequestStatus(request, path, env, corsHeaders) {
+  const auth = await requireWriteAuth(request, env, corsHeaders);
+  if (!auth.authorized) return auth.response;
+
+  await ensureSchema(env);
+  const requestId = decodeURIComponent(path.slice('/api/admin/requests/'.length));
+  if (!requestId) return json({ ok: false, error: 'Missing request id.' }, { status: 400 }, corsHeaders);
+
+  const body = await request.json().catch(() => ({}));
+  const status = String(body.status || '').trim();
+
+  if (!['new', 'in_progress', 'fulfilled'].includes(status)) {
+    return json({ ok: false, error: 'Invalid status. Must be one of: new, in_progress, fulfilled.' }, { status: 400 }, corsHeaders);
+  }
+
+  try {
+    const result = await env.DB.prepare('UPDATE requests SET status = ? WHERE id = ?').bind(status, requestId).run();
+    if (result.meta?.changes === 0) {
+      return json({ ok: false, error: 'Request not found.' }, { status: 404 }, corsHeaders);
+    }
+    return json({ ok: true, message: 'Request status updated successfully.', id: requestId, status }, { status: 200 }, corsHeaders);
+  } catch (err) {
+    return json({ ok: false, error: 'Failed to update request status.', details: err.message }, { status: 500 }, corsHeaders);
+  }
+}
+
 export default {
   async fetch(request, env) {
     const corsHeaders = buildCorsHeaders(request, env);
@@ -543,7 +693,16 @@ export default {
         const stateResult = await getState(env);
         return json({ ok: true, ...stateResult, state: publicState(stateResult.state) }, { status: 200 }, corsHeaders);
       }
-      if (request.method === 'POST' && path === '/api/requests') return createPurchaseRequest(request, env, corsHeaders);
+      if (request.method === 'POST' && path === '/api/requests') {
+        const contentType = request.headers.get('Content-Type') || '';
+        if (contentType.includes('multipart/form-data')) {
+          return handleCreateRequest(request, env, corsHeaders);
+        } else {
+          return createPurchaseRequest(request, env, corsHeaders);
+        }
+      }
+      if (request.method === 'GET' && path === '/api/admin/requests') return getAdminRequests(request, env, corsHeaders);
+      if (request.method === 'PATCH' && path.startsWith('/api/admin/requests/')) return updateAdminRequestStatus(request, path, env, corsHeaders);
       if (request.method === 'POST' && path === '/api/messages') return handleCreateMessage(request, env, corsHeaders);
       if (request.method === 'POST' && path === '/api/sessions') return createSession(request, env, corsHeaders);
       if (request.method === 'POST' && path === '/api/newsletter/subscribe') return createSubscriber(request, env, corsHeaders);
