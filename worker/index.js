@@ -1,3 +1,5 @@
+import { GoogleGenAI } from "@google/genai";
+
 const STATE_ID = 'main';
 const HASH_PREFIX = 'sha256$';
 const SESSION_HOURS = 8;
@@ -681,6 +683,115 @@ async function updateAdminRequestStatus(request, path, env, corsHeaders) {
   }
 }
 
+async function handleGenerateImage(request, env, corsHeaders) {
+  const apiKey = env.GEMINI_API_KEY;
+  if (!apiKey) {
+    return json({ ok: false, error: 'GEMINI_API_KEY is not configured in the server environment.' }, { status: 400 }, corsHeaders);
+  }
+
+  let body;
+  try {
+    body = await request.json();
+  } catch (e) {
+    return json({ ok: false, error: 'Invalid JSON request body.' }, { status: 400 }, corsHeaders);
+  }
+
+  const prompt = String(body.prompt || '').trim();
+  if (!prompt) {
+    return json({ ok: false, error: 'Prompt is required.' }, { status: 400 }, corsHeaders);
+  }
+
+  const aspectRatio = String(body.aspectRatio || '1:1').trim();
+  const requestedModel = String(body.model || 'gemini-3.1-flash-lite-image').trim();
+
+  // Validate model
+  const allowedModels = ['gemini-3.1-flash-lite-image', 'gemini-3.1-flash-image'];
+  const model = allowedModels.includes(requestedModel) ? requestedModel : 'gemini-3.1-flash-lite-image';
+
+  try {
+    const ai = new GoogleGenAI({
+      apiKey,
+      httpOptions: {
+        headers: {
+          'User-Agent': 'aistudio-build',
+        }
+      }
+    });
+
+    const response = await ai.models.generateContent({
+      model,
+      contents: {
+        parts: [
+          {
+            text: prompt,
+          },
+        ],
+      },
+      config: {
+        imageConfig: {
+          aspectRatio,
+        },
+      },
+    });
+
+    let base64Data = null;
+    let textExplanation = '';
+
+    if (response.candidates && response.candidates[0] && response.candidates[0].content && response.candidates[0].content.parts) {
+      for (const part of response.candidates[0].content.parts) {
+        if (part.inlineData) {
+          base64Data = part.inlineData.data;
+        } else if (part.text) {
+          textExplanation += part.text;
+        }
+      }
+    }
+
+    if (!base64Data) {
+      return json({ ok: false, error: 'No image data returned from Gemini.', textResponse: textExplanation }, { status: 500 }, corsHeaders);
+    }
+
+    // Save generated image to R2 so that we have a persistent, non-expiring URL!
+    let photoUrl = null;
+    let photoKey = null;
+    if (env.PHOTOS) {
+      const contentType = 'image/png';
+      const key = `photos/ai-generated-${Date.now()}-${crypto.randomUUID()}.png`;
+      
+      // Convert base64 data to binary Uint8Array for R2 upload
+      const binaryString = atob(base64Data);
+      const len = binaryString.length;
+      const bytes = new Uint8Array(len);
+      for (let i = 0; i < len; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+
+      await env.PHOTOS.put(key, bytes, {
+        httpMetadata: {
+          contentType,
+          cacheControl: 'public, max-age=31536000, immutable'
+        }
+      });
+      
+      photoKey = key;
+      photoUrl = `/api/photos/${key}`;
+    }
+
+    return json({
+      ok: true,
+      imageUrl: photoUrl || `data:image/png;base64,${base64Data}`,
+      photoKey,
+      prompt,
+      aspectRatio,
+      model,
+      textExplanation: textExplanation || undefined
+    }, { status: 200 }, corsHeaders);
+
+  } catch (error) {
+    return json({ ok: false, error: 'Failed to generate image.', details: error.message }, { status: 500 }, corsHeaders);
+  }
+}
+
 export default {
   async fetch(request, env) {
     const corsHeaders = buildCorsHeaders(request, env);
@@ -710,6 +821,9 @@ export default {
       if (request.method === 'DELETE' && path === '/api/newsletter/subscribers') return deleteSubscriber(request, env, corsHeaders);
       if (request.method === 'POST' && path === '/api/comments') return handleCreateCommentOrReply(request, env, corsHeaders);
       if (request.method === 'DELETE' && path === '/api/comments') return handleDeleteCommentOrReply(request, env, corsHeaders);
+      if (request.method === 'POST' && path === '/api/gemini/generate-image') {
+        return handleGenerateImage(request, env, corsHeaders);
+      }
       if (request.method === 'DELETE' && path === '/api/sessions/current') return deleteCurrentSession(request, env, corsHeaders);
       if ((request.method === 'PUT' || request.method === 'POST') && path === '/api/state') {
         const auth = await requireWriteAuth(request, env, corsHeaders);

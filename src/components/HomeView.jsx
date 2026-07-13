@@ -3,8 +3,9 @@ import { Hero } from './Hero';
 import { useStore } from '../context/StoreContext';
 import { useCurrency, formatProductPrice } from '../hooks/useCurrency';
 import { useWishlist } from '../hooks/useWishlist';
-import { Sparkles, ShoppingBag, Heart, ArrowRight, Mail, ShieldCheck, Award, Search, Compass } from 'lucide-react';
+import { Sparkles, ShoppingBag, Heart, ArrowRight, ShieldCheck, Award, Search, Compass } from 'lucide-react';
 import { AskMeBanner } from './AskMeBanner';
+import { placeholderImages } from '../placeholderImages';
 
 export function HomeView({ onViewChange, onAddToCart, showToast, onOpenAskMe }) {
   const { catalogItems, getCatalogItemStock, exchangeRate, siteContent, galleryPhotos, pastCollections } = useStore();
@@ -99,18 +100,13 @@ export function HomeView({ onViewChange, onAddToCart, showToast, onOpenAskMe }) 
             className="group relative h-96 rounded-xl overflow-hidden cursor-pointer shadow-sm hover:shadow-md transition-all duration-500 border border-stone-200/40 bg-gradient-to-b from-[#2a2621] to-[#141210]"
           >
             <div className="absolute inset-0 bg-stone-950/20 group-hover:bg-stone-950/45 transition-colors duration-500 z-10" />
-            {tileImages.gallery ? (
-              <img 
-                src={tileImages.gallery} 
-                alt="Lifestyle Gallery" 
-                className="absolute inset-0 w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
-                loading="lazy"
-              />
-            ) : (
-              <div className="absolute inset-0 flex items-center justify-center bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-stone-800 to-stone-950 opacity-40 group-hover:opacity-55 transition-opacity duration-500">
-                <span className="text-amber-200/10 text-9xl font-display font-light select-none">✦</span>
-              </div>
-            )}
+            <img 
+              src={tileImages.gallery || placeholderImages.gallery[0].url} 
+              alt="Lifestyle Gallery" 
+              className="absolute inset-0 w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
+              loading="lazy"
+              referrerPolicy="no-referrer"
+            />
             <div className="absolute inset-x-0 bottom-0 p-6 z-20 flex flex-col justify-end text-white">
               <span className="text-[10px] uppercase font-sans tracking-widest font-bold text-amber-100 mb-1">Editorial</span>
               <h3 className="font-display text-xl font-medium mb-1 tracking-tight">Gallery</h3>
@@ -131,18 +127,13 @@ export function HomeView({ onViewChange, onAddToCart, showToast, onOpenAskMe }) 
             className="group relative h-96 rounded-xl overflow-hidden cursor-pointer shadow-sm hover:shadow-md transition-all duration-500 border border-stone-200/40 bg-gradient-to-b from-[#332b24] to-[#1a1511]"
           >
             <div className="absolute inset-0 bg-stone-950/20 group-hover:bg-stone-950/45 transition-colors duration-500 z-10" />
-            {tileImages.shop ? (
-              <img 
-                src={tileImages.shop} 
-                alt="Current Selections" 
-                className="absolute inset-0 w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
-                loading="lazy"
-              />
-            ) : (
-              <div className="absolute inset-0 flex items-center justify-center bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-stone-800 to-stone-950 opacity-40 group-hover:opacity-55 transition-opacity duration-500">
-                <span className="text-amber-200/10 text-9xl font-display font-light select-none">✦</span>
-              </div>
-            )}
+            <img 
+              src={tileImages.shop || placeholderImages.currentSelections} 
+              alt="Current Selections" 
+              className="absolute inset-0 w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
+              loading="lazy"
+              referrerPolicy="no-referrer"
+            />
             <div className="absolute inset-x-0 bottom-0 p-6 z-20 flex flex-col justify-end text-white">
               <span className="text-[10px] uppercase font-sans tracking-widest font-bold text-amber-100 mb-1">Available Curation</span>
               <h3 className="font-display text-xl font-medium mb-1 tracking-tight">Current Selections</h3>
@@ -163,18 +154,13 @@ export function HomeView({ onViewChange, onAddToCart, showToast, onOpenAskMe }) 
             className="group relative h-96 rounded-xl overflow-hidden cursor-pointer shadow-sm hover:shadow-md transition-all duration-500 border border-stone-200/40 bg-gradient-to-b from-[#26262b] to-[#121214]"
           >
             <div className="absolute inset-0 bg-stone-950/20 group-hover:bg-stone-950/45 transition-colors duration-500 z-10" />
-            {tileImages.archive ? (
-              <img 
-                src={tileImages.archive} 
-                alt="Past Collections" 
-                className="absolute inset-0 w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
-                loading="lazy"
-              />
-            ) : (
-              <div className="absolute inset-0 flex items-center justify-center bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-stone-800 to-stone-950 opacity-40 group-hover:opacity-55 transition-opacity duration-500">
-                <span className="text-amber-200/10 text-9xl font-display font-light select-none">✦</span>
-              </div>
-            )}
+            <img 
+              src={tileImages.archive || placeholderImages.archiveTile} 
+              alt="Past Collections" 
+              className="absolute inset-0 w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
+              loading="lazy"
+              referrerPolicy="no-referrer"
+            />
             <div className="absolute inset-x-0 bottom-0 p-6 z-20 flex flex-col justify-end text-white">
               <span className="text-[10px] uppercase font-sans tracking-widest font-bold text-amber-100 mb-1">Archive Portfolio</span>
               <h3 className="font-display text-xl font-medium mb-1 tracking-tight">Past Collections</h3>
@@ -303,6 +289,18 @@ export function HomeView({ onViewChange, onAddToCart, showToast, onOpenAskMe }) 
             </p>
           </div>
 
+          {/* Elegant Editorial Visual Banner */}
+          <div className="max-w-4xl mx-auto mb-16 rounded-xl overflow-hidden h-48 md:h-64 relative border border-[var(--border)]/45 shadow-xs">
+            <img
+              src={placeholderImages.luxuryPromise}
+              alt="Luxury Promise Detailing"
+              className="w-full h-full object-cover"
+              loading="lazy"
+              referrerPolicy="no-referrer"
+            />
+            <div className="absolute inset-0 bg-stone-900/5" />
+          </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
             <div className="bg-[var(--surface)] p-6 rounded-xl border border-[var(--border)]/50 shadow-3xs hover:shadow-2xs transition-all duration-300 space-y-3">
               <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-[var(--bg)] text-[var(--gold)] border border-[var(--border)]/30 shadow-2xs">
@@ -348,8 +346,14 @@ export function HomeView({ onViewChange, onAddToCart, showToast, onOpenAskMe }) 
 
         {/* Elegant Newsletter Section */}
         <div className="mt-24 border-t border-[var(--border)]/60 pt-16 pb-8 max-w-3xl mx-auto text-center" id="home_newsletter_section">
-          <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-[var(--surface)] text-[var(--text-secondary)] mb-4 border border-[var(--border)]/40">
-            <Mail size={18} strokeWidth={1.5} />
+          <div className="w-20 h-20 mx-auto mb-6 rounded-full overflow-hidden border border-[var(--border)]/45 shadow-xs">
+            <img
+              src={placeholderImages.newsletter}
+              alt="Stay in the Loop Curation"
+              className="w-full h-full object-cover"
+              loading="lazy"
+              referrerPolicy="no-referrer"
+            />
           </div>
           <h3 className="font-display text-xl md:text-2xl font-light text-[var(--text-primary)] tracking-tight">
             Stay in the Loop

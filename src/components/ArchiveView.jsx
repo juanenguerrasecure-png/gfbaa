@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { useStore } from '../context/StoreContext';
 import { MessageCircle, Award, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
 import { CommentBoard } from './CommentBoard';
+import { placeholderImages } from '../placeholderImages';
 
 function ArchivePieceCard({ piece }) {
   const { setInquiryItem, comments } = useStore();
@@ -49,7 +50,7 @@ function ArchivePieceCard({ piece }) {
     }
   };
 
-  const currentPhoto = photosList[activeIdx] || 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?q=80&w=800&auto=format&fit=crop';
+  const currentPhoto = photosList[activeIdx] || placeholderImages.archiveFallback;
   const dateStr = piece.dateAdded || 'Spring Curation';
 
   return (

@@ -1,11 +1,23 @@
 import { Sparkles, ArrowRight } from 'lucide-react';
+import { placeholderImages } from '../placeholderImages';
 
 export function AskMeBanner({ onOpen }) {
   return (
     <div 
-      className="mt-16 bg-accent-soft border border-accent/20 rounded-2xl p-8 md:p-10 max-w-4xl mx-auto shadow-sm relative overflow-hidden" 
+      className="mt-16 bg-accent-soft border border-accent/20 rounded-2xl p-8 md:p-10 max-w-4xl mx-auto shadow-sm relative overflow-hidden group" 
       id="ask_me_banner_container"
     >
+      {/* Decorative luxury editorial background image */}
+      <div className="absolute inset-0 w-full h-full opacity-5 pointer-events-none mix-blend-multiply">
+        <img
+          src={placeholderImages.askMeBanner}
+          alt="Sourcing concierge background"
+          className="w-full h-full object-cover transition-transform duration-[10s] ease-out group-hover:scale-105"
+          loading="lazy"
+          referrerPolicy="no-referrer"
+        />
+      </div>
+
       {/* Decorative subtle ambient background */}
       <div className="absolute top-0 right-0 w-64 h-64 bg-accent/5 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none" />
       <div className="absolute bottom-0 left-0 w-48 h-48 bg-accent/5 rounded-full blur-2xl -ml-20 -mb-20 pointer-events-none" />

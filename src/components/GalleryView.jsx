@@ -4,6 +4,7 @@ import { X, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { CommentBoard } from './CommentBoard';
 import { AskMeBanner } from './AskMeBanner';
+import { placeholderImages } from '../placeholderImages';
 
 export function GalleryView({ onOpenAskMe }) {
   const { galleryPhotos, siteContent } = useStore();
@@ -11,7 +12,7 @@ export function GalleryView({ onOpenAskMe }) {
 
   // Combine loaded gallery photos with default editorial seeding
   const photos = useMemo(() => {
-    const list = [...(galleryPhotos || [])];
+    const list = galleryPhotos && galleryPhotos.length > 0 ? [...galleryPhotos] : [...placeholderImages.gallery];
     return list.sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0));
   }, [galleryPhotos]);
 

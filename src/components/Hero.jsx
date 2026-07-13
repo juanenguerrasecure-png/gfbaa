@@ -2,6 +2,7 @@ import { useStore } from '../context/StoreContext';
 import { SocialLinks } from './SocialLinks';
 import { Sparkles } from 'lucide-react';
 import { SEASONAL_DETAILS, STATIC_PARTICLES } from '../utils/seasonKicker';
+import { placeholderImages } from '../placeholderImages';
 import styles from './Hero.module.css';
 
 export function Hero({ onCategoryClick, slim = false }) {
@@ -78,22 +79,14 @@ export function Hero({ onCategoryClick, slim = false }) {
           )}
         </div>
 
-        {hasHeroImage ? (
-          <div className={styles.heroImageColumn}>
-            <img
-              src={heroImage.url}
-              alt={heroImage.alt || 'Good Finds by AA'}
-              className={styles.heroCrestImage}
-            />
-          </div>
-        ) : (
-          <div className={styles.heroImageColumn}>
-            <div className={styles.heroPlaceholder}>
-              <span className={styles.heroPlaceholderInitials}>GF</span>
-              <span className={styles.heroPlaceholderLabel}>FEATURED CURATION</span>
-            </div>
-          </div>
-        )}
+        <div className={styles.heroImageColumn}>
+          <img
+            src={hasHeroImage ? heroImage.url : placeholderImages.hero}
+            alt={hasHeroImage ? (heroImage.alt || 'Good Finds by AA') : 'Good Finds by AA Featured Curation'}
+            className={styles.heroCrestImage}
+            referrerPolicy="no-referrer"
+          />
+        </div>
       </div>
     </section>
   );

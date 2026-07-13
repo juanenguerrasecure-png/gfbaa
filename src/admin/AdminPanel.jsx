@@ -1,5 +1,5 @@
 import { lazy, Suspense, useState } from 'react';
-import { Package, PlusCircle, BarChart2, LogOut, X, Menu, Code, Users, Bell, ShoppingCart, Share2, CreditCard, Image, BookOpen, MessageSquare, Mail } from 'lucide-react';
+import { Package, PlusCircle, BarChart2, LogOut, X, Menu, Code, Users, Bell, ShoppingCart, Share2, CreditCard, Image, BookOpen, MessageSquare, Mail, Sparkles } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useStore } from '../context/StoreContext';
 import styles from './AdminPanel.module.css';
@@ -16,6 +16,7 @@ const GalleryTab = lazy(() => import('./tabs/GalleryTab').then(m => ({ default: 
 const PastCollectionsTab = lazy(() => import('./tabs/PastCollectionsTab').then(m => ({ default: m.PastCollectionsTab })));
 const MessageBoardTab = lazy(() => import('./tabs/MessageBoardTab').then(m => ({ default: m.MessageBoardTab })));
 const NewsletterTab = lazy(() => import('./tabs/NewsletterTab').then(m => ({ default: m.NewsletterTab })));
+const StudioTab = lazy(() => import('./tabs/StudioTab').then(m => ({ default: m.StudioTab })));
 const GlobalManualSaleModal = lazy(() => import('./components/GlobalManualSaleModal').then(m => ({ default: m.GlobalManualSaleModal })));
 
 function AdminContentFallback() {
@@ -36,6 +37,7 @@ const NAV = [
   { key: 'newsletter', label: 'Newsletter Subscribers', icon: Mail, tab: NewsletterTab },
   { key: 'add', label: 'Add Batch / Purchase', icon: PlusCircle, tab: AddItemTab },
   { key: 'gallery', label: 'Storefront Gallery', icon: Image, tab: GalleryTab },
+  { key: 'studio', label: 'AI Creative Studio', icon: Sparkles, tab: StudioTab },
   { key: 'past_collections', label: 'Past Collections', icon: BookOpen, tab: PastCollectionsTab },
   { key: 'reports', label: 'Reports & Logs', icon: BarChart2, tab: ReportsTab },
   { key: 'users', label: 'Users & Control', icon: Users, tab: UsersTab },
@@ -46,7 +48,7 @@ const NAV = [
 
 const GROUPS = [
   { title: 'Operations & Stock', items: ['inventory', 'add', 'past_collections'] },
-  { title: 'Editorial & Content', items: ['gallery'] },
+  { title: 'Editorial & Content', items: ['gallery', 'studio'] },
   { title: 'Customer Management', items: ['requests', 'messages', 'newsletter'] },
   { title: 'System & Settings', items: ['reports', 'users', 'social', 'payments', 'design'] },
 ];
