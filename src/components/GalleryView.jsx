@@ -60,16 +60,16 @@ export function GalleryView({ onOpenAskMe }) {
   }, [activePhoto, photos.length]);
 
   return (
-    <div className="bg-[#FAF8F5] min-h-screen py-16 px-6" id="gallery_view_container">
+    <div className="bg-[var(--bg)] text-[var(--text-primary)] min-h-screen py-16 px-6 transition-colors duration-500" id="gallery_view_container">
       {/* Header */}
       <div className="max-w-4xl mx-auto text-center mb-14">
         <span className="text-[10px] uppercase font-sans tracking-[0.3em] font-bold text-accent mb-2 block">
           Editorial Gallery
         </span>
-        <h1 className="font-display text-3xl md:text-5xl font-light text-stone-950 tracking-tight leading-tight">
+        <h1 className="font-display text-3xl md:text-5xl font-light text-[var(--text-primary)] tracking-tight leading-tight">
           Visual Curation
         </h1>
-        <p className="text-stone-500 font-sans text-xs md:text-sm max-w-lg mx-auto mt-4 leading-relaxed font-light">
+        <p className="text-[var(--text-secondary)] font-sans text-xs md:text-sm max-w-lg mx-auto mt-4 leading-relaxed font-light">
           {siteContent?.galleryIntro || 'A purely visual journal of styling setups, fine-grained details, and lifestyle concepts from our sourcing diaries.'}
         </p>
       </div>
@@ -77,11 +77,11 @@ export function GalleryView({ onOpenAskMe }) {
       {/* Masonry Grid or Empty State */}
       <div className="max-w-7xl mx-auto">
         {photos.length === 0 ? (
-          <div className="max-w-md mx-auto text-center py-20 px-6 border border-dashed border-stone-200 rounded-2xl bg-white shadow-xs" id="gallery_empty_state">
-            <span className="text-stone-300 text-3xl block mb-3">✦</span>
-            <p className="text-stone-400 text-[10px] font-mono uppercase tracking-widest mb-2">Editorial Queue Empty</p>
-            <p className="font-serif text-base text-stone-700 italic">"Pristine layouts under curatorial view."</p>
-            <p className="text-stone-500 text-xs mt-3 leading-relaxed max-w-xs mx-auto">
+          <div className="max-w-md mx-auto text-center py-20 px-6 border border-dashed border-[var(--border)] rounded-2xl bg-[var(--surface)] shadow-xs" id="gallery_empty_state">
+            <span className="text-[var(--text-secondary)]/30 text-3xl block mb-3">✦</span>
+            <p className="text-[var(--text-secondary)]/80 text-[10px] font-mono uppercase tracking-widest mb-2">Editorial Queue Empty</p>
+            <p className="font-serif text-base text-[var(--text-primary)] italic">"Pristine layouts under curatorial view."</p>
+            <p className="text-[var(--text-secondary)] text-xs mt-3 leading-relaxed max-w-xs mx-auto">
               Please log into the concierge desk dashboard to seed your custom visual stories with titles, captions, and narratives.
             </p>
           </div>
@@ -91,11 +91,11 @@ export function GalleryView({ onOpenAskMe }) {
               <div
                 key={photo.id || index}
                 onClick={() => setLightboxIndex(index)}
-                className="break-inside-avoid mb-6 relative overflow-hidden rounded-xl border border-stone-200/50 bg-white group cursor-zoom-in transition-all duration-300 shadow-sm hover:shadow-md flex flex-col"
+                className="break-inside-avoid mb-6 relative overflow-hidden rounded-xl border border-[var(--border)]/50 bg-[var(--surface)] group cursor-zoom-in transition-all duration-300 shadow-sm hover:shadow-md flex flex-col"
                 id={`gallery_photo_item_${index}`}
               >
                 {/* Photo Container */}
-                <div className="relative overflow-hidden bg-[#F3ECE5]">
+                <div className="relative overflow-hidden bg-[var(--bg)]">
                   <img
                     src={photo.url}
                     alt={photo.title || photo.caption || 'Editorial curation'}
@@ -105,27 +105,27 @@ export function GalleryView({ onOpenAskMe }) {
                   />
                   {/* Elegant overlay on hover */}
                   <div className="absolute inset-0 bg-stone-950/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                    <span className="bg-white/95 backdrop-blur-xs text-stone-900 text-[10px] uppercase tracking-widest font-bold px-4 py-2 rounded-full shadow-md border border-stone-100">
+                    <span className="bg-[var(--surface)]/95 backdrop-blur-xs text-[var(--text-primary)] text-[10px] uppercase tracking-widest font-bold px-4 py-2 rounded-full shadow-md border border-[var(--border)]/40">
                       Read Story
                     </span>
                   </div>
                 </div>
 
                 {/* Card Text Meta showing Title & Brief Description */}
-                <div className="p-5 space-y-1.5 bg-white">
-                  <h3 className="font-serif text-base md:text-lg font-normal text-stone-900 tracking-tight leading-snug">
+                <div className="p-5 space-y-1.5 bg-[var(--surface)]">
+                  <h3 className="font-serif text-base md:text-lg font-normal text-[var(--text-primary)] tracking-tight leading-snug">
                     {photo.title || 'Untitled Curation'}
                   </h3>
                   {photo.caption ? (
-                    <p className="text-stone-500 font-sans text-xs md:text-[13px] leading-relaxed font-light line-clamp-2">
+                    <p className="text-[var(--text-secondary)] font-sans text-xs md:text-[13px] leading-relaxed font-light line-clamp-2">
                       {photo.caption}
                     </p>
                   ) : (
-                    <p className="text-stone-400 font-sans text-xs italic leading-relaxed font-light">
+                    <p className="text-[var(--text-secondary)]/60 font-sans text-xs italic leading-relaxed font-light">
                       Tap to open full curation narrative.
                     </p>
                   )}
-                  <div className="flex items-center gap-1.5 text-[9px] uppercase tracking-widest font-bold text-[#C9A84C] pt-1">
+                  <div className="flex items-center gap-1.5 text-[9px] uppercase tracking-widest font-bold text-[var(--accent)] pt-1">
                     <span>Explore Story</span>
                     <span className="text-[7px]">✦</span>
                   </div>
@@ -149,13 +149,13 @@ export function GalleryView({ onOpenAskMe }) {
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 28, stiffness: 180 }}
-              className="fixed inset-0 w-full h-full bg-[#FAF8F5] flex flex-col overflow-y-auto z-[120]"
+              className="fixed inset-0 w-full h-full bg-[var(--bg)] text-[var(--text-primary)] flex flex-col overflow-y-auto z-[120]"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Floating Close Button */}
               <button
                 onClick={() => setLightboxIndex(null)}
-                className="fixed top-6 right-6 z-50 w-12 h-12 flex items-center justify-center rounded-full border border-stone-200/80 bg-white/90 hover:bg-white text-stone-800 hover:text-stone-950 shadow-md transition-all cursor-pointer hover:scale-105 active:scale-95"
+                className="fixed top-6 right-6 z-50 w-12 h-12 flex items-center justify-center rounded-full border border-[var(--border)] bg-[var(--surface)]/90 hover:bg-[var(--surface)] text-[var(--text-primary)] hover:text-[var(--accent)] shadow-md transition-all cursor-pointer hover:scale-105 active:scale-95"
                 id="gallery_modal_close_btn"
                 aria-label="Close modal"
               >
@@ -177,7 +177,7 @@ export function GalleryView({ onOpenAskMe }) {
                     <button
                       type="button"
                       onClick={handlePrev}
-                      className="absolute left-6 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center rounded-full border border-stone-200 bg-white/90 text-stone-800 hover:bg-white shadow-md transition-all cursor-pointer z-30 hover:scale-105 active:scale-95"
+                      className="absolute left-6 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center rounded-full border border-[var(--border)] bg-[var(--surface)]/90 text-[var(--text-primary)] hover:bg-[var(--surface)] shadow-md transition-all cursor-pointer z-30 hover:scale-105 active:scale-95"
                       aria-label="Previous photo"
                     >
                       <ChevronLeft size={20} />
@@ -185,7 +185,7 @@ export function GalleryView({ onOpenAskMe }) {
                     <button
                       type="button"
                       onClick={handleNext}
-                      className="absolute right-6 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center rounded-full border border-stone-200 bg-white/90 text-stone-800 hover:bg-white shadow-md transition-all cursor-pointer z-30 hover:scale-105 active:scale-95"
+                      className="absolute right-6 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center rounded-full border border-[var(--border)] bg-[var(--surface)]/90 text-[var(--text-primary)] hover:bg-[var(--surface)] shadow-md transition-all cursor-pointer z-30 hover:scale-105 active:scale-95"
                       aria-label="Next photo"
                     >
                       <ChevronRight size={20} />
@@ -203,35 +203,35 @@ export function GalleryView({ onOpenAskMe }) {
               <div className="w-full max-w-3xl mx-auto px-6 py-12 md:py-16 space-y-8 select-text flex-shrink-0">
                 {/* Category stamp */}
                 <div className="flex items-center justify-center gap-1.5">
-                  <Sparkles size={12} className="text-[#C9A84C]" />
-                  <span className="text-[10px] font-sans font-bold uppercase tracking-widest text-[#8C7B6E]">
+                  <Sparkles size={12} className="text-[var(--accent)]" />
+                  <span className="text-[10px] font-sans font-bold uppercase tracking-widest text-[var(--text-secondary)]">
                     Editorial Story
                   </span>
                 </div>
 
                 {/* Title */}
-                <h2 className="font-serif font-light text-stone-950 text-3xl md:text-5xl leading-tight tracking-tight text-center">
+                <h2 className="font-serif font-light text-[var(--text-primary)] text-3xl md:text-5xl leading-tight tracking-tight text-center">
                   {activePhoto.title || 'Untitled Curation'}
                 </h2>
 
                 {/* Aesthetic Accent Line */}
-                <div className="w-16 h-[1px] bg-[#C9A84C] mx-auto" />
+                <div className="w-16 h-[1px] bg-[var(--accent)] mx-auto" />
 
                 {/* Brief Description */}
                 {activePhoto.caption && (
-                  <div className="bg-stone-50 border border-[#E5DFD8]/60 p-6 md:p-8 rounded-2xl text-center shadow-2xs">
-                    <p className="font-serif italic font-light text-stone-800 text-base md:text-lg leading-relaxed">
+                  <div className="bg-[var(--surface)] border border-[var(--border)]/60 p-6 md:p-8 rounded-2xl text-center shadow-2xs">
+                    <p className="font-serif italic font-light text-[var(--text-primary)] text-base md:text-lg leading-relaxed">
                       "{activePhoto.caption}"
                     </p>
                   </div>
                 )}
 
                 {/* Full Description / Story which is scrollable */}
-                <div className="font-sans font-light text-stone-700 text-sm md:text-base leading-relaxed whitespace-pre-line bg-white border border-stone-200/50 p-6 md:p-8 rounded-2xl shadow-xs">
+                <div className="font-sans font-light text-[var(--text-primary)] text-sm md:text-base leading-relaxed whitespace-pre-line bg-[var(--surface)] border border-[var(--border)]/50 p-6 md:p-8 rounded-2xl shadow-xs">
                   {activePhoto.story ? (
                     activePhoto.story
                   ) : (
-                    <p className="italic text-stone-400 text-center">
+                    <p className="italic text-[var(--text-secondary)] text-center">
                       This luxury curation is handpicked with historical respect, ensuring both beautiful vintage preservation and original structure. Explore our daily arrivals to add timeless stories to your own personal wardrobe.
                     </p>
                   )}
@@ -242,8 +242,8 @@ export function GalleryView({ onOpenAskMe }) {
               </div>
 
               {/* Brand Footer */}
-              <div className="border-t border-stone-200/50 bg-stone-50/80 p-6 text-center flex-shrink-0 w-full mt-auto">
-                <span className="text-[9px] uppercase font-mono tracking-widest text-stone-400">
+              <div className="border-t border-[var(--border)]/50 bg-[var(--surface)]/80 p-6 text-center flex-shrink-0 w-full mt-auto">
+                <span className="text-[9px] uppercase font-mono tracking-widest text-[var(--text-secondary)]/50">
                   GOOD FINDS BY AA • STYLE DIARIES
                 </span>
               </div>

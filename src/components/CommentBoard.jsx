@@ -102,7 +102,7 @@ export function CommentBoard({ itemId, itemType }) {
         hour: '2-digit',
         minute: '2-digit'
       });
-    } catch (_) {
+    } catch {
       return '';
     }
   };

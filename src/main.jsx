@@ -4,13 +4,16 @@ import App from './App.jsx';
 import './index.css';
 import { StoreProvider } from './context/StoreContext';
 import { AuthProvider } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <StoreProvider>
-      <AuthProvider>
-        <App />
-      </AuthProvider>
-    </StoreProvider>
+    <ThemeProvider>
+      <StoreProvider>
+        <AuthProvider>
+          <App />
+        </AuthProvider>
+      </StoreProvider>
+    </ThemeProvider>
   </React.StrictMode>,
 );

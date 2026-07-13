@@ -1,5 +1,5 @@
 import { useState, useRef, useMemo } from 'react';
-import { AlertCircle, Sparkles, Trash2, Upload, MoveUp, MoveDown, Image } from 'lucide-react';
+import { AlertCircle, Sparkles, Trash2, Upload, MoveUp, MoveDown } from 'lucide-react';
 import { compressImage } from '../lib/imageCompressor';
 
 export function MultiPhotoEditor({ photos = [], onChange, label = 'Product Listing Photos' }) {

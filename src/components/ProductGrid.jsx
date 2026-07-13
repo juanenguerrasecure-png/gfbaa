@@ -1,11 +1,8 @@
-import { useState, useEffect, useMemo } from 'react';
-import { Search, ShoppingBag, AlertCircle, Sparkles, RefreshCw, SlidersHorizontal, Heart } from 'lucide-react';
-import { useCurrency, formatProductPrice } from '../hooks/useCurrency';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import { Search, AlertCircle, Sparkles, RefreshCw, SlidersHorizontal } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
-import { ProductPlaceholder } from './ProductPlaceholder';
 import { ProductDetailModal } from './ProductDetailModal';
 import { ProductCard } from './ProductCard';
-import { useWishlist } from '../hooks/useWishlist';
 
 export function ProductGrid({ activeFilter: externalFilter, onFilterChange: onExternalFilterChange, onAddToCart }) {
   const [items, setItems] = useState([]);
@@ -21,14 +18,6 @@ export function ProductGrid({ activeFilter: externalFilter, onFilterChange: onEx
 
   const [sort, setSort] = useState('newest'); // 'newest' | 'low' | 'high'
   const [selectedProduct, setSelectedProduct] = useState(null);
-  const { toggleWishlist, isWishlisted } = useWishlist();
-
-  const handleOpenDetail = (product) => {
-    setSelectedProduct(product);
-    const url = new URL(window.location.href);
-    url.searchParams.set('product', product.id);
-    window.history.replaceState({}, '', url.pathname + url.search);
-  };
 
   const handleCloseDetail = () => {
     setSelectedProduct(null);
@@ -38,10 +27,9 @@ export function ProductGrid({ activeFilter: externalFilter, onFilterChange: onEx
     window.history.replaceState({}, '', url.pathname + url.search);
   };
 
-  const { currency } = useCurrency();
-  const { exchangeRate, getCatalogItemStock, catalogItems } = useStore();
+  const { getCatalogItemStock, catalogItems } = useStore();
 
-  const fetchCatalogItems = async () => {
+  const fetchCatalogItems = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -69,11 +57,11 @@ export function ProductGrid({ activeFilter: externalFilter, onFilterChange: onEx
     } finally {
       setLoading(false);
     }
-  };
+  }, [catalogItems]);
 
   useEffect(() => {
     fetchCatalogItems();
-  }, []);
+  }, [fetchCatalogItems]);
 
   useEffect(() => {
     if (catalogItems && catalogItems.length > 0) {
@@ -170,11 +158,6 @@ export function ProductGrid({ activeFilter: externalFilter, onFilterChange: onEx
     return result;
   }, [inStockItems, activeFilter, searchQuery, sort]);
 
-  const toggleLike = (id, e) => {
-    e.stopPropagation();
-    toggleWishlist(id);
-  };
-
   const getDisplayTitle = () => {
     if (activeFilter.startsWith('brand:')) {
       return `${activeFilter.slice(6)} Collection`;
@@ -203,7 +186,7 @@ export function ProductGrid({ activeFilter: externalFilter, onFilterChange: onEx
           <div className="h-10 bg-stone-200/50 rounded-full w-full max-w-xs" />
         </div>
         {/* Skeleton Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10 lg:gap-12 xl:gap-14">
           {[...Array(8)].map((_, idx) => (
             <div key={idx} className="bg-white rounded-lg border border-stone-200/40 overflow-hidden animate-pulse">
               <div className="aspect-square bg-stone-100" />
@@ -224,7 +207,7 @@ export function ProductGrid({ activeFilter: externalFilter, onFilterChange: onEx
 
   if (error) {
     return (
-      <div className="w-full max-w-md mx-auto my-16 p-8 bg-[#FAF8F5] border border-stone-200 rounded-lg text-center" id="product_grid_error_state">
+      <div className="w-full max-w-md mx-auto my-16 p-8 bg-[var(--surface)] border border-[var(--border)] rounded-lg text-center" id="product_grid_error_state">
         <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-stone-100 text-stone-600 mb-4">
           <AlertCircle size={22} />
         </div>
@@ -243,15 +226,15 @@ export function ProductGrid({ activeFilter: externalFilter, onFilterChange: onEx
   }
 
   return (
-    <section className="w-full max-w-7xl mx-auto px-6 py-12" id="tailwind_product_grid_section">
+    <section className="w-full max-w-7xl mx-auto px-6 md:px-12 py-16 lg:py-24" id="tailwind_product_grid_section">
       {/* Search and Sort Sub-Bar */}
-      <div className="flex flex-col lg:flex-row gap-6 justify-between items-start lg:items-center mb-8 border-b border-stone-200/60 pb-6" id="grid_utility_panel">
+      <div className="flex flex-col lg:flex-row gap-6 justify-between items-start lg:items-center mb-12 border-b border-[var(--border)]/60 pb-8" id="grid_utility_panel">
         <div className="w-full lg:w-auto">
-          <h2 className="font-display text-2xl md:text-3xl font-light tracking-tight text-stone-950 flex items-center gap-2">
-            <Sparkles size={18} className="text-accent" />
+          <h2 className="font-display text-2xl md:text-3xl font-light tracking-tight text-[var(--text-primary)] flex items-center gap-2">
+            <Sparkles size={18} className="text-[var(--accent)]" />
             {getDisplayTitle()}
           </h2>
-          <p className="text-stone-500 text-xs font-sans mt-1">
+          <p className="text-[var(--text-secondary)] text-xs font-sans mt-1">
             Browse our carefully vetted acquisitions • Direct backend synchronization
           </p>
         </div>
@@ -267,18 +250,18 @@ export function ProductGrid({ activeFilter: externalFilter, onFilterChange: onEx
               placeholder="Search brand, collection, model..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 bg-stone-50 hover:bg-stone-100/50 focus:bg-white text-stone-900 text-xs font-sans rounded border border-stone-200 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent/20 transition-all shadow-sm"
+              className="w-full pl-9 pr-4 py-2 bg-[var(--surface)] hover:bg-[var(--bg)]/50 focus:bg-[var(--surface)] text-[var(--text-primary)] text-xs font-sans rounded border border-[var(--border)] focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)]/20 transition-all shadow-sm"
               id="grid_search_input"
             />
           </div>
 
           {/* Sort Select Styled beautifully in Tailwind */}
-          <div className="relative min-w-[160px] flex items-center gap-2 border border-stone-200 rounded px-2.5 py-1.5 bg-stone-50 hover:bg-stone-100/50 transition-colors shadow-sm" id="grid_sort_wrapper">
-            <SlidersHorizontal size={13} className="text-stone-400" />
+          <div className="relative min-w-[160px] flex items-center gap-2 border border-[var(--border)] rounded px-2.5 py-1.5 bg-[var(--surface)] hover:bg-[var(--bg)]/50 transition-colors shadow-sm" id="grid_sort_wrapper">
+            <SlidersHorizontal size={13} className="text-[var(--text-secondary)]/60" />
             <select
               value={sort}
               onChange={(e) => setSort(e.target.value)}
-              className="bg-transparent text-stone-800 text-xs font-medium focus:outline-none cursor-pointer w-full"
+              className="bg-transparent text-[var(--text-primary)] text-xs font-medium focus:outline-none cursor-pointer w-full"
               aria-label="Sort options"
               id="grid_sort_select"
             >
@@ -291,7 +274,7 @@ export function ProductGrid({ activeFilter: externalFilter, onFilterChange: onEx
       </div>
 
       {/* Main Responsive Custom Filters Pill Bar */}
-      <div className="mb-8" id="grid_pills_container">
+      <div className="mb-14" id="grid_pills_container">
         <div className="flex flex-wrap items-center gap-2 pb-2">
           {[
             { key: 'all', label: 'All Curations' },
@@ -305,8 +288,8 @@ export function ProductGrid({ activeFilter: externalFilter, onFilterChange: onEx
               onClick={() => setActiveFilter(f.key)}
               className={`px-4 py-1.5 text-xs font-medium rounded-full border transition-all cursor-pointer ${
                 activeFilter === f.key
-                  ? 'bg-accent text-white border-accent shadow-sm'
-                  : 'bg-stone-50 text-stone-600 border-stone-200 hover:bg-stone-100/70 hover:text-stone-900'
+                  ? 'bg-[var(--accent)] text-white border-[var(--accent)] shadow-sm'
+                  : 'bg-[var(--surface)] text-[var(--text-secondary)] border-[var(--border)] hover:bg-[var(--bg)]/70 hover:text-[var(--text-primary)]'
               }`}
               id={`filter_tab_pill_${f.key}`}
             >
@@ -329,8 +312,8 @@ export function ProductGrid({ activeFilter: externalFilter, onFilterChange: onEx
                 onClick={() => setActiveFilter(key)}
                 className={`px-3.5 py-1.5 text-xs font-medium rounded-full border transition-all cursor-pointer ${
                   activeFilter === key
-                    ? 'bg-accent text-white border-accent shadow-sm'
-                    : 'bg-stone-50 text-stone-500 border-stone-200 hover:bg-stone-100/70 hover:text-stone-850'
+                    ? 'bg-[var(--accent)] text-white border-[var(--accent)] shadow-sm'
+                    : 'bg-[var(--surface)] text-[var(--text-secondary)] border-[var(--border)] hover:bg-[var(--bg)]/70 hover:text-[var(--text-primary)]'
                 }`}
                 id={`filter_tab_brand_${normalizedId}`}
               >
@@ -343,22 +326,22 @@ export function ProductGrid({ activeFilter: externalFilter, onFilterChange: onEx
 
       {/* Grid Content Area */}
       {filteredItems.length === 0 ? (
-        <div className="flex flex-col items-center justify-center text-center py-20 px-4 bg-stone-50 border border-stone-200/60 rounded-xl" id="grid_empty_state_card">
+        <div className="flex flex-col items-center justify-center text-center py-20 px-4 bg-[var(--surface)] border border-[var(--border)]/60 rounded-xl" id="grid_empty_state_card">
           <span className="text-3xl mb-3">🔍</span>
-          <h3 className="font-display text-lg text-stone-800 mb-1">No pieces match this selection</h3>
-          <p className="text-stone-500 text-xs max-w-sm font-sans leading-relaxed">
+          <h3 className="font-display text-lg text-[var(--text-primary)] mb-1">No pieces match this selection</h3>
+          <p className="text-[var(--text-secondary)] text-xs max-w-sm font-sans leading-relaxed">
             There are currently no active listings that match your filter or search query. Take a look at our complete treasury collections.
           </p>
           <button
             onClick={() => { setActiveFilter('all'); setSearchQuery(''); }}
-            className="mt-5 px-5 py-2 bg-stone-950 hover:bg-stone-850 text-stone-100 text-xs font-semibold rounded transition-all shadow-sm cursor-pointer"
+            className="mt-5 px-5 py-2 bg-[var(--btn-primary-bg)] text-[var(--btn-primary-fg)] hover:opacity-90 text-xs font-semibold rounded transition-all shadow-sm cursor-pointer"
             id="grid_reset_btn"
           >
             Clear Active Filters
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 animate-fadeIn" id="grid_products_layout">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10 lg:gap-12 xl:gap-14 animate-fadeIn" id="grid_products_layout">
           {filteredItems.map(item => (
             <ProductCard 
               key={item.id} 

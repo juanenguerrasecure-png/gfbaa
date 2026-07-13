@@ -29,25 +29,25 @@ export function ShopHero() {
 
       <div className="max-w-7xl mx-auto px-6 text-center">
         {/* Seasonal Badge */}
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border shadow-xs mb-4" style={{ borderColor: 'var(--accent, #C9A84C)' }}>
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--surface)] border shadow-xs mb-4" style={{ borderColor: 'var(--accent, #C9A84C)' }}>
           <BadgeIcon size={12} style={{ color: 'var(--accent, #C9A84C)' }} />
-          <span className="text-[9px] md:text-[10px] font-sans font-semibold uppercase tracking-widest text-stone-700">
+          <span className="text-[9px] md:text-[10px] font-sans font-semibold uppercase tracking-widest text-[var(--text-secondary)]">
             {detail.badge}
           </span>
         </div>
 
         {/* Title */}
-        <h1 className="font-serif text-3xl md:text-4xl font-light text-stone-900 tracking-tight mb-3">
+        <h1 className="font-serif text-3xl md:text-4xl font-light text-[var(--text-primary)] tracking-tight mb-3">
           Current Selections
         </h1>
 
         {/* Dynamic stock count */}
-        <p className="text-[#8C7B6E] font-mono text-[10px] md:text-xs font-semibold uppercase tracking-wider mb-3">
+        <p className="text-[var(--text-secondary)] font-mono text-[10px] md:text-xs font-semibold uppercase tracking-wider mb-3">
           {activeCount} {activeCount === 1 ? 'piece' : 'pieces'} currently in the vault
         </p>
 
         {/* Editable description */}
-        <p className="max-w-xl mx-auto text-stone-600 text-xs md:text-sm font-sans leading-relaxed">
+        <p className="max-w-xl mx-auto text-[var(--text-secondary)] text-xs md:text-sm font-sans leading-relaxed">
           {displayIntro}
         </p>
       </div>

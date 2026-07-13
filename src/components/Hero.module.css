@@ -1,6 +1,6 @@
 .hero {
-  background-color: var(--season-bg, #FAF8F5);
-  border-bottom: 1px solid #E5DFD8;
+  background-color: var(--bg);
+  border-bottom: 1px solid var(--border);
   padding: 5rem 1.5rem;
   position: relative;
   overflow: hidden;
@@ -46,16 +46,16 @@
   align-items: center;
   gap: 0.45rem;
   font-family: 'Inter', sans-serif;
-  font-size: 0.72rem;
+  font-size: 10px;
   text-transform: uppercase;
-  letter-spacing: 0.18em;
-  color: var(--accent);
+  letter-spacing: 0.16em;
+  color: var(--gold);
   font-weight: 500;
   margin-bottom: 1.25rem;
-  background: var(--accent-soft);
-  padding: 0.35rem 1rem;
-  border-radius: 9999px;
-  border: 1px solid var(--accent);
+  background: var(--surface);
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
   transition: background 0.8s cubic-bezier(0.16, 1, 0.3, 1),
               color 0.8s cubic-bezier(0.16, 1, 0.3, 1),
               border-color 0.8s cubic-bezier(0.16, 1, 0.3, 1);
@@ -155,7 +155,7 @@
   font-family: 'Cormorant Garamond', serif;
   font-size: 43.625px;
   line-height: 29.674999999999997px;
-  color: #1C1410;
+  color: var(--text-primary);
   font-weight: 300;
   margin: 0 0 1.25rem 0;
   letter-spacing: -0.035em;
@@ -164,7 +164,7 @@
 .title em {
   display: block;
   margin-top: 0.35rem;
-  color: #9A8A82;
+  color: var(--text-secondary);
   font-size: 0.82em;
   line-height: 1.18;
   font-weight: 300;
@@ -187,7 +187,7 @@
   font-family: 'Inter', sans-serif;
   font-size: 11.72px;
   line-height: 1.7;
-  color: #61554A;
+  color: var(--text-secondary);
   max-width: 570px;
   margin: 0 0 2.25rem 0;
   font-weight: 300;
@@ -214,26 +214,27 @@
 }
 
 .btnPrimary {
-  background-color: #1C1410;
-  color: #FAF8F5;
-  border: 1px solid #1C1410;
+  background-color: var(--btn-primary-bg);
+  color: var(--btn-primary-fg);
+  border: 1px solid var(--btn-border);
 }
 
 .btnPrimary:hover {
-  background-color: #382B24;
-  border-color: #382B24;
+  background-color: var(--text-primary);
+  border-color: var(--text-primary);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(28, 20, 16, 0.1);
 }
 
 .btnSecondary {
   background-color: transparent;
-  color: #1C1410;
-  border: 1px solid var(--accent);
+  color: var(--btn-border);
+  border: 1.5px solid var(--btn-border);
 }
 
 .btnSecondary:hover {
-  background-color: var(--accent-soft);
+  background-color: var(--btn-primary-bg);
+  color: var(--btn-primary-fg);
   transform: translateY(-1px);
 }
 
@@ -272,7 +273,7 @@
   height: 273px;
   min-height: 273px;
   background: linear-gradient(135deg, rgba(229, 223, 216, 0.78), rgba(250, 248, 245, 0.95));
-  border: 1px solid #E5DFD8;
+  border: 1px solid var(--border);
   border-radius: 4px;
   display: flex;
   flex-direction: column;

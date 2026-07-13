@@ -1,14 +1,13 @@
 .card {
   display: flex;
   flex-direction: column;
-  background-color: var(--accent-soft, #FAF8F5);
-  border-radius: 0;
+  background-color: var(--surface);
+  border-radius: var(--card-radius);
   overflow: hidden;
-  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), 
-              box-shadow 0.5s cubic-bezier(0.16, 1, 0.3, 1), 
-              border-color 0.5s cubic-bezier(0.16, 1, 0.3, 1),
-              background-color 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-  border: 1px solid #E5DFD8;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), 
+              box-shadow 0.6s cubic-bezier(0.16, 1, 0.3, 1), 
+              border-color 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 1px solid var(--border);
   cursor: pointer;
   will-change: transform, box-shadow;
 }
@@ -16,7 +15,7 @@
 .card:hover {
   transform: translateY(-6px) scale(1.015);
   box-shadow: 0 20px 40px rgba(44, 34, 27, 0.08), 0 8px 20px rgba(44, 34, 27, 0.04);
-  border-color: var(--accent);
+  border-color: var(--gold);
 }
 
 .imgWrap {
@@ -27,7 +26,7 @@
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  border-bottom: 1px solid #E5DFD8;
+  border-bottom: 1px solid var(--border);
 }
 
 .photo {
@@ -44,7 +43,7 @@
 .skeleton {
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, #FAF8F5 25%, #E5DFD8 50%, #FAF8F5 75%);
+  background: linear-gradient(90deg, var(--bg) 25%, var(--border) 50%, var(--bg) 75%);
   background-size: 200% 100%;
   animation: loading 1.5s infinite;
 }
@@ -68,7 +67,7 @@
   padding: 0.2rem 0.5rem;
   border-radius: 0;
   border: 1px solid currentColor;
-  background-color: rgba(250, 248, 245, 0.9);
+  background-color: var(--surface);
   backdrop-filter: blur(2px);
   box-shadow: 0 2px 4px rgba(0,0,0,0.02);
 }
@@ -76,7 +75,7 @@
 .badgeMint { color: #5D7268; }
 .badgeGood { color: #7A695D; }
 .badgeFair { color: #8E6B6B; }
-.badgeNew { color: var(--accent-deep, #8E7A4A); border-color: var(--accent); }
+.badgeNew { color: var(--gold); border-color: var(--gold); }
 
 .wishlist {
   position: absolute;
@@ -85,14 +84,14 @@
   width: 1.75rem;
   height: 1.75rem;
   border-radius: 50%;
-  background-color: rgba(250, 248, 245, 0.85);
+  background-color: var(--surface);
   backdrop-filter: blur(4px);
-  border: 1px solid #EAE5DF;
+  border: 1px solid var(--border);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: #8C7B6E;
+  color: var(--text-secondary);
   transition: all 0.2s;
   box-shadow: 0 2px 4px rgba(0,0,0,0.02);
   z-index: 12;
@@ -112,9 +111,9 @@
   width: 1.75rem;
   height: 1.75rem;
   border-radius: 50%;
-  background-color: rgba(250, 248, 245, 0.9);
+  background-color: var(--surface);
   backdrop-filter: blur(4px);
-  border: 1px solid #EAE5DF;
+  border: 1px solid var(--border);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -133,22 +132,23 @@
 
 .wishlist:hover,
 .contactBtn:hover {
-  background-color: #FAF8F5;
-  color: var(--accent);
-  border-color: var(--accent);
+  background-color: var(--bg);
+  color: var(--gold);
+  border-color: var(--gold);
   transform: scale(1.04);
 }
 
 .wishlist.liked {
-  color: var(--accent);
-  border-color: var(--accent);
+  color: var(--gold);
+  border-color: var(--gold);
 }
 
 .body {
-  padding: 1.5rem 1.25rem 1rem 1.25rem;
+  padding: 1.75rem 1.5rem 1.5rem 1.5rem;
   display: flex;
   flex-direction: column;
   flex-grow: 1;
+  gap: 0.5rem;
 }
 
 .brand {
@@ -156,7 +156,7 @@
   font-size: 0.7rem;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: #8C7B6E;
+  color: var(--text-secondary);
   font-weight: 500;
   margin: 0 0 0.25rem 0;
 }
@@ -165,7 +165,7 @@
   font-family: 'Cormorant Garamond', serif;
   font-size: 1.25rem;
   font-weight: 400;
-  color: #1C1410;
+  color: var(--text-primary);
   margin: 0 0 0.5rem 0;
   line-height: 1.2;
 }
@@ -173,7 +173,7 @@
 .detail {
   font-family: 'Inter', sans-serif;
   font-size: 0.75rem;
-  color: #61554A;
+  color: var(--text-secondary);
   margin: 0 0 1.25rem 0;
   line-height: 1.4;
   font-weight: 300;
@@ -184,7 +184,7 @@
   align-items: center;
   justify-content: space-between;
   margin-top: auto;
-  border-top: 1px solid #FAF0E6;
+  border-top: 1px solid var(--border);
   padding-top: 0.75rem;
 }
 
@@ -198,14 +198,14 @@
   font-family: 'Inter', sans-serif;
   font-size: 0.95rem;
   font-weight: 600;
-  color: #1C1410;
+  color: var(--gold);
 }
 
 .orig {
   font-family: 'Inter', sans-serif;
   font-size: 0.75rem;
   text-decoration: line-through;
-  color: #A3968A;
+  color: var(--text-secondary);
 }
 
 .addBtn {
@@ -213,8 +213,8 @@
   height: 1.85rem;
   border-radius: 4px;
   background-color: transparent;
-  border: 1px solid var(--accent);
-  color: var(--accent);
+  border: 1px solid var(--gold);
+  color: var(--gold);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -223,8 +223,8 @@
 }
 
 .addBtn:hover:not(:disabled) {
-  background-color: var(--accent);
-  color: #FAF8F5;
+  background-color: var(--gold);
+  color: var(--btn-primary-fg);
   transform: scale(1.05);
 }
 
@@ -272,14 +272,14 @@
   width: 1.85rem;
   height: 1.85rem;
   border-radius: 50%;
-  background-color: rgba(250, 248, 245, 0.9);
+  background-color: var(--surface);
   backdrop-filter: blur(4px);
-  border: 1px solid #EAE5DF;
+  border: 1px solid var(--border);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: #8C7B6E;
+  color: var(--text-secondary);
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   box-shadow: 0 2px 8px rgba(28, 20, 16, 0.08);
   opacity: 0;
@@ -301,9 +301,9 @@
 }
 
 .carouselArrow:hover {
-  background-color: #FAF8F5;
-  color: var(--accent);
-  border-color: var(--accent);
+  background-color: var(--bg);
+  color: var(--gold);
+  border-color: var(--gold);
   transform: translateY(-50%) scale(1.08);
 }
 
@@ -315,7 +315,7 @@
   display: flex;
   gap: 0.3rem;
   z-index: 12;
-  background-color: rgba(250, 248, 245, 0.7);
+  background-color: var(--surface);
   padding: 0.25rem 0.4rem;
   border-radius: 100px;
   backdrop-filter: blur(4px);
@@ -325,7 +325,7 @@
   width: 4px;
   height: 4px;
   border-radius: 50%;
-  background-color: #D2C6BB;
+  background-color: var(--border);
   border: none;
   padding: 0;
   cursor: pointer;
@@ -333,7 +333,7 @@
 }
 
 .carouselDotActive {
-  background-color: var(--accent);
+  background-color: var(--gold);
   transform: scale(1.25);
 }
 
@@ -346,4 +346,3 @@
     height: 2rem;
   }
 }
-

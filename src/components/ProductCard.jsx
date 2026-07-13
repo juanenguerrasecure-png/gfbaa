@@ -19,7 +19,7 @@ const BADGE = {
   new: { label: 'New', cls: 'badgeNew' },
 };
 
-const CAT_BG = { bags: ['#F0E8DF', '#E8DDD3'], jewelry: ['#F3EEE8', '#EDE6DC'] };
+const CAT_BG = { bags: ['var(--bg)', 'var(--surface)'], jewelry: ['var(--bg)', 'var(--surface)'] };
 
 
 function getMessengerHref(baseUrl) {
@@ -36,7 +36,7 @@ function getMessengerHref(baseUrl) {
 async function copyInquiryText(item) {
   try {
     await navigator.clipboard.writeText(buildInquiryText(item));
-  } catch (_error) {
+  } catch {
     // Clipboard may be blocked by the browser. The chat/share link should still open.
   }
 }

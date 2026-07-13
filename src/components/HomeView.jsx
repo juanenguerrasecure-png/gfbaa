@@ -3,7 +3,7 @@ import { Hero } from './Hero';
 import { useStore } from '../context/StoreContext';
 import { useCurrency, formatProductPrice } from '../hooks/useCurrency';
 import { useWishlist } from '../hooks/useWishlist';
-import { Sparkles, ShoppingBag, Heart, ArrowRight, Mail } from 'lucide-react';
+import { Sparkles, ShoppingBag, Heart, ArrowRight, Mail, ShieldCheck, Award, Search, Compass } from 'lucide-react';
 import { AskMeBanner } from './AskMeBanner';
 
 export function HomeView({ onViewChange, onAddToCart, showToast, onOpenAskMe }) {
@@ -76,17 +76,17 @@ export function HomeView({ onViewChange, onAddToCart, showToast, onOpenAskMe }) 
   };
 
   return (
-    <div className="bg-[#FAF8F5] min-h-screen pb-20" id="home_view_container">
+    <div className="bg-[var(--bg)] text-[var(--text-primary)] min-h-screen pb-20 transition-colors duration-500" id="home_view_container">
       {/* Shortened, Seasonal Hero Header */}
       <Hero slim={true} />
 
       {/* Main Exploration Tiles */}
       <div className="max-w-7xl mx-auto px-6 py-12">
         <div className="text-center mb-10">
-          <h2 className="font-display text-2xl md:text-3xl font-light text-stone-900 tracking-tight">
+          <h2 className="font-display text-2xl md:text-3xl font-light text-[var(--text-primary)] tracking-tight">
             Explore the Curation
           </h2>
-          <p className="text-stone-500 text-xs font-sans mt-2 tracking-wide uppercase">
+          <p className="text-[var(--text-secondary)] text-xs font-sans mt-2 tracking-wide uppercase">
             Sourced with refinement, preserved for posterity
           </p>
         </div>
@@ -191,20 +191,20 @@ export function HomeView({ onViewChange, onAddToCart, showToast, onOpenAskMe }) 
 
         {/* Optional: "New Arrivals" strip */}
         {newArrivals.length > 0 && (
-          <div className="mt-16 border-t border-stone-200/60 pt-16" id="home_new_arrivals_strip">
+          <div className="mt-16 border-t border-[var(--border)]/60 pt-16" id="home_new_arrivals_strip">
             <div className="flex justify-between items-end mb-8">
               <div>
-                <h2 className="font-display text-xl md:text-2xl font-light text-stone-950 flex items-center gap-2">
-                  <Sparkles size={16} className="text-accent" />
+                <h2 className="font-display text-xl md:text-2xl font-light text-[var(--text-primary)] flex items-center gap-2">
+                  <Sparkles size={16} className="text-[var(--accent)]" />
                   New Acquisitions
                 </h2>
-                <p className="text-stone-500 text-xs font-sans mt-1">
+                <p className="text-[var(--text-secondary)] text-xs font-sans mt-1">
                   The latest arrivals in our active luxury vault
                 </p>
               </div>
               <button 
                 onClick={() => onViewChange('store')}
-                className="text-stone-800 hover:text-accent font-sans text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5 cursor-pointer"
+                className="text-[var(--text-primary)] hover:text-[var(--accent)] font-sans text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5 cursor-pointer transition-colors"
               >
                 <span>View Full Store</span>
                 <ArrowRight size={12} />
@@ -227,10 +227,10 @@ export function HomeView({ onViewChange, onAddToCart, showToast, onOpenAskMe }) 
                   <div 
                     key={item.id}
                     onClick={() => handleProductClick(item)}
-                    className="group rounded-lg border border-stone-200/60 overflow-hidden shadow-sm hover:shadow-md flex flex-col bg-white transition-all cursor-pointer"
+                    className="group rounded-lg border border-[var(--border)]/60 overflow-hidden shadow-sm hover:shadow-md flex flex-col bg-[var(--surface)] transition-all cursor-pointer"
                     id={`home_arrival_${item.id}`}
                   >
-                    <div className="aspect-square bg-stone-50 overflow-hidden relative flex items-center justify-center">
+                    <div className="aspect-square bg-[var(--bg)] overflow-hidden relative flex items-center justify-center">
                       {photos.length > 0 ? (
                         <img 
                           src={photos[0]} 
@@ -239,7 +239,7 @@ export function HomeView({ onViewChange, onAddToCart, showToast, onOpenAskMe }) 
                           loading="lazy"
                         />
                       ) : (
-                        <div className="text-stone-300 uppercase font-bold text-xs tracking-wider">Good Finds</div>
+                        <div className="text-[var(--text-secondary)] uppercase font-bold text-xs tracking-wider">Good Finds</div>
                       )}
 
                       {item.condition && (
@@ -251,7 +251,7 @@ export function HomeView({ onViewChange, onAddToCart, showToast, onOpenAskMe }) 
                       <button
                         type="button"
                         onClick={(e) => { e.stopPropagation(); toggleWishlist(item.id); }}
-                        className={`absolute top-2.5 right-2.5 w-7 h-7 rounded-full bg-white/95 hover:bg-white border flex items-center justify-center shadow-sm transition-all text-stone-400 hover:text-accent`}
+                        className={`absolute top-2.5 right-2.5 w-7 h-7 rounded-full bg-[var(--surface)]/95 hover:bg-[var(--surface)] border border-[var(--border)] flex items-center justify-center shadow-sm transition-all text-[var(--text-secondary)] hover:text-[var(--accent)]`}
                       >
                         <Heart size={12} fill={isLiked ? 'var(--accent)' : 'none'} stroke={isLiked ? 'var(--accent)' : 'currentColor'} />
                       </button>
@@ -259,23 +259,23 @@ export function HomeView({ onViewChange, onAddToCart, showToast, onOpenAskMe }) 
 
                     <div className="p-3.5 flex-1 flex flex-col justify-between">
                       <div>
-                        <div className="text-[9px] font-semibold text-[#8C7B6E] tracking-widest uppercase mb-0.5">
+                        <div className="text-[9px] font-semibold text-[var(--text-secondary)] tracking-widest uppercase mb-0.5">
                           {item.brand || 'Luxury Piece'}
                         </div>
-                        <h3 className="font-display text-xs font-medium text-stone-900 group-hover:text-accent transition-colors duration-200 line-clamp-1 mb-1">
+                        <h3 className="font-display text-xs font-medium text-[var(--text-primary)] group-hover:text-[var(--accent)] transition-colors duration-200 line-clamp-1 mb-1">
                           {item.name}
                         </h3>
                       </div>
                       
-                      <div className="flex items-center justify-between pt-2 border-t border-stone-100 mt-2">
-                        <span className="text-xs font-semibold text-stone-950 font-serif">
+                      <div className="flex items-center justify-between pt-2 border-t border-[var(--border)]/40 mt-2">
+                        <span className="text-xs font-semibold text-[var(--text-primary)] font-serif">
                           {formatProductPrice(item, currency, exchangeRate)}
                         </span>
                         
                         <button
                           type="button"
                           onClick={(e) => { e.stopPropagation(); onAddToCart(item); }}
-                          className="w-7 h-7 rounded-full border border-stone-200 hover:border-accent hover:bg-accent hover:text-white flex items-center justify-center text-stone-500 transition-all cursor-pointer"
+                          className="w-7 h-7 rounded-full border border-[var(--border)] hover:border-[var(--accent)] hover:bg-[var(--accent)] hover:text-[var(--btn-primary-fg)] flex items-center justify-center text-[var(--text-secondary)] transition-all cursor-pointer"
                           title="Add to bag"
                         >
                           <ShoppingBag size={11} />
@@ -292,15 +292,69 @@ export function HomeView({ onViewChange, onAddToCart, showToast, onOpenAskMe }) 
         {/* Personal Shopper Wishlist Banner */}
         <AskMeBanner onOpen={onOpenAskMe} />
 
+        {/* The Good Finds Luxury Promise Section */}
+        <div className="mt-24 border-t border-[var(--border)]/60 pt-16" id="home_luxury_promise_section">
+          <div className="text-center mb-12">
+            <h2 className="font-display text-2xl md:text-3xl font-light text-[var(--text-primary)] tracking-tight">
+              The Good Finds Luxury Promise
+            </h2>
+            <p className="text-[var(--text-secondary)] text-xs font-sans mt-2 tracking-wide uppercase max-w-lg mx-auto leading-relaxed">
+              Every vintage handbag and 18K fine jewelry piece is selected with uncompromising standards of authenticity, beauty, and craftsmanship.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="bg-[var(--surface)] p-6 rounded-xl border border-[var(--border)]/50 shadow-3xs hover:shadow-2xs transition-all duration-300 space-y-3">
+              <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-[var(--bg)] text-[var(--gold)] border border-[var(--border)]/30 shadow-2xs">
+                <Award size={18} strokeWidth={2} />
+              </div>
+              <h3 className="font-display text-sm font-semibold text-[var(--text-primary)] tracking-tight">18K Gold Verification</h3>
+              <p className="text-[var(--text-secondary)] text-xs font-sans leading-relaxed">
+                All jewelry listed is tested using precision acid-density methods and inspected for authentic vintage hallmarks or official stamps.
+              </p>
+            </div>
+
+            <div className="bg-[var(--surface)] p-6 rounded-xl border border-[var(--border)]/50 shadow-3xs hover:shadow-2xs transition-all duration-300 space-y-3">
+              <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-[var(--bg)] text-[var(--gold)] border border-[var(--border)]/30 shadow-2xs">
+                <ShieldCheck size={18} strokeWidth={2} />
+              </div>
+              <h3 className="font-display text-sm font-semibold text-[var(--text-primary)] tracking-tight">Authenticity Guarantee</h3>
+              <p className="text-[var(--text-secondary)] text-xs font-sans leading-relaxed">
+                Every bag and accessory undergoes a meticulous multi-point inspection of stitching, date codes, hardware engraving, and weight.
+              </p>
+            </div>
+
+            <div className="bg-[var(--surface)] p-6 rounded-xl border border-[var(--border)]/50 shadow-3xs hover:shadow-2xs transition-all duration-300 space-y-3">
+              <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-[var(--bg)] text-[var(--gold)] border border-[var(--border)]/30 shadow-2xs">
+                <Search size={18} strokeWidth={2} />
+              </div>
+              <h3 className="font-display text-sm font-semibold text-[var(--text-primary)] tracking-tight">Honest Condition Grading</h3>
+              <p className="text-[var(--text-secondary)] text-xs font-sans leading-relaxed">
+                We assign strict and conservative condition reports. High-definition close-up photography ensures full visual transparency.
+              </p>
+            </div>
+
+            <div className="bg-[var(--surface)] p-6 rounded-xl border border-[var(--border)]/50 shadow-3xs hover:shadow-2xs transition-all duration-300 space-y-3">
+              <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-[var(--bg)] text-[var(--gold)] border border-[var(--border)]/30 shadow-2xs">
+                <Compass size={18} strokeWidth={2} />
+              </div>
+              <h3 className="font-display text-sm font-semibold text-[var(--text-primary)] tracking-tight">Sourcing Concierge</h3>
+              <p className="text-[var(--text-secondary)] text-xs font-sans leading-relaxed">
+                Searching for a rare vintage grail or a specific high-end 18K bracelet? Submit your request and our private shopper will find it.
+              </p>
+            </div>
+          </div>
+        </div>
+
         {/* Elegant Newsletter Section */}
-        <div className="mt-24 border-t border-stone-200/60 pt-16 pb-8 max-w-3xl mx-auto text-center" id="home_newsletter_section">
-          <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-stone-100 text-[#8C7B6E] mb-4">
+        <div className="mt-24 border-t border-[var(--border)]/60 pt-16 pb-8 max-w-3xl mx-auto text-center" id="home_newsletter_section">
+          <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-[var(--surface)] text-[var(--text-secondary)] mb-4 border border-[var(--border)]/40">
             <Mail size={18} strokeWidth={1.5} />
           </div>
-          <h3 className="font-display text-xl md:text-2xl font-light text-stone-900 tracking-tight">
+          <h3 className="font-display text-xl md:text-2xl font-light text-[var(--text-primary)] tracking-tight">
             Stay in the Loop
           </h3>
-          <p className="text-stone-500 text-xs md:text-sm mt-2 max-w-md mx-auto leading-relaxed">
+          <p className="text-[var(--text-secondary)] text-xs md:text-sm mt-2 max-w-md mx-auto leading-relaxed">
             Subscribe to receive priority notifications on pristine seasonal acquisitions, private sales, and newly cataloged curations.
           </p>
 
@@ -310,19 +364,19 @@ export function HomeView({ onViewChange, onAddToCart, showToast, onOpenAskMe }) 
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Enter your email address"
-              className="flex-1 px-4 py-2.5 rounded border border-stone-200 text-sm bg-white text-stone-800 placeholder-stone-400 focus:outline-none focus:border-accent font-sans transition-colors"
+              className="flex-1 px-4 py-2.5 rounded border border-[var(--border)] text-sm bg-[var(--surface)] text-[var(--text-primary)] placeholder-stone-400 focus:outline-none focus:border-[var(--accent)] font-sans transition-colors"
               required
               disabled={submittingNewsletter}
             />
             <button
               type="submit"
               disabled={submittingNewsletter}
-              className="px-6 py-2.5 bg-stone-900 hover:bg-stone-800 text-white text-xs font-semibold tracking-wider uppercase rounded transition-all duration-200 cursor-pointer disabled:opacity-50 inline-flex items-center justify-center gap-2"
+              className="px-6 py-2.5 bg-[var(--btn-primary-bg)] hover:opacity-90 text-[var(--btn-primary-fg)] text-xs font-semibold tracking-wider uppercase rounded transition-all duration-200 cursor-pointer disabled:opacity-50 inline-flex items-center justify-center gap-2"
             >
               {submittingNewsletter ? 'Subscribing...' : 'Subscribe'}
             </button>
           </form>
-          <p className="text-[10px] text-stone-400 font-sans mt-3">
+          <p className="text-[10px] text-[var(--text-secondary)]/80 font-sans mt-3">
             Unsubscribe anytime. We respect your inbox privacy.
           </p>
         </div>

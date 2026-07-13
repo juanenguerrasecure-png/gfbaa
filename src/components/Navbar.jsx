@@ -1,5 +1,6 @@
-import { ShoppingBag, Settings, ChevronLeft, Heart, MessageSquare } from 'lucide-react';
+import { ShoppingBag, ChevronLeft, Heart, MessageSquare, ClipboardCheck, Lock } from 'lucide-react';
 import { PriceToggle } from './PriceToggle';
+import ThemeToggle from './ThemeToggle';
 import styles from './Navbar.module.css';
 
 export function Navbar({ cartCount, onCartClick, onAdminClick, wishlistCount = 0, onWishlistClick, title, onBack, currentView, onViewChange, onMessageMeClick, onTrackRequestClick }) {
@@ -57,28 +58,29 @@ export function Navbar({ cartCount, onCartClick, onAdminClick, wishlistCount = 0
 
         <div className={styles.navRight}>
           <button 
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[#E5DFD8] hover:border-[#C9A84C] text-stone-600 hover:text-stone-900 bg-white/80 hover:bg-white transition-all text-xs font-semibold cursor-pointer shadow-3xs active:scale-95"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[var(--border)] hover:border-[var(--gold)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] bg-[var(--surface)]/80 hover:bg-[var(--surface)] transition-all text-xs font-semibold cursor-pointer shadow-3xs active:scale-95"
             onClick={onTrackRequestClick}
             id="nav_track_request_btn"
             title="Track Request"
           >
-            <Settings size={13} className="text-[#C9A84C]" strokeWidth={2.5} />
+            <ClipboardCheck size={13} className="text-[var(--gold)]" strokeWidth={2.5} />
             <span className="hidden sm:inline font-sans tracking-wide uppercase text-[10px]">Track Request</span>
           </button>
           <button 
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[#E5DFD8] hover:border-[#C9A84C] text-stone-600 hover:text-stone-900 bg-white/80 hover:bg-white transition-all text-xs font-semibold cursor-pointer shadow-3xs active:scale-95"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[var(--border)] hover:border-[var(--gold)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] bg-[var(--surface)]/80 hover:bg-[var(--surface)] transition-all text-xs font-semibold cursor-pointer shadow-3xs active:scale-95"
             onClick={onMessageMeClick}
             id="nav_message_me_btn"
             title="Message Me"
           >
-            <MessageSquare size={13} className="text-[#C9A84C]" strokeWidth={2.5} />
+            <MessageSquare size={13} className="text-[var(--gold)]" strokeWidth={2.5} />
             <span className="hidden sm:inline font-sans tracking-wide uppercase text-[10px]">Message Me</span>
           </button>
+          <ThemeToggle />
           <div className={styles.priceToggleWrap}>
             <PriceToggle />
           </div>
           <button className={styles.iconBtn} onClick={onAdminClick} aria-label="Admin panel">
-            <Settings size={20} strokeWidth={1.5} />
+            <Lock size={20} strokeWidth={1.5} />
           </button>
           <button className={styles.wishlistBtn} onClick={onWishlistClick} aria-label={`Wishlist, ${wishlistCount} items`}>
             <Heart size={20} strokeWidth={1.5} />

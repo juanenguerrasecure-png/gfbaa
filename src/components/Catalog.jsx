@@ -1,4 +1,5 @@
 import { ProductCard } from './ProductCard';
+import SectionLabel from './SectionLabel';
 import styles from './Catalog.module.css';
 
 const TITLES = {
@@ -19,11 +20,14 @@ export function Catalog({ items, activeFilter, onAddToCart, onClearFilter, sort,
   return (
     <main className={styles.catalog}>
       <div className={styles.header}>
-        <div className="flex flex-col sm:flex-row sm:items-baseline gap-2">
-          <h2 className={styles.sectionTitle}>{displayTitle}</h2>
-          <span className={styles.count}>
-            {items.length} piece{items.length !== 1 ? 's' : ''}
-          </span>
+        <div className="flex flex-col gap-0.5 items-start">
+          <SectionLabel>The Collection</SectionLabel>
+          <div className="flex flex-col sm:flex-row sm:items-baseline gap-2">
+            <h2 className={styles.sectionTitle}>{displayTitle}</h2>
+            <span className={styles.count}>
+              {items.length} piece{items.length !== 1 ? 's' : ''}
+            </span>
+          </div>
         </div>
 
         {onSortChange && (

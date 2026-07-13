@@ -3,6 +3,7 @@ import { useStore } from '../context/StoreContext';
 import { X, Trash2, ShoppingBag, Send, CheckCircle, MapPin, Mail, User } from 'lucide-react';
 import { PaymentInfoModal } from './PaymentInfoModal';
 import { formatProductPrice, useCurrency } from '../hooks/useCurrency';
+import SectionLabel from './SectionLabel';
 import styles from './CartModal.module.css';
 
 export function CartModal({ isOpen, onClose, cart, onRemove, onClear, showToast }) {
@@ -92,7 +93,7 @@ export function CartModal({ isOpen, onClose, cart, onRemove, onClear, showToast 
       setSuccessRequest(requestObj);
       onClear();
       showToast('Request submitted successfully');
-    } catch (_err) {
+    } catch {
       showToast('Failed to submit request. Please try again.');
     } finally {
       setIsSubmitting(false);
@@ -112,7 +113,13 @@ export function CartModal({ isOpen, onClose, cart, onRemove, onClear, showToast 
     <div className={styles.overlay} onClick={onClose}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         <div className={styles.header}>
-          <div className={styles.titleWrap}><ShoppingBag size={20} className={styles.bagIcon} /><h2 className={styles.title}>Your Shopping Bag</h2></div>
+          <div className={styles.titleWrap}>
+            <ShoppingBag size={20} className={styles.bagIcon} />
+            <div className="flex flex-col items-start gap-1">
+              <SectionLabel>Your Cart</SectionLabel>
+              <h2 className={styles.title}>Your Shopping Bag</h2>
+            </div>
+          </div>
           <button className={styles.closeBtn} onClick={onClose} aria-label="Close modal"><X size={20} /></button>
         </div>
 

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Sparkles, Send, CheckCircle2, MessageSquare, AlertCircle, Upload, Image as ImageIcon } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { X, Sparkles, Send, CheckCircle2, MessageSquare, AlertCircle, Upload } from 'lucide-react';
+import { motion } from 'motion/react';
 import { useStore } from '../context/StoreContext';
 
 export function AskMeModal({ isOpen, onClose }) {

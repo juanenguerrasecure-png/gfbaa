@@ -10,7 +10,7 @@ function readLocalUsers() {
   try {
     const parsed = JSON.parse(saved);
     return Array.isArray(parsed) ? parsed : [];
-  } catch (_error) {
+  } catch {
     return [];
   }
 }
@@ -20,7 +20,7 @@ function readCurrentUser() {
   if (!saved) return null;
   try {
     return JSON.parse(saved);
-  } catch (_error) {
+  } catch {
     return null;
   }
 }

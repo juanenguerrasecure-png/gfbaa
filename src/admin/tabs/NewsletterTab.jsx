@@ -24,7 +24,7 @@ export function NewsletterTab() {
       } else {
         setError(result.error || 'Failed to retrieve subscribers.');
       }
-    } catch (err) {
+    } catch {
       setError('Unable to load subscribers. Connect error.');
     } finally {
       setLoading(false);
@@ -52,7 +52,7 @@ export function NewsletterTab() {
       } else {
         alert(result.error || 'Failed to delete subscriber.');
       }
-    } catch (err) {
+    } catch {
       alert('Delete failed.');
     }
   };

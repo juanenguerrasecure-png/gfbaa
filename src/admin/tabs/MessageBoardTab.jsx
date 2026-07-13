@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useStore } from '../../context/StoreContext';
-import { MessageSquare, Calendar, Mail, Trash2, CheckSquare, Sparkles, Send, Eye, RefreshCw } from 'lucide-react';
+import { MessageSquare, Calendar, Mail, Trash2, CheckSquare, Sparkles, RefreshCw } from 'lucide-react';
 
 export function MessageBoardTab() {
   const {

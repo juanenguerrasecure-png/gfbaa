@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useCallback } from 'react';
 import { useStore } from '../../context/StoreContext';
 import { ShoppingCart, Search, DollarSign, Calendar, User, X, Check } from 'lucide-react';
 
@@ -33,12 +33,12 @@ export function GlobalManualSaleModal({ isOpen, onClose, initialItemId = '', ini
   const selectedBatch = useMemo(() => batches.find(b => b.id === selectedBatchId), [batches, selectedBatchId]);
   const selectedProduct = useMemo(() => selectedBatch ? products.find(p => p.id === selectedBatch.productId) : null, [products, selectedBatch]);
 
-  const applyBatchSelection = (batchId) => {
+  const applyBatchSelection = useCallback((batchId) => {
     setSelectedBatchId(batchId); setError(''); setSuccess(''); setSyncWarning(false);
     if (!batchId) { setPriceInput(''); return; }
     const batch = batches.find(b => b.id === batchId);
     if (batch) { const linkedCatalog = catalogItems.find(c => c.batchId === batchId); setPriceInput(linkedCatalog && linkedCatalog.price ? String(linkedCatalog.price) : ''); setQty(1); }
-  };
+  }, [batches, catalogItems]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -48,7 +48,7 @@ export function GlobalManualSaleModal({ isOpen, onClose, initialItemId = '', ini
       const matchingBatch = batches.find(b => String(b.id) === String(initialItemId) || String(b.productId) === String(initialItemId));
       if (matchingBatch) applyBatchSelection(matchingBatch.id);
     }
-  }, [isOpen, initialItemId, initialItemName, batches]);
+  }, [isOpen, initialItemId, initialItemName, batches, applyBatchSelection]);
 
   const handleQtyChange = (val) => {
     if (!selectedBatch) return;

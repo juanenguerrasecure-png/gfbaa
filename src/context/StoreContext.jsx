@@ -66,7 +66,7 @@ function normalizeSeason(value) {
 
 export function StoreProvider({ children }) {
   const readLocalJson = (key, fallback) => {
-    try { const saved = localStorage.getItem(key); return saved ? JSON.parse(saved) : fallback; } catch (_error) { return fallback; }
+    try { const saved = localStorage.getItem(key); return saved ? JSON.parse(saved) : fallback; } catch { return fallback; }
   };
   const readLocalNumber = (key, fallback) => {
     const saved = localStorage.getItem(key);

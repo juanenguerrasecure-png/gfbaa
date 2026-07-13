@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import { X, ChevronLeft, ChevronRight, Sparkles, Tag } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ProductPlaceholder } from './ProductPlaceholder';
 
@@ -56,12 +56,12 @@ export function ProductImagePreviewModal({ isOpen, onClose, item }) {
   if (!isOpen || !item) return null;
 
   const handlePrev = (e) => {
-    e.stopPropagation();
+    if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
     setActiveIndex((prev) => (prev === 0 ? photos.length - 1 : prev - 1));
   };
 
   const handleNext = (e) => {
-    e.stopPropagation();
+    if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
     setActiveIndex((prev) => (prev === photos.length - 1 ? 0 : prev + 1));
   };
 
@@ -107,13 +107,35 @@ export function ProductImagePreviewModal({ isOpen, onClose, item }) {
           {/* Body */}
           <div className="flex-1 overflow-y-auto p-4 flex flex-col items-center justify-center bg-stone-50 min-h-[350px] relative">
             {photos.length > 0 ? (
-              <div className="relative w-full flex-1 flex items-center justify-center max-h-[55vh]">
-                <img
-                  src={activePhoto.url}
-                  alt={`${item.brand || ''} ${item.name || ''} - View ${activeIndex + 1}`}
-                  className="max-h-[50vh] max-w-full object-contain rounded-lg shadow-md transition-all duration-300"
-                  referrerPolicy="no-referrer"
-                />
+              <div className="relative w-full flex-1 flex items-center justify-center max-h-[55vh] overflow-hidden">
+                <AnimatePresence mode="popLayout">
+                  <motion.div
+                    key={activeIndex}
+                    initial={{ opacity: 0, x: 30 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -30 }}
+                    transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                    drag="x"
+                    dragConstraints={{ left: 0, right: 0 }}
+                    dragElastic={0.6}
+                    onDragEnd={(event, info) => {
+                      const swipeThreshold = 50;
+                      if (info.offset.x < -swipeThreshold) {
+                        handleNext(event);
+                      } else if (info.offset.x > swipeThreshold) {
+                        handlePrev(event);
+                      }
+                    }}
+                    className="w-full h-full flex items-center justify-center cursor-grab active:cursor-grabbing select-none absolute inset-0"
+                  >
+                    <img
+                      src={activePhoto.url}
+                      alt={`${item.brand || ''} ${item.name || ''} - View ${activeIndex + 1}`}
+                      className="max-h-[50vh] max-w-full object-contain rounded-lg shadow-md transition-all duration-300 pointer-events-none"
+                      referrerPolicy="no-referrer"
+                    />
+                  </motion.div>
+                </AnimatePresence>
 
                 {/* Left/Right Buttons */}
                 {photos.length > 1 && (
@@ -121,7 +143,7 @@ export function ProductImagePreviewModal({ isOpen, onClose, item }) {
                     <button
                       type="button"
                       onClick={handlePrev}
-                      className="absolute left-2 p-2 rounded-full bg-white/90 border border-stone-200 hover:bg-white text-stone-700 hover:text-stone-950 shadow-md transition-all shrink-0 cursor-pointer"
+                      className="absolute left-2 p-2 rounded-full bg-white/90 border border-stone-200 hover:bg-white text-stone-700 hover:text-stone-950 shadow-md transition-all shrink-0 cursor-pointer z-10"
                       aria-label="Previous photo"
                     >
                       <ChevronLeft size={18} />
@@ -129,7 +151,7 @@ export function ProductImagePreviewModal({ isOpen, onClose, item }) {
                     <button
                       type="button"
                       onClick={handleNext}
-                      className="absolute right-2 p-2 rounded-full bg-white/90 border border-stone-200 hover:bg-white text-stone-700 hover:text-stone-950 shadow-md transition-all shrink-0 cursor-pointer"
+                      className="absolute right-2 p-2 rounded-full bg-white/90 border border-stone-200 hover:bg-white text-stone-700 hover:text-stone-950 shadow-md transition-all shrink-0 cursor-pointer z-10"
                       aria-label="Next photo"
                     >
                       <ChevronRight size={18} />

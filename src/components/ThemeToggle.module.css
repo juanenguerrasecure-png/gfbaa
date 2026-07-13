@@ -1,0 +1,21 @@
+.toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-secondary);
+  padding: 5px 10px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.toggle:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+.icon { font-size: 13px; }
+.label { font-size: 10px; }

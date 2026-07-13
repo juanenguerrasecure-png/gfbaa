@@ -8,7 +8,7 @@ function readStoredWishlist() {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     return stored ? JSON.parse(stored) : [];
-  } catch (_error) {
+  } catch {
     return [];
   }
 }
@@ -17,7 +17,7 @@ function persistWishlist(list) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
     window.dispatchEvent(new CustomEvent(EVENT_NAME, { detail: list }));
-  } catch (_error) {
+  } catch {
     window.dispatchEvent(new CustomEvent(EVENT_NAME, { detail: list }));
   }
 }

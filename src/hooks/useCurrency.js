@@ -9,7 +9,7 @@ function readStoredCurrency() {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     return stored === 'USD' || stored === 'PHP' ? stored : DEFAULT_CURRENCY;
-  } catch (_error) {
+  } catch {
     return DEFAULT_CURRENCY;
   }
 }
@@ -23,7 +23,7 @@ function persistCurrency(value) {
   try {
     localStorage.setItem(STORAGE_KEY, next);
     window.dispatchEvent(new CustomEvent(EVENT_NAME, { detail: next }));
-  } catch (_error) {
+  } catch {
     window.dispatchEvent(new CustomEvent(EVENT_NAME, { detail: next }));
   }
   return next;

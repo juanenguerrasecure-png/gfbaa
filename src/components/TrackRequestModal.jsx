@@ -1,5 +1,5 @@
-import { useState, useMemo } from 'react';
-import { X, Search, FileText, CheckCircle2, Clock, CreditCard, Truck, AlertCircle, Upload, QrCode, Clipboard, Check, ExternalLink, XCircle } from 'lucide-react';
+import { useState } from 'react';
+import { X, Search, FileText, CheckCircle2, Clock, CreditCard, Truck, AlertCircle, Upload, QrCode, Clipboard, Check, XCircle } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import { formatProductPrice, useCurrency } from '../hooks/useCurrency';
 
