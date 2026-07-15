@@ -130,7 +130,7 @@ function ArchivePieceCard({ piece }) {
               </div>
 
               {/* Photo Counter Label */}
-              <div className="absolute top-3 left-3 bg-stone-900/75 px-2 py-0.5 rounded text-[9px] font-mono font-medium text-stone-100 tracking-wide backdrop-blur-sm z-10">
+              <div className="absolute top-3 left-3 bg-stone-900/80 px-2.5 py-1 rounded text-[9px] font-sans font-medium text-stone-100 tracking-wider backdrop-blur-sm z-10">
                 {activeIdx + 1} / {photosList.length}
               </div>
             </>
@@ -221,7 +221,7 @@ export function ArchiveView() {
         {pieces.length === 0 ? (
           <div className="max-w-md mx-auto text-center py-20 px-6 border border-dashed border-[var(--border)] rounded-2xl bg-[var(--surface)] shadow-xs" id="archive_empty_state">
             <span className="text-[var(--text-secondary)]/30 text-3xl block mb-3">✦</span>
-            <p className="text-[var(--text-secondary)]/80 text-[10px] font-mono uppercase tracking-widest mb-2">Archive Queue Empty</p>
+            <p className="text-[var(--text-secondary)]/80 text-[9px] font-sans font-semibold uppercase tracking-[0.2em] mb-2">Archive Queue Empty</p>
             <p className="font-serif text-base text-[var(--text-primary)] italic">"No prior items archived."</p>
             <p className="text-[var(--text-secondary)] text-xs mt-3 leading-relaxed max-w-xs mx-auto">
               Please sign into the admin portal to move items into the past collections repository.

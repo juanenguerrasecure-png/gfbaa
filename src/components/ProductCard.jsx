@@ -243,7 +243,7 @@ export function ProductCard({ item, onAddToCart }) {
                 <button
                   type="button"
                   onClick={(e) => { e.stopPropagation(); setIsEditing(true); }}
-                  className="px-2.5 py-1.5 bg-stone-900 hover:bg-stone-850 text-[#C9A84C] text-[10px] font-sans font-bold uppercase tracking-wider rounded transition-colors border border-stone-800 cursor-pointer"
+                  className="px-2.5 py-1.5 bg-stone-900 hover:bg-stone-850 text-[var(--gold)] text-[10px] font-sans font-bold uppercase tracking-wider rounded transition-colors border border-stone-800 cursor-pointer"
                   title="Edit listing details (Admin Only)"
                 >
                   Edit

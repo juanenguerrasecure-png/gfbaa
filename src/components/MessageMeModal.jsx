@@ -61,11 +61,11 @@ export function MessageMeModal({ isOpen, onClose }) {
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.95, opacity: 0, y: 20 }}
             transition={{ type: 'spring', damping: 25, stiffness: 220 }}
-            className="relative w-full max-w-lg bg-[#FAF8F5] rounded-2xl shadow-2xl overflow-hidden z-20 border border-stone-200 select-text"
+            className="relative w-full max-w-lg bg-[var(--bg)] rounded-2xl shadow-2xl overflow-hidden z-20 border border-stone-200 select-text"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header banner decoration */}
-            <div className="h-2 bg-[#C9A84C] w-full" />
+            <div className="h-2 bg-[var(--gold)] w-full" />
 
             {/* Close Button */}
             <button
@@ -82,7 +82,7 @@ export function MessageMeModal({ isOpen, onClose }) {
                 <form onSubmit={handleSubmit} className="space-y-5">
                   <div className="text-center space-y-1.5 mb-2">
                     <div className="inline-flex items-center gap-1.5 justify-center mb-1">
-                      <Sparkles size={13} className="text-[#C9A84C]" />
+                      <Sparkles size={13} className="text-[var(--gold)]" />
                       <span className="text-[10px] font-sans font-bold uppercase tracking-widest text-[#8C7B6E]">
                         Get In Touch
                       </span>
@@ -112,7 +112,7 @@ export function MessageMeModal({ isOpen, onClose }) {
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         placeholder="e.g. Eleanor Vance"
-                        className="w-full px-4 py-2.5 rounded-xl border border-stone-200 focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] bg-white text-stone-800 text-sm font-sans placeholder-stone-400 transition-all outline-none"
+                        className="w-full px-4 py-2.5 rounded-xl border border-stone-200 focus:border-[var(--gold)] focus:ring-1 focus:ring-[var(--gold)]/20 bg-[var(--surface)] text-stone-800 text-sm font-sans placeholder-stone-400 transition-all outline-none"
                       />
                     </div>
 
@@ -126,7 +126,7 @@ export function MessageMeModal({ isOpen, onClose }) {
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder="e.g. eleanor@example.com"
-                        className="w-full px-4 py-2.5 rounded-xl border border-stone-200 focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] bg-white text-stone-800 text-sm font-sans placeholder-stone-400 transition-all outline-none"
+                        className="w-full px-4 py-2.5 rounded-xl border border-stone-200 focus:border-[var(--gold)] focus:ring-1 focus:ring-[var(--gold)]/20 bg-[var(--surface)] text-stone-800 text-sm font-sans placeholder-stone-400 transition-all outline-none"
                       />
                     </div>
 
@@ -140,7 +140,7 @@ export function MessageMeModal({ isOpen, onClose }) {
                         value={text}
                         onChange={(e) => setText(e.target.value)}
                         placeholder="Detail your request or question here..."
-                        className="w-full px-4 py-2.5 rounded-xl border border-stone-200 focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] bg-white text-stone-800 text-sm font-sans placeholder-stone-400 transition-all outline-none resize-none"
+                        className="w-full px-4 py-2.5 rounded-xl border border-stone-200 focus:border-[var(--gold)] focus:ring-1 focus:ring-[var(--gold)]/20 bg-[var(--surface)] text-stone-800 text-sm font-sans placeholder-stone-400 transition-all outline-none resize-none"
                       />
                     </div>
                   </div>
@@ -148,7 +148,7 @@ export function MessageMeModal({ isOpen, onClose }) {
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full py-3 px-4 rounded-xl bg-stone-900 hover:bg-stone-950 text-[#FAF8F5] text-xs font-semibold uppercase tracking-wider transition-all duration-200 flex items-center justify-center gap-2 shadow-sm hover:shadow active:scale-[0.98] disabled:opacity-50 cursor-pointer"
+                    className="w-full py-3 px-4 rounded-xl bg-stone-900 hover:bg-stone-950 text-[var(--btn-primary-fg)] text-xs font-semibold uppercase tracking-wider transition-all duration-200 flex items-center justify-center gap-2 shadow-sm hover:shadow active:scale-[0.98] disabled:opacity-50 cursor-pointer"
                   >
                     {isSubmitting ? (
                       <span className="h-4 w-4 rounded-full border-2 border-stone-400 border-t-white animate-spin" />
@@ -163,7 +163,7 @@ export function MessageMeModal({ isOpen, onClose }) {
               ) : (
                 <div className="py-8 text-center space-y-4">
                   <div className="flex justify-center">
-                    <CheckCircle2 size={48} className="text-[#C9A84C]" strokeWidth={1.5} />
+                    <CheckCircle2 size={48} className="text-[var(--gold)]" strokeWidth={1.5} />
                   </div>
                   <div className="space-y-2">
                     <h3 className="font-serif font-light text-stone-900 text-2xl tracking-tight">

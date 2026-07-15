@@ -135,17 +135,17 @@ export function InquirySheet() {
                   />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <span className="text-[9px] font-mono font-bold tracking-widest text-accent uppercase block mb-0.5">
+                  <span className="text-[9px] font-sans font-semibold tracking-[0.2em] text-accent uppercase block mb-0.5">
                     {inquiryItem.brand}
                   </span>
                   <h3 className="font-serif text-sm font-medium text-stone-900 truncate mb-1">
                     {inquiryItem.name || inquiryItem.caption}
                   </h3>
                   <div className="flex items-center justify-between">
-                    <span className="font-mono text-xs font-semibold text-stone-600">
+                    <span className="font-sans text-xs font-semibold text-stone-700">
                       {inquiryItem.price && inquiryItem.price > 0 ? `$${Number(inquiryItem.price).toLocaleString()}` : 'Price on request'}
                     </span>
-                    <span className={`text-[9px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                    <span className={`text-[9px] font-sans font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full ${
                       inquiryItem.isPast ? 'bg-amber-50 text-amber-800 border border-amber-200/40' : 'bg-emerald-50 text-emerald-800 border border-emerald-200/40'
                     }`}>
                       {inquiryItem.isPast ? 'Past Collection' : 'Current Selection'}
@@ -160,7 +160,7 @@ export function InquirySheet() {
                 
                 {/* Full Name */}
                 <div>
-                  <label className="block text-[10px] font-mono font-semibold uppercase tracking-wider text-stone-500 mb-1">
+                  <label className="block text-[10px] font-sans font-medium uppercase tracking-[0.15em] text-stone-500 mb-1.5">
                     Your Full Name *
                   </label>
                   <input 
@@ -175,7 +175,7 @@ export function InquirySheet() {
 
                 {/* Contact Email/Phone */}
                 <div>
-                  <label className="block text-[10px] font-mono font-semibold uppercase tracking-wider text-stone-500 mb-1">
+                  <label className="block text-[10px] font-sans font-medium uppercase tracking-[0.15em] text-stone-500 mb-1.5">
                     Email / Contact Handle *
                   </label>
                   <input 
@@ -190,7 +190,7 @@ export function InquirySheet() {
 
                 {/* Delivery Address / Location */}
                 <div>
-                  <label className="block text-[10px] font-mono font-semibold uppercase tracking-wider text-stone-500 mb-1">
+                  <label className="block text-[10px] font-sans font-medium uppercase tracking-[0.15em] text-stone-500 mb-1.5">
                     Registered Delivery Address *
                   </label>
                   <div className="relative">
@@ -208,7 +208,7 @@ export function InquirySheet() {
 
                 {/* Inquiry notes */}
                 <div>
-                  <label className="block text-[10px] font-mono font-semibold uppercase tracking-wider text-stone-500 mb-1">
+                  <label className="block text-[10px] font-sans font-medium uppercase tracking-[0.15em] text-stone-500 mb-1.5">
                     Personalized Notes & Requests
                   </label>
                   <textarea 
@@ -253,7 +253,7 @@ export function InquirySheet() {
                     Inquiry Registered Successfully
                   </h3>
                   <p className="text-xs text-stone-500">
-                    Curation Ticket ID: <span className="font-mono font-bold text-stone-700 bg-stone-100 px-1.5 py-0.5 rounded">{submittedRequest.id}</span>
+                    Curation Ticket ID: <span className="font-sans font-bold tracking-wider text-stone-700 bg-stone-100 px-2 py-0.5 rounded text-[11px]">{submittedRequest.id}</span>
                   </p>
                 </div>
 

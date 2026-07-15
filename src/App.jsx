@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect, useState } from 'react';
 import { Navbar }       from './components/Navbar';
+import { WebsiteVisitBanner } from './components/WebsiteVisitBanner';
 import { ProductGrid }  from './components/ProductGrid';
 import { Toast }        from './components/Toast';
 import { CartModal }    from './components/CartModal';
@@ -110,6 +111,7 @@ export default function App() {
   // Storefront
   return (
     <>
+      <WebsiteVisitBanner />
       <Navbar
         cartCount={cart.length}
         onCartClick={viewCart}

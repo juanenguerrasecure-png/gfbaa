@@ -177,7 +177,7 @@ export function HomeView({ onViewChange, onAddToCart, showToast, onOpenAskMe }) 
 
         {/* Optional: "New Arrivals" strip */}
         {newArrivals.length > 0 && (
-          <div className="mt-16 border-t border-[var(--border)]/60 pt-16" id="home_new_arrivals_strip">
+          <div className="mt-16 border-t border-[var(--border)]/20 pt-16" id="home_new_arrivals_strip">
             <div className="flex justify-between items-end mb-8">
               <div>
                 <h2 className="font-display text-xl md:text-2xl font-light text-[var(--text-primary)] flex items-center gap-2">
@@ -213,7 +213,7 @@ export function HomeView({ onViewChange, onAddToCart, showToast, onOpenAskMe }) 
                   <div 
                     key={item.id}
                     onClick={() => handleProductClick(item)}
-                    className="group rounded-lg border border-[var(--border)]/60 overflow-hidden shadow-sm hover:shadow-md flex flex-col bg-[var(--surface)] transition-all cursor-pointer"
+                    className="group rounded-2xl border border-[var(--border)]/15 overflow-hidden shadow-2xs hover:shadow-sm flex flex-col bg-[var(--surface)] transition-all cursor-pointer"
                     id={`home_arrival_${item.id}`}
                   >
                     <div className="aspect-square bg-[var(--bg)] overflow-hidden relative flex items-center justify-center">
@@ -237,13 +237,13 @@ export function HomeView({ onViewChange, onAddToCart, showToast, onOpenAskMe }) 
                       <button
                         type="button"
                         onClick={(e) => { e.stopPropagation(); toggleWishlist(item.id); }}
-                        className={`absolute top-2.5 right-2.5 w-7 h-7 rounded-full bg-[var(--surface)]/95 hover:bg-[var(--surface)] border border-[var(--border)] flex items-center justify-center shadow-sm transition-all text-[var(--text-secondary)] hover:text-[var(--accent)]`}
+                        className={`absolute top-2.5 right-2.5 w-7 h-7 rounded-full bg-[var(--surface)]/95 hover:bg-[var(--surface)] border border-[var(--border)]/30 flex items-center justify-center shadow-sm transition-all text-[var(--text-secondary)] hover:text-[var(--accent)]`}
                       >
                         <Heart size={12} fill={isLiked ? 'var(--accent)' : 'none'} stroke={isLiked ? 'var(--accent)' : 'currentColor'} />
                       </button>
                     </div>
 
-                    <div className="p-3.5 flex-1 flex flex-col justify-between">
+                    <div className="p-4 flex-1 flex flex-col justify-between">
                       <div>
                         <div className="text-[9px] font-semibold text-[var(--text-secondary)] tracking-widest uppercase mb-0.5">
                           {item.brand || 'Luxury Piece'}
@@ -253,7 +253,7 @@ export function HomeView({ onViewChange, onAddToCart, showToast, onOpenAskMe }) 
                         </h3>
                       </div>
                       
-                      <div className="flex items-center justify-between pt-2 border-t border-[var(--border)]/40 mt-2">
+                      <div className="flex items-center justify-between pt-2 border-t border-[var(--border)]/15 mt-2">
                         <span className="text-xs font-semibold text-[var(--text-primary)] font-serif">
                           {formatProductPrice(item, currency, exchangeRate)}
                         </span>
@@ -261,7 +261,7 @@ export function HomeView({ onViewChange, onAddToCart, showToast, onOpenAskMe }) 
                         <button
                           type="button"
                           onClick={(e) => { e.stopPropagation(); onAddToCart(item); }}
-                          className="w-7 h-7 rounded-full border border-[var(--border)] hover:border-[var(--accent)] hover:bg-[var(--accent)] hover:text-[var(--btn-primary-fg)] flex items-center justify-center text-[var(--text-secondary)] transition-all cursor-pointer"
+                          className="w-7 h-7 rounded-full border border-[var(--border)]/40 hover:border-[var(--accent)] hover:bg-[var(--accent)] hover:text-[var(--btn-primary-fg)] flex items-center justify-center text-[var(--text-secondary)] transition-all cursor-pointer"
                           title="Add to bag"
                         >
                           <ShoppingBag size={11} />
@@ -279,7 +279,7 @@ export function HomeView({ onViewChange, onAddToCart, showToast, onOpenAskMe }) 
         <AskMeBanner onOpen={onOpenAskMe} />
 
         {/* The Good Finds Luxury Promise Section */}
-        <div className="mt-24 border-t border-[var(--border)]/60 pt-16" id="home_luxury_promise_section">
+        <div className="mt-24 border-t border-[var(--border)]/20 pt-16" id="home_luxury_promise_section">
           <div className="text-center mb-12">
             <h2 className="font-display text-2xl md:text-3xl font-light text-[var(--text-primary)] tracking-tight">
               The Good Finds Luxury Promise
@@ -290,7 +290,7 @@ export function HomeView({ onViewChange, onAddToCart, showToast, onOpenAskMe }) 
           </div>
 
           {/* Elegant Editorial Visual Banner */}
-          <div className="max-w-4xl mx-auto mb-16 rounded-xl overflow-hidden h-48 md:h-64 relative border border-[var(--border)]/45 shadow-xs">
+          <div className="max-w-4xl mx-auto mb-16 rounded-2xl overflow-hidden h-48 md:h-64 relative border border-[var(--border)]/15 shadow-2xs">
             <img
               src={placeholderImages.luxuryPromise}
               alt="Luxury Promise Detailing"
@@ -302,8 +302,8 @@ export function HomeView({ onViewChange, onAddToCart, showToast, onOpenAskMe }) 
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            <div className="bg-[var(--surface)] p-6 rounded-xl border border-[var(--border)]/50 shadow-3xs hover:shadow-2xs transition-all duration-300 space-y-3">
-              <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-[var(--bg)] text-[var(--gold)] border border-[var(--border)]/30 shadow-2xs">
+            <div className="bg-[var(--surface)] p-6 rounded-2xl border border-[var(--border)]/15 shadow-4xs hover:shadow-2xs transition-all duration-300 space-y-3">
+              <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-[var(--bg)] text-[var(--gold)] border border-[var(--border)]/15 shadow-3xs">
                 <Award size={18} strokeWidth={2} />
               </div>
               <h3 className="font-display text-sm font-semibold text-[var(--text-primary)] tracking-tight">18K Gold Verification</h3>
@@ -312,8 +312,8 @@ export function HomeView({ onViewChange, onAddToCart, showToast, onOpenAskMe }) 
               </p>
             </div>
 
-            <div className="bg-[var(--surface)] p-6 rounded-xl border border-[var(--border)]/50 shadow-3xs hover:shadow-2xs transition-all duration-300 space-y-3">
-              <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-[var(--bg)] text-[var(--gold)] border border-[var(--border)]/30 shadow-2xs">
+            <div className="bg-[var(--surface)] p-6 rounded-2xl border border-[var(--border)]/15 shadow-4xs hover:shadow-2xs transition-all duration-300 space-y-3">
+              <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-[var(--bg)] text-[var(--gold)] border border-[var(--border)]/15 shadow-3xs">
                 <ShieldCheck size={18} strokeWidth={2} />
               </div>
               <h3 className="font-display text-sm font-semibold text-[var(--text-primary)] tracking-tight">Authenticity Guarantee</h3>
@@ -322,8 +322,8 @@ export function HomeView({ onViewChange, onAddToCart, showToast, onOpenAskMe }) 
               </p>
             </div>
 
-            <div className="bg-[var(--surface)] p-6 rounded-xl border border-[var(--border)]/50 shadow-3xs hover:shadow-2xs transition-all duration-300 space-y-3">
-              <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-[var(--bg)] text-[var(--gold)] border border-[var(--border)]/30 shadow-2xs">
+            <div className="bg-[var(--surface)] p-6 rounded-2xl border border-[var(--border)]/15 shadow-4xs hover:shadow-2xs transition-all duration-300 space-y-3">
+              <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-[var(--bg)] text-[var(--gold)] border border-[var(--border)]/15 shadow-3xs">
                 <Search size={18} strokeWidth={2} />
               </div>
               <h3 className="font-display text-sm font-semibold text-[var(--text-primary)] tracking-tight">Honest Condition Grading</h3>
@@ -332,8 +332,8 @@ export function HomeView({ onViewChange, onAddToCart, showToast, onOpenAskMe }) 
               </p>
             </div>
 
-            <div className="bg-[var(--surface)] p-6 rounded-xl border border-[var(--border)]/50 shadow-3xs hover:shadow-2xs transition-all duration-300 space-y-3">
-              <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-[var(--bg)] text-[var(--gold)] border border-[var(--border)]/30 shadow-2xs">
+            <div className="bg-[var(--surface)] p-6 rounded-2xl border border-[var(--border)]/15 shadow-4xs hover:shadow-2xs transition-all duration-300 space-y-3">
+              <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-[var(--bg)] text-[var(--gold)] border border-[var(--border)]/15 shadow-3xs">
                 <Compass size={18} strokeWidth={2} />
               </div>
               <h3 className="font-display text-sm font-semibold text-[var(--text-primary)] tracking-tight">Sourcing Concierge</h3>
@@ -345,8 +345,8 @@ export function HomeView({ onViewChange, onAddToCart, showToast, onOpenAskMe }) 
         </div>
 
         {/* Elegant Newsletter Section */}
-        <div className="mt-24 border-t border-[var(--border)]/60 pt-16 pb-8 max-w-3xl mx-auto text-center" id="home_newsletter_section">
-          <div className="w-20 h-20 mx-auto mb-6 rounded-full overflow-hidden border border-[var(--border)]/45 shadow-xs">
+        <div className="mt-24 border-t border-[var(--border)]/20 pt-16 pb-8 max-w-3xl mx-auto text-center" id="home_newsletter_section">
+          <div className="w-20 h-20 mx-auto mb-6 rounded-full overflow-hidden border border-[var(--border)]/15 shadow-2xs">
             <img
               src={placeholderImages.newsletter}
               alt="Stay in the Loop Curation"
@@ -368,7 +368,7 @@ export function HomeView({ onViewChange, onAddToCart, showToast, onOpenAskMe }) 
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Enter your email address"
-              className="flex-1 px-4 py-2.5 rounded border border-[var(--border)] text-sm bg-[var(--surface)] text-[var(--text-primary)] placeholder-stone-400 focus:outline-none focus:border-[var(--accent)] font-sans transition-colors"
+              className="flex-1 px-4 py-2.5 rounded border border-[var(--border)]/40 text-sm bg-[var(--surface)] text-[var(--text-primary)] placeholder-stone-400 focus:outline-none focus:border-[var(--accent)] font-sans transition-colors"
               required
               disabled={submittingNewsletter}
             />

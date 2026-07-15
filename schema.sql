@@ -24,3 +24,10 @@ CREATE TABLE IF NOT EXISTS requests (
 );
 CREATE INDEX IF NOT EXISTS idx_requests_status ON requests(status);
 CREATE INDEX IF NOT EXISTS idx_requests_created_at ON requests(created_at DESC);
+
+CREATE TABLE IF NOT EXISTS site_stats (
+  key TEXT PRIMARY KEY,
+  value INTEGER NOT NULL
+);
+INSERT OR IGNORE INTO site_stats (key, value) VALUES ('visits', 0);
+

@@ -128,70 +128,12 @@ async function deleteCloudSession(token) {
   }
 }
 
-function FirstRunSetup({ onCreated }) {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [busy, setBusy] = useState(false);
-
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    setError('');
-    if (!username.trim()) return setError('Username is required.');
-    if (password.length < 8) return setError('Use at least 8 characters for the initial admin password.');
-
-    setBusy(true);
-    try {
-      const hashedPassword = await hashPassword(password);
-      const user = await createCloudUser({ username, password: hashedPassword, role: 'Administrator' });
-      localStorage.setItem('gf_users', JSON.stringify([user]));
-      onCreated([user]);
-    } catch (err) {
-      setError(err.message || 'Unable to create initial administrator.');
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  return (
-    <div className="min-h-screen bg-[#FAF8F5] flex items-center justify-center px-4">
-      <form onSubmit={handleSubmit} className="w-full max-w-md bg-white border border-[#E5DFD8] rounded p-6 shadow-sm space-y-4">
-        <div>
-          <p className="text-[10px] uppercase tracking-[0.18em] font-semibold text-[#C9A84C] mb-2">First-run security setup</p>
-          <h1 className="font-display text-2xl text-stone-900 font-normal">Create Admin Account</h1>
-          <p className="text-sm text-stone-500 mt-1">No administrator exists yet. Create the first account before launching the admin panel.</p>
-        </div>
-        {error && <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded p-3">{error}</div>}
-        <div className="space-y-1"><label className="text-xs font-semibold uppercase tracking-wider text-stone-600">Username</label><input className="w-full border border-stone-300 rounded px-3 py-2 text-sm outline-none focus:border-[#C9A84C]" value={username} onChange={e => setUsername(e.target.value)} autoComplete="username" /></div>
-        <div className="space-y-1"><label className="text-xs font-semibold uppercase tracking-wider text-stone-600">Password</label><input className="w-full border border-stone-300 rounded px-3 py-2 text-sm outline-none focus:border-[#C9A84C]" type="password" value={password} onChange={e => setPassword(e.target.value)} autoComplete="new-password" /></div>
-        
-        <div className="flex items-center justify-between bg-stone-50 border border-stone-200/60 p-3 rounded text-xs text-stone-700 font-sans">
-          <span>Quick Setup:</span>
-          <button
-            type="button"
-            onClick={() => {
-              setUsername('admin');
-              setPassword('password123');
-            }}
-            className="text-amber-700 hover:text-amber-800 font-semibold uppercase tracking-wider text-[10px] cursor-pointer"
-          >
-            Use admin/password123
-          </button>
-        </div>
-
-        <button disabled={busy} className="w-full bg-stone-900 text-white rounded py-2.5 text-xs font-semibold uppercase tracking-wider disabled:opacity-50">{busy ? 'Creating...' : 'Create Admin Account'}</button>
-      </form>
-    </div>
-  );
-}
-
 export function AuthProvider({ children }) {
   const [users, setUsers] = useState(() => readLocalUsers());
   const [currentUser, setCurrentUser] = useState(() => readCurrentUser());
   const [isAdmin, setIsAdmin] = useState(() => localStorage.getItem('gf_is_admin') === 'true' && Boolean(getSessionToken()));
   const [loginError, setLoginError] = useState('');
   const [authReady, setAuthReady] = useState(false);
-  const [needsFirstRunSetup, setNeedsFirstRunSetup] = useState(false);
 
   useEffect(() => { localStorage.setItem('gf_users', JSON.stringify(users)); }, [users]);
 
@@ -230,7 +172,6 @@ export function AuthProvider({ children }) {
         if (!cancelled) {
           setUsers(mergedUsers);
           localStorage.setItem('gf_users', JSON.stringify(mergedUsers));
-          setNeedsFirstRunSetup(false);
           const localCurrentUser = readCurrentUser();
           if (localCurrentUser) {
             const refreshedCurrentUser = mergedUsers.find(u => u.id === localCurrentUser.id || u.username === localCurrentUser.username);
@@ -256,7 +197,6 @@ export function AuthProvider({ children }) {
         if (!cancelled) {
           setUsers(localUsers);
           localStorage.setItem('gf_users', JSON.stringify(localUsers));
-          setNeedsFirstRunSetup(false);
         }
       } finally {
         if (!cancelled) setAuthReady(true);
@@ -411,7 +351,6 @@ export function AuthProvider({ children }) {
   };
 
   if (!authReady) return <div className="min-h-screen bg-[#FAF8F5] flex items-center justify-center"><div className="h-8 w-8 rounded-full border-2 border-[#E5DFD8] border-t-[#C9A84C] animate-spin" /></div>;
-  if (needsFirstRunSetup) return <FirstRunSetup onCreated={(nextUsers) => { setUsers(nextUsers); setNeedsFirstRunSetup(false); }} />;
 
   return (
     <AuthContext.Provider value={{ users, currentUser, isAdmin, login, logout, loginError, setLoginError, createUser, deleteUser, authReady, sessionToken: getSessionToken() }}>

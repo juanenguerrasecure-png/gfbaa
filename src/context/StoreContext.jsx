@@ -94,6 +94,7 @@ export function StoreProvider({ children }) {
     ...(readLocalJson('gf_site_content', {}) || {})
   }));
   const [cloudReady, setCloudReady] = useState(false);
+  const [visits, setVisits] = useState(0);
 
   const applyingRemoteRef = useRef(false);
   const saveTimerRef = useRef(null);
@@ -550,6 +551,50 @@ export function StoreProvider({ children }) {
     }
   }, [loadCloudState]);
 
+  const incrementVisits = useCallback(async () => {
+    const hasVisitedThisSession = sessionStorage.getItem('gf_session_visited');
+    const method = hasVisitedThisSession ? 'GET' : 'POST';
+    try {
+      const response = await fetch('/api/visits', {
+        method,
+      });
+      const result = await response.json();
+      if (response.ok && result.ok) {
+        setVisits(result.visits);
+        if (!hasVisitedThisSession) {
+          sessionStorage.setItem('gf_session_visited', 'true');
+        }
+        return result.visits;
+      }
+    } catch (err) {
+      console.error('Failed to process visits:', err);
+    }
+    return 0;
+  }, []);
+
+  const updateVisitsValue = useCallback(async (newValue) => {
+    try {
+      const response = await fetch('/api/visits', {
+        method: 'PUT',
+        headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify({ value: newValue })
+      });
+      const result = await response.json();
+      if (response.ok && result.ok) {
+        setVisits(result.visits);
+        return { ok: true, visits: result.visits };
+      }
+      return { ok: false, error: result.error || 'Failed to update visits' };
+    } catch (err) {
+      console.error('Failed to update visits:', err);
+      return { ok: false, error: err.message };
+    }
+  }, []);
+
+  useEffect(() => {
+    incrementVisits();
+  }, [incrementVisits]);
+
   const addDirectMessage = useCallback(async ({ name, email, text }) => {
     try {
       const response = await fetch('/api/messages', {
@@ -596,6 +641,7 @@ export function StoreProvider({ children }) {
       messages, setMessages, addDirectMessage,
       inquiryItem, setInquiryItem,
       siteContent, updateSiteContent,
+      visits, updateVisitsValue, incrementVisits,
       saveCloudState, syncCurrentState, syncAfterLocalChange,
       clearMockData
     }}>

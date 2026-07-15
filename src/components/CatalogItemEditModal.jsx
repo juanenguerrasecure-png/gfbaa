@@ -25,14 +25,14 @@ export function CatalogItemEditModal({ item, onSave, onClose }) {
   return (
     <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-xs" onClick={onClose}>
       <div 
-        className="bg-[#FAF8F5] border border-stone-200/80 rounded-xl shadow-2xl w-full max-w-[560px] max-h-[90vh] overflow-hidden flex flex-col"
+        className="bg-[var(--bg)] border border-stone-200/80 rounded-xl shadow-2xl w-full max-w-[560px] max-h-[90vh] overflow-hidden flex flex-col"
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex justify-between items-center px-6 py-4 border-b border-stone-200 bg-[#FAF8F5]">
+        <div className="flex justify-between items-center px-6 py-4 border-b border-stone-200 bg-[var(--bg)]">
           <div>
             <h3 className="font-serif text-lg font-semibold text-stone-900 flex items-center gap-2">
-              <Sparkles size={16} className="text-[#C9A84C]" />
+              <Sparkles size={16} className="text-[var(--gold)]" />
               Edit Storefront Catalog Listing
             </h3>
             <p className="text-[11px] text-stone-500 font-sans mt-0.5">
@@ -64,7 +64,7 @@ export function CatalogItemEditModal({ item, onSave, onClose }) {
                 type="text" 
                 value={form.brand || ''} 
                 onChange={e => set('brand', e.target.value)} 
-                className="w-full text-xs p-2 bg-white border border-stone-300 rounded focus:border-[#C9A84C] outline-none"
+                className="w-full text-xs p-2 bg-white border border-stone-300 rounded focus:border-[var(--gold)] outline-none"
                 placeholder="e.g. Chanel"
               />
             </div>
@@ -75,7 +75,7 @@ export function CatalogItemEditModal({ item, onSave, onClose }) {
                 type="text" 
                 value={form.name || ''} 
                 onChange={e => set('name', e.target.value)} 
-                className="w-full text-xs p-2 bg-white border border-stone-300 rounded focus:border-[#C9A84C] outline-none"
+                className="w-full text-xs p-2 bg-white border border-stone-300 rounded focus:border-[var(--gold)] outline-none"
                 placeholder="e.g. Classic Double Flap"
               />
             </div>
@@ -87,7 +87,7 @@ export function CatalogItemEditModal({ item, onSave, onClose }) {
               rows={3}
               value={form.detail || ''} 
               onChange={e => set('detail', e.target.value)} 
-              className="w-full text-xs p-2 bg-white border border-stone-300 rounded focus:border-[#C9A84C] outline-none font-sans"
+              className="w-full text-xs p-2 bg-white border border-stone-300 rounded focus:border-[var(--gold)] outline-none font-sans"
               placeholder="e.g. Serial #24XXXXXX. Features gold-tone hardware and lambskin leather."
             />
           </div>
@@ -98,7 +98,7 @@ export function CatalogItemEditModal({ item, onSave, onClose }) {
               <select 
                 value={form.cat || 'bags'} 
                 onChange={e => set('cat', e.target.value)}
-                className="w-full text-xs p-2 bg-white border border-stone-300 rounded focus:border-[#C9A84C] outline-none"
+                className="w-full text-xs p-2 bg-white border border-stone-300 rounded focus:border-[var(--gold)] outline-none"
               >
                 <option value="bags">Bags</option>
                 <option value="jewelry">Jewelry</option>
@@ -111,7 +111,7 @@ export function CatalogItemEditModal({ item, onSave, onClose }) {
                 type="text" 
                 value={form.emoji || '👜'} 
                 onChange={e => set('emoji', e.target.value)} 
-                className="w-full text-xs p-2 bg-white border border-stone-300 rounded focus:border-[#C9A84C] outline-none text-center"
+                className="w-full text-xs p-2 bg-white border border-stone-300 rounded focus:border-[var(--gold)] outline-none text-center"
               />
             </div>
 
@@ -120,7 +120,7 @@ export function CatalogItemEditModal({ item, onSave, onClose }) {
               <select 
                 value={form.condition || 'mint'} 
                 onChange={e => set('condition', e.target.value)}
-                className="w-full text-xs p-2 bg-white border border-stone-300 rounded focus:border-[#C9A84C] outline-none"
+                className="w-full text-xs p-2 bg-white border border-stone-300 rounded focus:border-[var(--gold)] outline-none"
               >
                 <option value="new">New</option>
                 <option value="mint">Mint</option>
@@ -137,7 +137,7 @@ export function CatalogItemEditModal({ item, onSave, onClose }) {
                 type="number" 
                 value={form.price || ''} 
                 onChange={e => set('price', Number(e.target.value))} 
-                className="w-full text-xs p-2 bg-white border border-stone-300 rounded focus:border-[#C9A84C] outline-none font-mono"
+                className="w-full text-xs p-2 bg-white border border-stone-300 rounded focus:border-[var(--gold)] outline-none font-mono"
                 placeholder="e.g. 2400"
               />
             </div>
@@ -148,7 +148,7 @@ export function CatalogItemEditModal({ item, onSave, onClose }) {
                 type="number" 
                 value={form.orig || ''} 
                 onChange={e => set('orig', e.target.value ? Number(e.target.value) : null)} 
-                className="w-full text-xs p-2 bg-white border border-stone-300 rounded focus:border-[#C9A84C] outline-none font-mono"
+                className="w-full text-xs p-2 bg-white border border-stone-300 rounded focus:border-[var(--gold)] outline-none font-mono"
                 placeholder="Leave empty if none"
               />
             </div>
@@ -161,7 +161,7 @@ export function CatalogItemEditModal({ item, onSave, onClose }) {
                 type="number" 
                 value={form.quantity !== undefined ? form.quantity : 1} 
                 onChange={e => set('quantity', Number(e.target.value))} 
-                className="w-full text-xs p-1.5 bg-white border border-stone-300 rounded focus:border-[#C9A84C] outline-none font-mono text-center"
+                className="w-full text-xs p-1.5 bg-white border border-stone-300 rounded focus:border-[var(--gold)] outline-none font-mono text-center"
               />
             </div>
 
@@ -171,7 +171,7 @@ export function CatalogItemEditModal({ item, onSave, onClose }) {
                 type="number" 
                 value={form.remainingQty !== undefined ? form.remainingQty : 1} 
                 onChange={e => set('remainingQty', Number(e.target.value))} 
-                className="w-full text-xs p-1.5 bg-white border border-stone-300 rounded focus:border-[#C9A84C] outline-none font-mono text-center font-bold text-[#C9A84C]"
+                className="w-full text-xs p-1.5 bg-white border border-stone-300 rounded focus:border-[var(--gold)] outline-none font-mono text-center font-bold text-[var(--gold)]"
               />
             </div>
           </div>

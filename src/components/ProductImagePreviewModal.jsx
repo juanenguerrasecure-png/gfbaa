@@ -79,14 +79,14 @@ export function ProductImagePreviewModal({ isOpen, onClose, item }) {
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 15 }}
           transition={{ type: 'spring', damping: 25, stiffness: 220 }}
-          className="bg-[#FAF8F5] border border-stone-200/50 rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]"
+          className="bg-[var(--bg)] border border-stone-200/50 rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="flex justify-between items-start px-6 py-4 border-b border-stone-200 bg-[#FAF8F5] shrink-0">
+          <div className="flex justify-between items-start px-6 py-4 border-b border-stone-200 bg-[var(--bg)] shrink-0">
             <div>
               <span className="text-[9px] font-sans font-bold uppercase tracking-widest text-[#8C7B6E] block mb-0.5 flex items-center gap-1">
-                <Sparkles size={10} className="text-[#C9A84C]" />
+                <Sparkles size={10} className="text-[var(--gold)]" />
                 {item.brand || 'Luxury Item'}
               </span>
               <h3 className="font-serif text-lg font-semibold text-stone-900 leading-tight">
@@ -194,7 +194,7 @@ export function ProductImagePreviewModal({ isOpen, onClose, item }) {
                     onClick={() => setActiveIndex(idx)}
                     className={`relative w-10 h-10 rounded overflow-hidden border transition-all shrink-0 ${
                       idx === activeIndex
-                        ? 'border-[#C9A84C] ring-1 ring-[#C9A84C]'
+                        ? 'border-[var(--gold)] ring-1 ring-[var(--gold)]/20'
                         : 'border-stone-200 hover:border-stone-400 opacity-60 hover:opacity-100'
                     }`}
                   >

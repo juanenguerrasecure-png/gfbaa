@@ -195,7 +195,7 @@ export function GalleryView({ onOpenAskMe }) {
                 )}
 
                 {/* Counter Indicator badge */}
-                <div className="absolute bottom-6 right-6 bg-stone-900/80 text-white text-[11px] uppercase font-mono tracking-widest px-3.5 py-1.5 rounded-full backdrop-blur-xs shadow-sm">
+                <div className="absolute bottom-6 right-6 bg-stone-900/90 text-white text-[10px] uppercase font-sans tracking-[0.2em] px-4 py-2 rounded-full backdrop-blur-xs shadow-sm">
                   Curation {lightboxIndex + 1} of {photos.length}
                 </div>
               </div>
@@ -244,7 +244,7 @@ export function GalleryView({ onOpenAskMe }) {
 
               {/* Brand Footer */}
               <div className="border-t border-[var(--border)]/50 bg-[var(--surface)]/80 p-6 text-center flex-shrink-0 w-full mt-auto">
-                <span className="text-[9px] uppercase font-mono tracking-widest text-[var(--text-secondary)]/50">
+                <span className="text-[9px] uppercase font-sans tracking-[0.25em] text-[var(--text-secondary)]/50 font-medium">
                   GOOD FINDS BY AA • STYLE DIARIES
                 </span>
               </div>

@@ -142,6 +142,8 @@ async function ensureSchema(env) {
   )`).run();
   await env.DB.prepare(`CREATE INDEX IF NOT EXISTS idx_requests_status ON requests(status)`).run();
   await env.DB.prepare(`CREATE INDEX IF NOT EXISTS idx_requests_created_at ON requests(created_at DESC)`).run();
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS site_stats (key TEXT PRIMARY KEY, value INTEGER NOT NULL)`).run();
+  await env.DB.prepare(`INSERT OR IGNORE INTO site_stats (key, value) VALUES ('visits', 0)`).run();
 }
 
 async function getState(env) {
@@ -803,6 +805,35 @@ export default {
       if (request.method === 'GET' && path === '/api/state') {
         const stateResult = await getState(env);
         return json({ ok: true, ...stateResult, state: publicState(stateResult.state) }, { status: 200 }, corsHeaders);
+      }
+      if (path === '/api/visits') {
+        await ensureSchema(env);
+        if (request.method === 'GET') {
+          const row = await env.DB.prepare(`SELECT value FROM site_stats WHERE key = 'visits'`).first();
+          const count = row ? row.value : 0;
+          return json({ ok: true, visits: count }, { status: 200 }, corsHeaders);
+        }
+        if (request.method === 'POST') {
+          const url = new URL(request.url);
+          const increment = url.searchParams.get('increment') !== 'false';
+          if (increment) {
+            await env.DB.prepare(`UPDATE site_stats SET value = value + 1 WHERE key = 'visits'`).run();
+          }
+          const row = await env.DB.prepare(`SELECT value FROM site_stats WHERE key = 'visits'`).first();
+          const count = row ? row.value : 0;
+          return json({ ok: true, visits: count }, { status: 200 }, corsHeaders);
+        }
+        if (request.method === 'PUT') {
+          const auth = await requireWriteAuth(request, env, corsHeaders);
+          if (!auth.authorized) return auth.response;
+          const body = await request.json().catch(() => ({}));
+          const value = Number(body.value);
+          if (isNaN(value) || value < 0) {
+            return json({ ok: false, error: 'Invalid value' }, { status: 400 }, corsHeaders);
+          }
+          await env.DB.prepare(`UPDATE site_stats SET value = ? WHERE key = 'visits'`).bind(value).run();
+          return json({ ok: true, visits: value }, { status: 200 }, corsHeaders);
+        }
       }
       if (request.method === 'POST' && path === '/api/requests') {
         const contentType = request.headers.get('Content-Type') || '';

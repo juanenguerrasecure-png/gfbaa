@@ -149,14 +149,14 @@ export function CartModal({ isOpen, onClose, cart, onRemove, onClear, showToast 
                 <div className={styles.itemsSection}>
                   <h3 className={styles.sectionTitle}>Selected Curation ({cart.length})</h3>
                   <div className={styles.itemsList}>{cart.map((item, idx) => <div key={`${item.id}-${idx}`} className={styles.cartItem}><div className={styles.itemEmoji}>{item.emoji || 'bag'}</div><div className={styles.itemInfo}><h4 className={styles.itemName}>{item.name}</h4><p className={styles.itemBrand}>{item.brand}</p><span className={styles.itemCatBadge}>{item.cat}</span></div><div className={styles.itemPriceWrap}><span className={styles.itemPrice}>{formatProductPrice(item, currency, exchangeRate)}</span><button className={styles.removeBtn} onClick={() => onRemove(idx)} title="Remove from bag"><Trash2 size={15} /></button></div></div>)}</div>
-                  <div className="mb-4 rounded border border-[#E5DFD8] bg-[#FAF8F5] p-4">
+                  <div className="mb-4 rounded border border-[var(--border)] bg-[var(--bg)] p-4">
                     <p className="mb-2.5 text-[10px] font-bold uppercase tracking-[0.12em] text-stone-500 flex items-center gap-1.5">
                       <span>Select Intended Payment Method</span>
                       <span className="text-[#8C3D3D]">*</span>
                     </p>
                     
                      <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-3.5">
-                      <label className={`flex items-center gap-2 sm:gap-3 rounded border p-2 sm:p-3 cursor-pointer transition-all ${selectedPaymentMethod === 'Zelle' ? 'border-[#6D1ED4] bg-[#6D1ED4]/5' : 'border-[#E5DFD8] bg-white hover:border-stone-300'}`}>
+                      <label className={`flex items-center gap-2 sm:gap-3 rounded border p-2 sm:p-3 cursor-pointer transition-all ${selectedPaymentMethod === 'Zelle' ? 'border-[#6D1ED4] bg-[#6D1ED4]/5' : 'border-[var(--border)] bg-white hover:border-stone-300'}`}>
                         <input
                           type="radio"
                           name="paymentMethod"
@@ -171,7 +171,7 @@ export function CartModal({ isOpen, onClose, cart, onRemove, onClear, showToast 
                         </div>
                       </label>
 
-                      <label className={`flex items-center gap-2 sm:gap-3 rounded border p-2 sm:p-3 cursor-pointer transition-all ${selectedPaymentMethod === 'Venmo' ? 'border-[#3D95CE] bg-[#3D95CE]/5' : 'border-[#E5DFD8] bg-white hover:border-stone-300'}`}>
+                      <label className={`flex items-center gap-2 sm:gap-3 rounded border p-2 sm:p-3 cursor-pointer transition-all ${selectedPaymentMethod === 'Venmo' ? 'border-[#3D95CE] bg-[#3D95CE]/5' : 'border-[var(--border)] bg-white hover:border-stone-300'}`}>
                         <input
                           type="radio"
                           name="paymentMethod"
@@ -186,7 +186,7 @@ export function CartModal({ isOpen, onClose, cart, onRemove, onClear, showToast 
                         </div>
                       </label>
 
-                      <label className={`flex items-center gap-2 sm:gap-3 rounded border p-2 sm:p-3 cursor-pointer transition-all ${selectedPaymentMethod === 'PayPal' ? 'border-[#003087] bg-[#003087]/5' : 'border-[#E5DFD8] bg-white hover:border-stone-300'}`}>
+                      <label className={`flex items-center gap-2 sm:gap-3 rounded border p-2 sm:p-3 cursor-pointer transition-all ${selectedPaymentMethod === 'PayPal' ? 'border-[#003087] bg-[#003087]/5' : 'border-[var(--border)] bg-white hover:border-stone-300'}`}>
                         <input
                           type="radio"
                           name="paymentMethod"

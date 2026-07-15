@@ -211,12 +211,12 @@ export function TrackRequestModal({ isOpen, onClose, showToast }) {
 
   return (
     <div className="fixed inset-0 bg-stone-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-fadeIn" id="track_request_overlay" onClick={onClose}>
-      <div className="bg-[#FAF8F5] rounded shadow-2xl border border-[#E5DFD8] w-full max-w-2xl max-h-[90vh] flex flex-col outline-none overflow-hidden" id="track_request_modal" onClick={e => e.stopPropagation()}>
+      <div className="bg-[var(--bg)] rounded shadow-2xl border border-[#E5DFD8] w-full max-w-2xl max-h-[90vh] flex flex-col outline-none overflow-hidden" id="track_request_modal" onClick={e => e.stopPropagation()}>
         
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-stone-200">
           <div className="flex items-center gap-2">
-            <FileText size={18} className="text-[#C9A84C]" />
+            <FileText size={18} className="text-[var(--gold)]" />
             <h2 className="font-display text-lg text-stone-900 font-normal">Track Purchase Request</h2>
           </div>
           <button className="text-stone-400 hover:text-stone-600 cursor-pointer p-1" onClick={onClose} aria-label="Close track request"><X size={20} /></button>
@@ -243,7 +243,7 @@ export function TrackRequestModal({ isOpen, onClose, showToast }) {
                     placeholder="e.g. cat-17200..." 
                     value={searchId} 
                     onChange={e => setSearchId(e.target.value)}
-                    className="w-full border border-stone-300 rounded px-3 py-2 pl-7 text-sm text-stone-900 outline-none focus:border-[#C9A84C] font-mono"
+                    className="w-full border border-stone-300 rounded px-3 py-2 pl-7 text-sm text-stone-900 outline-none focus:border-[var(--gold)] font-mono"
                   />
                 </div>
               </div>
@@ -255,7 +255,7 @@ export function TrackRequestModal({ isOpen, onClose, showToast }) {
                   placeholder="e.g. buyer@example.com" 
                   value={searchEmail} 
                   onChange={e => setSearchEmail(e.target.value)}
-                  className="w-full border border-stone-300 rounded px-3 py-2 text-sm text-stone-900 outline-none focus:border-[#C9A84C] font-sans"
+                  className="w-full border border-stone-300 rounded px-3 py-2 text-sm text-stone-900 outline-none focus:border-[var(--gold)] font-sans"
                 />
               </div>
 
@@ -392,10 +392,10 @@ export function TrackRequestModal({ isOpen, onClose, showToast }) {
               {(activeRequest.status === 'approved_pending_payment' || 
                 activeRequest.status === 'shipping_calculated' || 
                 activeRequest.status === 'payment_submitted') && (
-                <div className="border border-stone-200 rounded-lg bg-[#FAF8F5] p-5 space-y-4">
+                <div className="border border-stone-200 rounded-lg bg-[var(--bg)] p-5 space-y-4">
                   <div className="border-b border-stone-200 pb-2 flex justify-between items-center">
                     <div className="flex items-center gap-2">
-                      <CreditCard size={15} className="text-[#C9A84C]" />
+                      <CreditCard size={15} className="text-[var(--gold)]" />
                       <h4 className="text-xs font-bold uppercase tracking-wider text-stone-700">Final Invoice Payment</h4>
                     </div>
                     <span className="text-[10px] font-semibold text-amber-800 bg-amber-50 px-2.5 py-0.5 rounded border border-amber-200/50 uppercase tracking-wider">
@@ -439,7 +439,7 @@ export function TrackRequestModal({ isOpen, onClose, showToast }) {
                         <div className="bg-white border border-stone-200 rounded-lg p-4 space-y-3.5 shadow-2xs">
                           <div className="flex items-center justify-between border-b border-stone-100 pb-2">
                             <span className="font-display font-semibold text-stone-900 uppercase tracking-wide text-xs">{payMethod} Payment Details</span>
-                            <span className="text-[10px] text-[#C9A84C] font-semibold">Genuine Account verified</span>
+                            <span className="text-[10px] text-[var(--gold)] font-semibold">Genuine Account verified</span>
                           </div>
 
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -474,7 +474,7 @@ export function TrackRequestModal({ isOpen, onClose, showToast }) {
 
                             {/* QR Code Container */}
                             {activePaymentMethodConfig.qrUrl && (
-                              <div className="flex flex-col items-center justify-center bg-[#FAF8F5] border border-stone-200/60 p-3 rounded-lg">
+                              <div className="flex flex-col items-center justify-center bg-[var(--bg)] border border-stone-200/60 p-3 rounded-lg">
                                 <span className="text-[9px] font-bold uppercase tracking-wider text-stone-500 mb-1.5 flex items-center gap-1"><QrCode size={11} /> Scan QR Code</span>
                                 <img 
                                   src={activePaymentMethodConfig.qrUrl} 
@@ -498,7 +498,7 @@ export function TrackRequestModal({ isOpen, onClose, showToast }) {
                             placeholder="e.g. Ref #129384810 or Sender: Jane Doe" 
                             value={txnRef} 
                             onChange={e => setTxnRef(e.target.value)}
-                            className="w-full border border-stone-300 rounded px-3 py-2 text-sm text-stone-900 outline-none focus:border-[#C9A84C]"
+                            className="w-full border border-stone-300 rounded px-3 py-2 text-sm text-stone-900 outline-none focus:border-[var(--gold)]"
                             required
                           />
                         </div>
@@ -533,7 +533,7 @@ export function TrackRequestModal({ isOpen, onClose, showToast }) {
                             placeholder="Add any details about your transaction here..." 
                             value={buyerNotes} 
                             onChange={e => setBuyerNotes(e.target.value)}
-                            className="w-full border border-stone-300 rounded px-3 py-2 text-sm text-stone-900 outline-none focus:border-[#C9A84C] font-sans"
+                            className="w-full border border-stone-300 rounded px-3 py-2 text-sm text-stone-900 outline-none focus:border-[var(--gold)] font-sans"
                           />
                         </div>
                       </div>

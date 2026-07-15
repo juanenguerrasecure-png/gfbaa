@@ -572,7 +572,7 @@ export function ProductDetailModal({ isOpen, onClose, product, onAddToCart }) {
                   </div>
 
                   {/* Pricing and Original MSRP Block */}
-                  <div className="bg-[var(--surface)] border border-[var(--border)]/60 p-4 rounded-xl space-y-3">
+                  <div className="bg-[var(--surface)]/50 border border-[var(--border)]/20 p-5 rounded-2xl space-y-3.5 shadow-3xs">
                     <div className="flex items-baseline justify-between gap-2 flex-wrap">
                       <div>
                         <span className="text-[10px] uppercase font-bold tracking-wider text-[var(--text-secondary)]/80 block mb-0.5">Current Pricing</span>
@@ -585,14 +585,14 @@ export function ProductDetailModal({ isOpen, onClose, product, onAddToCart }) {
 
                     {/* MSRP Comparison Savings */}
                     {savingsMetrics && (
-                      <div className="border-t border-[var(--border)]/60 pt-2.5 mt-2 flex flex-col gap-1 text-[11px]">
+                      <div className="border-t border-[var(--border)]/20 pt-3 mt-3 flex flex-col gap-1 text-[11px]">
                         <div className="flex justify-between text-[var(--text-secondary)]">
                           <span>Original Retail (MSRP)</span>
                           <span className="line-through">${savingsMetrics.originalPrice.toLocaleString()} USD</span>
                         </div>
-                        <div className="flex justify-between text-[var(--text-primary)] font-semibold bg-[var(--bg)] px-2 py-1.5 rounded border border-[var(--border)]/60 mt-1">
+                        <div className="flex justify-between text-[var(--text-primary)] font-semibold bg-[var(--bg)] px-2 py-1.5 rounded border border-[var(--border)]/20 mt-1">
                           <span className="text-[var(--text-primary)] flex items-center gap-1"><Sparkles size={11} className="text-[var(--gold)]" /> Preloved Gain</span>
-                          <span className="text-emerald-700 font-mono">
+                          <span className="text-emerald-700 font-sans font-medium text-xs tracking-wider">
                             Save ${savingsMetrics.savingsUSD.toLocaleString()} USD ({savingsMetrics.savingsPercent}% Off)
                           </span>
                         </div>
@@ -601,7 +601,7 @@ export function ProductDetailModal({ isOpen, onClose, product, onAddToCart }) {
                   </div>
 
                   {/* Stock Status Notification */}
-                  <div className="flex items-center gap-2 text-xs">
+                  <div className="flex items-center gap-2 text-xs py-1">
                     <div className={`w-2 h-2 rounded-full ${soldOut ? 'bg-rose-500 animate-pulse' : 'bg-emerald-500'}`} />
                     <span className="font-sans font-semibold text-[var(--text-secondary)]">
                       {soldOut ? 'Sold Out / Archive' : `${stock} authentic curations available`}
@@ -609,8 +609,8 @@ export function ProductDetailModal({ isOpen, onClose, product, onAddToCart }) {
                   </div>
 
                   {/* Premium Condition Preservation Report */}
-                  <div className="border border-[var(--border)] bg-[var(--surface)] p-4 rounded-xl shadow-sm space-y-3">
-                    <div className="flex items-center justify-between pb-2 border-b border-[var(--border)]/30">
+                  <div className="border border-[var(--border)]/20 bg-[var(--surface)]/50 p-5 rounded-2xl shadow-3xs space-y-3.5">
+                    <div className="flex items-center justify-between pb-2.5 border-b border-[var(--border)]/20">
                       <div className="flex items-center gap-1.5">
                         <Info size={13} className="text-[var(--text-secondary)]" />
                         <span className="text-[10px] font-sans font-bold uppercase tracking-widest text-[var(--text-primary)]">Curation Preservation Report</span>
@@ -623,15 +623,15 @@ export function ProductDetailModal({ isOpen, onClose, product, onAddToCart }) {
                       <div>
                         <div className="flex justify-between text-[11px] text-[var(--text-secondary)] mb-1">
                           <span>Quality Condition Rating</span>
-                          <span className="font-mono font-bold text-[var(--text-primary)]">{condInfo.grade} / 10</span>
+                          <span className="font-sans font-semibold text-[var(--text-primary)]">{condInfo.grade} / 10</span>
                         </div>
-                        <div className="w-full bg-[var(--bg)] h-1.5 rounded-full overflow-hidden border border-[var(--border)]/30">
+                        <div className="w-full bg-[var(--bg)] h-1.5 rounded-full overflow-hidden border border-[var(--border)]/20">
                           <div className={`h-full rounded-full transition-all duration-700 ${condInfo.barColor}`} style={{ width: `${Number(condInfo.grade) * 10}%` }} />
                         </div>
                       </div>
 
                       {/* Summary explanation */}
-                      <p className="text-xs text-[var(--text-secondary)] leading-relaxed font-sans italic bg-[var(--bg)]/50 p-2.5 rounded border border-[var(--border)]/30">
+                      <p className="text-xs text-[var(--text-secondary)] leading-relaxed font-sans italic bg-[var(--bg)]/50 p-2.5 rounded border border-[var(--border)]/25">
                         "{condInfo.meaning}"
                       </p>
                     </div>
@@ -639,11 +639,11 @@ export function ProductDetailModal({ isOpen, onClose, product, onAddToCart }) {
 
                    {/* Structured Luxury Specs Grid */}
                   {luxuryAttributes && luxuryAttributes.length > 0 && (
-                    <div className="space-y-2" id="detail_modal_luxury_specs">
+                    <div className="space-y-2.5" id="detail_modal_luxury_specs">
                       <h4 className="text-[10px] uppercase font-bold tracking-widest text-[var(--text-secondary)]/80">Luxury Specifications</h4>
-                      <div className="grid grid-cols-2 gap-3 bg-[var(--surface)] p-3.5 rounded-xl border border-[var(--border)]/50 shadow-3xs">
+                      <div className="grid grid-cols-2 gap-3 bg-[var(--surface)]/50 p-4 rounded-2xl border border-[var(--border)]/20 shadow-4xs">
                         {luxuryAttributes.map((attr, idx) => (
-                          <div key={idx} className="bg-[var(--bg)]/50 p-2.5 rounded-lg border border-[var(--border)]/30 space-y-0.5">
+                          <div key={idx} className="bg-[var(--bg)]/50 p-2.5 rounded-lg border border-[var(--border)]/15 space-y-1">
                             <span className="text-[9px] uppercase font-sans tracking-wider text-[var(--text-secondary)]/80 block">{attr.label}</span>
                             <span className="text-[11px] font-semibold text-[var(--text-primary)] leading-snug break-words">{attr.value}</span>
                           </div>
@@ -657,10 +657,10 @@ export function ProductDetailModal({ isOpen, onClose, product, onAddToCart }) {
                     <div className="space-y-3" id="detail_modal_curator_transparency">
                       <h4 className="text-[10px] uppercase font-bold tracking-widest text-[var(--text-secondary)]/80">Transparency Report</h4>
                       
-                      <div className="bg-[var(--surface)] rounded-xl border border-[var(--border)]/50 p-4 space-y-3.5 shadow-3xs">
+                      <div className="bg-[var(--surface)]/50 rounded-2xl border border-[var(--border)]/20 p-5 space-y-4 shadow-4xs">
                         {/* 1. Material */}
                         <div className="flex gap-3 items-start">
-                          <div className="w-7 h-7 rounded-lg bg-[var(--bg)] border border-[var(--border)]/35 text-[var(--gold)] flex items-center justify-center shrink-0 mt-0.5">
+                          <div className="w-7 h-7 rounded-lg bg-[var(--bg)] border border-[var(--border)]/15 text-[var(--gold)] flex items-center justify-center shrink-0 mt-0.5">
                             <Award size={13} />
                           </div>
                           <div className="space-y-0.5">
@@ -670,8 +670,8 @@ export function ProductDetailModal({ isOpen, onClose, product, onAddToCart }) {
                         </div>
 
                         {/* 2. Dimensions */}
-                        <div className="flex gap-3 items-start border-t border-[var(--border)]/30 pt-3">
-                          <div className="w-7 h-7 rounded-lg bg-[var(--bg)] border border-[var(--border)]/35 text-[var(--gold)] flex items-center justify-center shrink-0 mt-0.5">
+                        <div className="flex gap-3 items-start border-t border-[var(--border)]/15 pt-3.5">
+                          <div className="w-7 h-7 rounded-lg bg-[var(--bg)] border border-[var(--border)]/15 text-[var(--gold)] flex items-center justify-center shrink-0 mt-0.5">
                             <Ruler size={13} />
                           </div>
                           <div className="space-y-0.5">
@@ -681,8 +681,8 @@ export function ProductDetailModal({ isOpen, onClose, product, onAddToCart }) {
                         </div>
 
                         {/* 3. Inclusions */}
-                        <div className="flex gap-3 items-start border-t border-[var(--border)]/30 pt-3">
-                          <div className="w-7 h-7 rounded-lg bg-[var(--bg)] border border-[var(--border)]/35 text-[var(--gold)] flex items-center justify-center shrink-0 mt-0.5">
+                        <div className="flex gap-3 items-start border-t border-[var(--border)]/15 pt-3.5">
+                          <div className="w-7 h-7 rounded-lg bg-[var(--bg)] border border-[var(--border)]/15 text-[var(--gold)] flex items-center justify-center shrink-0 mt-0.5">
                             <Gift size={13} />
                           </div>
                           <div className="space-y-0.5">
@@ -692,7 +692,7 @@ export function ProductDetailModal({ isOpen, onClose, product, onAddToCart }) {
                         </div>
 
                         {/* 4. Condition Flaws & Wear */}
-                        <div className="flex gap-3 items-start border-t border-[var(--border)]/30 pt-3">
+                        <div className="flex gap-3 items-start border-t border-[var(--border)]/15 pt-3.5">
                           <div className="w-7 h-7 rounded-lg bg-[var(--gold)]/10 border border-[var(--gold)]/20 text-[var(--gold)] flex items-center justify-center shrink-0 mt-0.5">
                             <AlertCircle size={13} />
                           </div>
@@ -716,17 +716,17 @@ export function ProductDetailModal({ isOpen, onClose, product, onAddToCart }) {
                   {(currentItem.detail || currentItem.description) && (
                     <div className="space-y-2">
                       <h4 className="text-[10px] uppercase font-bold tracking-widest text-[var(--text-secondary)]/80">Curation Background & Legacy</h4>
-                      <div className="text-xs text-[var(--text-secondary)] leading-relaxed space-y-2 font-sans font-light bg-[var(--surface)] p-4 rounded-xl border border-[var(--border)]/40">
+                      <div className="text-xs text-[var(--text-secondary)] leading-relaxed space-y-2 font-sans font-light bg-[var(--surface)]/50 p-5 rounded-2xl border border-[var(--border)]/20 shadow-4xs">
                         {currentItem.detail && <p className="font-normal text-[var(--text-primary)] whitespace-pre-line">{currentItem.detail}</p>}
                         {currentItem.description && currentItem.description !== currentItem.detail && (
-                          <p className="border-t border-[var(--border)]/40 pt-2 text-[var(--text-secondary)] whitespace-pre-line">{currentItem.description}</p>
+                          <p className="border-t border-[var(--border)]/15 pt-3 text-[var(--text-secondary)] whitespace-pre-line">{currentItem.description}</p>
                         )}
                       </div>
                     </div>
                   )}
 
                   {/* Authenticity notes & In-House Certified Guarantee */}
-                  <div className="bg-[var(--surface)] border-l-4 border-[var(--gold)] p-4 rounded-r-xl space-y-1.5 shadow-sm">
+                  <div className="bg-[var(--surface)]/50 border-l-4 border-[var(--gold)] p-5 rounded-r-2xl border-t border-b border-r border-[var(--border)]/15 space-y-2 shadow-4xs">
                     <span className="text-[10px] uppercase font-bold tracking-widest text-[var(--text-primary)] flex items-center gap-1">
                       <ShieldCheck size={13} className="text-[var(--gold)]" /> Authenticity Assured
                     </span>
@@ -734,7 +734,7 @@ export function ProductDetailModal({ isOpen, onClose, product, onAddToCart }) {
                       Each curated item undergoes a meticulous dual-verifier authentication process. Verified genuine. Unconditional authenticity guarantee.
                     </p>
                     {currentItem.authenticityNotes && (
-                      <p className="text-[11px] text-[var(--text-secondary)] italic border-t border-[var(--border)]/60 pt-1.5 mt-1.5">
+                      <p className="text-[11px] text-[var(--text-secondary)] italic border-t border-[var(--border)]/15 pt-2.5 mt-2.5">
                         <strong className="text-[var(--text-primary)] not-italic block text-[9px] uppercase tracking-wider mb-0.5">Verification Notes:</strong>
                         {currentItem.authenticityNotes}
                       </p>
@@ -774,10 +774,10 @@ export function ProductDetailModal({ isOpen, onClose, product, onAddToCart }) {
                   </div>
 
                   {/* Direct Instant Chat Inquiries */}
-                  <div className="flex gap-2 text-white">
+                  <div className="flex gap-2">
                     {whatsappHref && (
                       <a
-                        className="flex-1 min-h-[44px] inline-flex items-center justify-center gap-1.5 rounded-lg font-sans text-xs font-bold uppercase tracking-wider bg-[#25D366] hover:brightness-95 transition-all text-stone-950 active:scale-98"
+                        className="flex-1 min-h-[44px] inline-flex items-center justify-center gap-1.5 rounded-lg font-sans text-xs font-bold uppercase tracking-wider bg-stone-100 dark:bg-stone-800/40 text-stone-700 dark:text-stone-300 border border-stone-200/60 dark:border-stone-700/60 hover:bg-[#25D366] hover:text-stone-950 hover:border-[#25D366] focus:bg-[#25D366] focus:text-stone-950 focus:border-[#25D366] transition-all duration-300 active:scale-98"
                         href={whatsappHref}
                         target="_blank"
                         rel="noopener noreferrer"
@@ -788,7 +788,7 @@ export function ProductDetailModal({ isOpen, onClose, product, onAddToCart }) {
                     )}
                     {viberHref && (
                       <a
-                        className="flex-1 min-h-[44px] inline-flex items-center justify-center gap-1.5 rounded-lg font-sans text-xs font-bold uppercase tracking-wider bg-[#7360F2] hover:brightness-95 transition-all text-white active:scale-98"
+                        className="flex-1 min-h-[44px] inline-flex items-center justify-center gap-1.5 rounded-lg font-sans text-xs font-bold uppercase tracking-wider bg-stone-100 dark:bg-stone-800/40 text-stone-700 dark:text-stone-300 border border-stone-200/60 dark:border-stone-700/60 hover:bg-[#7360F2] hover:text-white hover:border-[#7360F2] focus:bg-[#7360F2] focus:text-white focus:border-[#7360F2] transition-all duration-300 active:scale-98"
                         href={viberHref}
                         onClick={event => openContact(event, viberHref, currentItem)}
                         aria-label="Inquire via Viber"
@@ -798,7 +798,7 @@ export function ProductDetailModal({ isOpen, onClose, product, onAddToCart }) {
                     )}
                     {messengerHref && (
                       <a
-                        className="flex-1 min-h-[44px] inline-flex items-center justify-center gap-1.5 rounded-lg font-sans text-xs font-bold uppercase tracking-wider bg-[#0084FF] hover:brightness-95 transition-all text-white active:scale-98"
+                        className="flex-1 min-h-[44px] inline-flex items-center justify-center gap-1.5 rounded-lg font-sans text-xs font-bold uppercase tracking-wider bg-stone-100 dark:bg-stone-800/40 text-stone-700 dark:text-stone-300 border border-stone-200/60 dark:border-stone-700/60 hover:bg-[#0084FF] hover:text-white hover:border-[#0084FF] focus:bg-[#0084FF] focus:text-white focus:border-[#0084FF] transition-all duration-300 active:scale-98"
                         href={messengerHref}
                         target="_blank"
                         rel="noopener noreferrer"
@@ -842,7 +842,7 @@ export function ProductDetailModal({ isOpen, onClose, product, onAddToCart }) {
                   className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl"
                   referrerPolicy="no-referrer"
                 />
-                <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-stone-400 font-mono text-xs bg-stone-900/80 px-4 py-1.5 rounded-full border border-stone-800/50 shadow-md">
+                <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-stone-300 font-sans text-[10px] uppercase tracking-[0.2em] bg-stone-900/90 px-5 py-2 rounded-full border border-stone-800/50 shadow-md">
                   Photo {activePhoto + 1} of {photos.length} • Click anywhere to return
                 </div>
               </motion.div>

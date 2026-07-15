@@ -3,7 +3,7 @@ import {
   AreaChart, Area, BarChart, Bar,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
 } from 'recharts';
-import { TrendingUp, ShoppingBag, Package, DollarSign, Trash2, PlusCircle } from 'lucide-react';
+import { TrendingUp, ShoppingBag, Package, DollarSign, Trash2, PlusCircle, Users } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
 import styles from './ReportsTab.module.css';
 
@@ -18,7 +18,7 @@ function getMonthKey(dateStr) {
 }
 
 export function ReportsTab({ onSwitchTab }) {
-  const { sales, batches, products, catalogItems, recordManualSale, deleteSale, inventoryValuation } = useStore();
+  const { sales, batches, products, catalogItems, recordManualSale, deleteSale, inventoryValuation, visits } = useStore();
   const [activeSection, setActiveSection] = useState('overview');
 
   // --- Manual Sale Entry States ---
@@ -176,6 +176,7 @@ export function ReportsTab({ onSwitchTab }) {
     { label: 'Net Profit',      value: fmt(totalProfit),    icon: TrendingUp,  color: '#C9A84C', bg: '#FBF5E8' },
     { label: 'Items Sold',      value: sales.reduce((sum, s) => sum + s.items.reduce((sumI, i) => sumI + i.qty, 0), 0), icon: ShoppingBag, color: '#185FA5', bg: '#E6F1FB' },
     { label: 'Inventory Valuation', value: fmt(inStockValue), icon: Package,     color: '#993C1D', bg: '#FDF0EE' },
+    { label: 'Website Visits',  value: (visits || 0).toLocaleString(), icon: Users, color: '#8C3D3D', bg: '#FAF0F0' },
   ];
 
   const SECTIONS = [

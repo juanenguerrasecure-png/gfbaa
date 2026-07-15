@@ -73,28 +73,13 @@ export function AdminLogin({ onBack, onSuccess }) {
 
           {loginError && <p className={styles.error} role="alert">{loginError}</p>}
 
-          <div className="flex items-center justify-between bg-stone-50 border border-stone-200/60 p-3 rounded text-xs text-stone-700 font-sans mb-4">
-            <span>Demo Account:</span>
-            <button
-              type="button"
-              onClick={() => {
-                setUsername('admin');
-                setPassword('password123');
-                setLoginError('');
-              }}
-              className="text-amber-700 hover:text-amber-800 font-semibold uppercase tracking-wider text-[10px] cursor-pointer"
-            >
-              Fill admin/password123
-            </button>
-          </div>
-
           <button type="submit" disabled={isSubmitting} className={styles.submitBtn}>
             {isSubmitting ? 'Signing in...' : 'Sign in'}
           </button>
         </form>
 
         <p className={styles.hint}>
-          Use the administrator account created during first-run setup.
+          Use your administrator account credentials to log in.
         </p>
 
         <button className={styles.backLink} onClick={onBack}>
