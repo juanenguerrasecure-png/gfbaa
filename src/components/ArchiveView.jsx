@@ -205,11 +205,11 @@ export function ArchiveView() {
     <div className="bg-[var(--bg)] text-[var(--text-primary)] min-h-screen py-16 px-6 transition-colors duration-500" id="archive_view_container">
       {/* Header */}
       <div className="max-w-4xl mx-auto text-center mb-14">
-        <span className="text-[10px] uppercase font-sans tracking-[0.3em] font-bold text-accent mb-2 block">
+        <span className="text-[10px] uppercase font-sans tracking-[0.25em] font-semibold text-[var(--accent)] mb-2 block">
           Archival Portfolio
         </span>
-        <h1 className="font-display text-3xl md:text-5xl font-light text-[var(--text-primary)] tracking-tight leading-tight">
-          Past Collections
+        <h1 className="font-serif text-3xl md:text-5xl font-light text-[var(--text-primary)] tracking-tight leading-tight">
+          Past <span className="italic font-normal text-[var(--text-secondary)]">Collections</span>
         </h1>
         <p className="text-[var(--text-secondary)] font-sans text-xs md:text-sm max-w-lg mx-auto mt-4 leading-relaxed font-light">
           {siteContent?.archiveIntro || 'A historical directory of our most coveted acquisitions that have found their permanent homes with new collectors.'}

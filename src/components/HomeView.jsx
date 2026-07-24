@@ -6,10 +6,11 @@ import { useWishlist } from '../hooks/useWishlist';
 import { Sparkles, ShoppingBag, Heart, ArrowRight, ShieldCheck, Award, Search, Compass } from 'lucide-react';
 import { AskMeBanner } from './AskMeBanner';
 import { placeholderImages } from '../placeholderImages';
+import { ScrollFadeIn } from './ScrollFadeIn';
 
 export function HomeView({ onViewChange, onAddToCart, showToast, onOpenAskMe }) {
   const { catalogItems, getCatalogItemStock, exchangeRate, siteContent, galleryPhotos, pastCollections } = useStore();
-  const { currency } = useCurrency();
+  const { currency, toggleCurrency } = useCurrency();
   const { toggleWishlist, isWishlisted } = useWishlist();
 
   const [email, setEmail] = useState('');
@@ -81,13 +82,21 @@ export function HomeView({ onViewChange, onAddToCart, showToast, onOpenAskMe }) 
       {/* Shortened, Seasonal Hero Header */}
       <Hero slim={true} />
 
+      {/* Subtle Visual Transition Bridge Line to tight visual relationship */}
+      <div className="flex justify-center -mt-6 mb-2 relative z-20">
+        <div className="w-[1px] h-12 bg-gradient-to-b from-[var(--border)] via-[var(--accent)] to-transparent opacity-60" />
+      </div>
+
       {/* Main Exploration Tiles */}
-      <div className="max-w-7xl mx-auto px-6 py-12">
-        <div className="text-center mb-10">
-          <h2 className="font-display text-2xl md:text-3xl font-light text-[var(--text-primary)] tracking-tight">
-            Explore the Curation
+      <div className="max-w-7xl mx-auto px-6 pt-6 pb-12">
+        <div className="text-center mb-12">
+          <span className="text-[10px] uppercase font-sans tracking-[0.25em] font-semibold text-[var(--accent)] block mb-2">
+            Seasonal Curations
+          </span>
+          <h2 className="font-serif text-2xl md:text-4xl font-light text-[var(--text-primary)] tracking-tight">
+            Explore the <span className="italic font-normal text-[var(--text-secondary)]">Curation</span>
           </h2>
-          <p className="text-[var(--text-secondary)] text-xs font-sans mt-2 tracking-wide uppercase">
+          <p className="text-[var(--text-secondary)] text-[10px] font-sans mt-3 tracking-[0.25em] uppercase">
             Sourced with refinement, preserved for posterity
           </p>
         </div>
@@ -107,15 +116,17 @@ export function HomeView({ onViewChange, onAddToCart, showToast, onOpenAskMe }) 
               loading="lazy"
               referrerPolicy="no-referrer"
             />
-            <div className="absolute inset-x-0 bottom-0 p-6 z-20 flex flex-col justify-end text-white">
-              <span className="text-[10px] uppercase font-sans tracking-widest font-bold text-amber-100 mb-1">Editorial</span>
-              <h3 className="font-display text-xl font-medium mb-1 tracking-tight">Gallery</h3>
-              <p className="text-stone-200 text-xs font-sans line-clamp-2 mb-4 font-light leading-relaxed">
+            <div className="absolute inset-x-0 bottom-0 p-8 md:p-10 pb-8 z-20 flex flex-col justify-end text-white">
+              <span className="text-[10px] uppercase font-sans tracking-[0.25em] font-semibold text-amber-100/95 mb-2 block">Editorial</span>
+              <h3 className="font-serif text-2xl font-light mb-2 tracking-tight">Gallery</h3>
+              <p className="text-stone-200/90 text-xs font-sans line-clamp-2 mb-5 font-light leading-relaxed">
                 {siteContent?.galleryIntro || 'Visual diaries, styling stories, and close-up lifestyle curations.'}
               </p>
-              <div className="flex items-center gap-1.5 text-xs font-semibold text-white group-hover:translate-x-1 transition-transform">
-                <span>Explore</span>
-                <ArrowRight size={13} className="text-[var(--accent)]" />
+              <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-white group/explore self-start">
+                <span className="relative pb-0.5 after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1px] after:bg-white group-hover:after:w-full after:transition-all after:duration-300">
+                  Explore
+                </span>
+                <ArrowRight size={13} className="text-[var(--accent)] transition-transform duration-300 group-hover:translate-x-1" />
               </div>
             </div>
           </div>
@@ -134,15 +145,17 @@ export function HomeView({ onViewChange, onAddToCart, showToast, onOpenAskMe }) 
               loading="lazy"
               referrerPolicy="no-referrer"
             />
-            <div className="absolute inset-x-0 bottom-0 p-6 z-20 flex flex-col justify-end text-white">
-              <span className="text-[10px] uppercase font-sans tracking-widest font-bold text-amber-100 mb-1">Available Curation</span>
-              <h3 className="font-display text-xl font-medium mb-1 tracking-tight">Current Selections</h3>
-              <p className="text-stone-200 text-xs font-sans line-clamp-2 mb-4 font-light leading-relaxed">
+            <div className="absolute inset-x-0 bottom-0 p-8 md:p-10 pb-8 z-20 flex flex-col justify-end text-white">
+              <span className="text-[10px] uppercase font-sans tracking-[0.25em] font-semibold text-amber-100/95 mb-2 block">Available Curation</span>
+              <h3 className="font-serif text-2xl font-light mb-2 tracking-tight">Current Selections</h3>
+              <p className="text-stone-200/90 text-xs font-sans line-clamp-2 mb-5 font-light leading-relaxed">
                 {siteContent?.shopIntro || 'Vetted designer handbags, fine pieces, and pristine seasonal acquisitions.'}
               </p>
-              <div className="flex items-center gap-1.5 text-xs font-semibold text-white group-hover:translate-x-1 transition-transform">
-                <span>Explore</span>
-                <ArrowRight size={13} className="text-[var(--accent)]" />
+              <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-white group/explore self-start">
+                <span className="relative pb-0.5 after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1px] after:bg-white group-hover:after:w-full after:transition-all after:duration-300">
+                  Explore
+                </span>
+                <ArrowRight size={13} className="text-[var(--accent)] transition-transform duration-300 group-hover:translate-x-1" />
               </div>
             </div>
           </div>
@@ -161,15 +174,17 @@ export function HomeView({ onViewChange, onAddToCart, showToast, onOpenAskMe }) 
               loading="lazy"
               referrerPolicy="no-referrer"
             />
-            <div className="absolute inset-x-0 bottom-0 p-6 z-20 flex flex-col justify-end text-white">
-              <span className="text-[10px] uppercase font-sans tracking-widest font-bold text-amber-100 mb-1">Archive Portfolio</span>
-              <h3 className="font-display text-xl font-medium mb-1 tracking-tight">Past Collections</h3>
-              <p className="text-stone-200 text-xs font-sans line-clamp-2 mb-4 font-light leading-relaxed">
+            <div className="absolute inset-x-0 bottom-0 p-8 md:p-10 pb-8 z-20 flex flex-col justify-end text-white">
+              <span className="text-[10px] uppercase font-sans tracking-[0.25em] font-semibold text-amber-100/95 mb-2 block">Archive Portfolio</span>
+              <h3 className="font-serif text-2xl font-light mb-2 tracking-tight">Past Collections</h3>
+              <p className="text-stone-200/90 text-xs font-sans line-clamp-2 mb-5 font-light leading-relaxed">
                 {siteContent?.archiveIntro || 'An archival directory of previously loved curations now residing with new owners.'}
               </p>
-              <div className="flex items-center gap-1.5 text-xs font-semibold text-white group-hover:translate-x-1 transition-transform">
-                <span>Explore</span>
-                <ArrowRight size={13} className="text-[var(--accent)]" />
+              <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-white group/explore self-start">
+                <span className="relative pb-0.5 after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1px] after:bg-white group-hover:after:w-full after:transition-all after:duration-300">
+                  Explore
+                </span>
+                <ArrowRight size={13} className="text-[var(--accent)] transition-transform duration-300 group-hover:translate-x-1" />
               </div>
             </div>
           </div>
@@ -180,7 +195,10 @@ export function HomeView({ onViewChange, onAddToCart, showToast, onOpenAskMe }) 
           <div className="mt-16 border-t border-[var(--border)]/20 pt-16" id="home_new_arrivals_strip">
             <div className="flex justify-between items-end mb-8">
               <div>
-                <h2 className="font-display text-xl md:text-2xl font-light text-[var(--text-primary)] flex items-center gap-2">
+                <span className="text-[10px] uppercase font-sans tracking-[0.25em] font-semibold text-[var(--accent)] block mb-1">
+                  Private Vault
+                </span>
+                <h2 className="font-serif text-xl md:text-3xl font-light text-[var(--text-primary)] flex items-center gap-2">
                   <Sparkles size={16} className="text-[var(--accent)]" />
                   New Acquisitions
                 </h2>
@@ -197,8 +215,8 @@ export function HomeView({ onViewChange, onAddToCart, showToast, onOpenAskMe }) 
               </button>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-              {newArrivals.map(item => {
+            <div className={newArrivals.length === 1 ? "flex justify-center max-w-sm mx-auto" : "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6"}>
+              {newArrivals.map((item, index) => {
                 const isLiked = isWishlisted(item.id);
                 const photos = (() => {
                   const list = [];
@@ -210,65 +228,81 @@ export function HomeView({ onViewChange, onAddToCart, showToast, onOpenAskMe }) 
                 })();
 
                 return (
-                  <div 
-                    key={item.id}
-                    onClick={() => handleProductClick(item)}
-                    className="group rounded-2xl border border-[var(--border)]/15 overflow-hidden shadow-2xs hover:shadow-sm flex flex-col bg-[var(--surface)] transition-all cursor-pointer"
-                    id={`home_arrival_${item.id}`}
-                  >
-                    <div className="aspect-square bg-[var(--bg)] overflow-hidden relative flex items-center justify-center">
-                      {photos.length > 0 ? (
-                        <img 
-                          src={photos[0]} 
-                          alt={item.name} 
-                          className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500 ease-out"
-                          loading="lazy"
-                        />
-                      ) : (
-                        <div className="text-[var(--text-secondary)] uppercase font-bold text-xs tracking-wider">Good Finds</div>
-                      )}
+                  <ScrollFadeIn key={item.id} delay={(index % 4) * 60}>
+                    <div 
+                      onClick={() => handleProductClick(item)}
+                      className="group rounded-2xl border border-[var(--border)]/15 overflow-hidden shadow-2xs hover:shadow-sm flex flex-col bg-[var(--surface)] transition-all cursor-pointer w-full"
+                      id={`home_arrival_${item.id}`}
+                    >
+                      <div className="aspect-square bg-[var(--bg)] overflow-hidden relative flex items-center justify-center">
+                        {photos.length > 0 ? (
+                          <img 
+                            src={photos[0]} 
+                            alt={item.name} 
+                            className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500 ease-out"
+                            loading="lazy"
+                          />
+                        ) : (
+                          <div className="text-[var(--text-secondary)] uppercase font-bold text-xs tracking-wider">Good Finds</div>
+                        )}
 
-                      {item.condition && (
-                        <span className="absolute top-2.5 left-2.5 px-2 py-0.5 text-[8px] font-sans font-bold uppercase tracking-wider rounded bg-stone-900/90 text-stone-100">
-                          {item.condition === 'mint' || item.condition === 'new' ? 'Mint' : item.condition}
-                        </span>
-                      )}
+                        {newArrivals.length === 1 && (
+                          <span className="absolute top-2.5 left-2.5 px-2 py-0.5 text-[8px] font-sans font-extrabold uppercase tracking-[0.15em] rounded bg-[var(--accent)] text-white shadow-xs">
+                            Curated Spotlight Piece
+                          </span>
+                        )}
 
-                      <button
-                        type="button"
-                        onClick={(e) => { e.stopPropagation(); toggleWishlist(item.id); }}
-                        className={`absolute top-2.5 right-2.5 w-7 h-7 rounded-full bg-[var(--surface)]/95 hover:bg-[var(--surface)] border border-[var(--border)]/30 flex items-center justify-center shadow-sm transition-all text-[var(--text-secondary)] hover:text-[var(--accent)]`}
-                      >
-                        <Heart size={12} fill={isLiked ? 'var(--accent)' : 'none'} stroke={isLiked ? 'var(--accent)' : 'currentColor'} />
-                      </button>
-                    </div>
+                        {item.condition && newArrivals.length !== 1 && (
+                          <span className="absolute top-2.5 left-2.5 px-2 py-0.5 text-[8px] font-sans font-bold uppercase tracking-wider rounded bg-stone-900/90 text-stone-100">
+                            {item.condition === 'mint' || item.condition === 'new' ? 'Mint' : item.condition}
+                          </span>
+                        )}
 
-                    <div className="p-4 flex-1 flex flex-col justify-between">
-                      <div>
-                        <div className="text-[9px] font-semibold text-[var(--text-secondary)] tracking-widest uppercase mb-0.5">
-                          {item.brand || 'Luxury Piece'}
-                        </div>
-                        <h3 className="font-display text-xs font-medium text-[var(--text-primary)] group-hover:text-[var(--accent)] transition-colors duration-200 line-clamp-1 mb-1">
-                          {item.name}
-                        </h3>
-                      </div>
-                      
-                      <div className="flex items-center justify-between pt-2 border-t border-[var(--border)]/15 mt-2">
-                        <span className="text-xs font-semibold text-[var(--text-primary)] font-serif">
-                          {formatProductPrice(item, currency, exchangeRate)}
-                        </span>
-                        
                         <button
                           type="button"
-                          onClick={(e) => { e.stopPropagation(); onAddToCart(item); }}
-                          className="w-7 h-7 rounded-full border border-[var(--border)]/40 hover:border-[var(--accent)] hover:bg-[var(--accent)] hover:text-[var(--btn-primary-fg)] flex items-center justify-center text-[var(--text-secondary)] transition-all cursor-pointer"
-                          title="Add to bag"
+                          onClick={(e) => { e.stopPropagation(); toggleWishlist(item.id); }}
+                          className={`absolute top-2.5 right-2.5 w-7 h-7 rounded-full bg-[var(--surface)]/95 hover:bg-[var(--surface)] border border-[var(--border)]/30 flex items-center justify-center shadow-sm transition-all text-[var(--text-secondary)] hover:text-[var(--accent)]`}
                         >
-                          <ShoppingBag size={11} />
+                          <Heart size={12} fill={isLiked ? 'var(--accent)' : 'none'} stroke={isLiked ? 'var(--accent)' : 'currentColor'} />
                         </button>
                       </div>
+
+                      <div className="p-4 flex-1 flex flex-col justify-between">
+                        <div>
+                          <div className="text-[9px] font-semibold text-[var(--text-secondary)] tracking-[0.2em] uppercase mb-1">
+                            {item.brand || 'Luxury Piece'}
+                          </div>
+                          <h3 className="font-serif text-sm font-light text-[var(--text-primary)] group-hover:text-[var(--accent)] transition-colors duration-200 line-clamp-1 mb-1">
+                            {item.name}
+                          </h3>
+                        </div>
+                        
+                        <div className="flex items-center justify-between pt-2 border-t border-[var(--border)]/15 mt-2">
+                          <div 
+                            className="flex items-center gap-1.5 cursor-pointer group/price hover:text-[var(--accent)] transition-colors"
+                            onClick={(e) => { e.stopPropagation(); toggleCurrency(); }}
+                            title="Click to toggle PHP / USD"
+                          >
+                            <span className="text-xs font-semibold text-[var(--text-primary)] group-hover/price:text-[var(--accent)] font-serif transition-colors">
+                              {formatProductPrice(item, currency, exchangeRate)}
+                            </span>
+                            <span className="text-[8px] font-sans font-extrabold uppercase px-1 py-0.5 rounded-sm bg-stone-100 text-stone-500 group-hover/price:bg-amber-100 group-hover/price:text-amber-800 transition-all tracking-wider">
+                              {currency}
+                            </span>
+                          </div>
+                          
+                          <button
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); onAddToCart(item); }}
+                            className="w-7 h-7 rounded-full border border-[var(--border)]/40 hover:border-[var(--accent)] hover:bg-[var(--accent)] hover:text-[var(--btn-primary-fg)] flex items-center justify-center text-[var(--text-secondary)] transition-all cursor-pointer"
+                            title="Add to bag"
+                          >
+                            <ShoppingBag size={11} />
+                          </button>
+                        </div>
+                      </div>
                     </div>
-                  </div>
+                  </ScrollFadeIn>
                 );
               })}
             </div>
@@ -281,24 +315,15 @@ export function HomeView({ onViewChange, onAddToCart, showToast, onOpenAskMe }) 
         {/* The Good Finds Luxury Promise Section */}
         <div className="mt-24 border-t border-[var(--border)]/20 pt-16" id="home_luxury_promise_section">
           <div className="text-center mb-12">
-            <h2 className="font-display text-2xl md:text-3xl font-light text-[var(--text-primary)] tracking-tight">
+            <span className="text-[10px] uppercase font-sans tracking-[0.25em] font-semibold text-[var(--accent)] block mb-2">
+              Our Commitment
+            </span>
+            <h2 className="font-serif text-2xl md:text-4xl font-light text-[var(--text-primary)] tracking-tight">
               The Good Finds Luxury Promise
             </h2>
-            <p className="text-[var(--text-secondary)] text-xs font-sans mt-2 tracking-wide uppercase max-w-lg mx-auto leading-relaxed">
+            <p className="text-[var(--text-secondary)] text-xs font-sans mt-3 max-w-lg mx-auto leading-relaxed">
               Every vintage handbag and 18K fine jewelry piece is selected with uncompromising standards of authenticity, beauty, and craftsmanship.
             </p>
-          </div>
-
-          {/* Elegant Editorial Visual Banner */}
-          <div className="max-w-4xl mx-auto mb-16 rounded-2xl overflow-hidden h-48 md:h-64 relative border border-[var(--border)]/15 shadow-2xs">
-            <img
-              src={placeholderImages.luxuryPromise}
-              alt="Luxury Promise Detailing"
-              className="w-full h-full object-cover"
-              loading="lazy"
-              referrerPolicy="no-referrer"
-            />
-            <div className="absolute inset-0 bg-stone-900/5" />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -306,7 +331,7 @@ export function HomeView({ onViewChange, onAddToCart, showToast, onOpenAskMe }) 
               <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-[var(--bg)] text-[var(--gold)] border border-[var(--border)]/15 shadow-3xs">
                 <Award size={18} strokeWidth={2} />
               </div>
-              <h3 className="font-display text-sm font-semibold text-[var(--text-primary)] tracking-tight">18K Gold Verification</h3>
+              <h3 className="font-serif text-base font-normal text-[var(--text-primary)] tracking-tight">18K Gold Verification</h3>
               <p className="text-[var(--text-secondary)] text-xs font-sans leading-relaxed">
                 All jewelry listed is tested using precision acid-density methods and inspected for authentic vintage hallmarks or official stamps.
               </p>
@@ -316,7 +341,7 @@ export function HomeView({ onViewChange, onAddToCart, showToast, onOpenAskMe }) 
               <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-[var(--bg)] text-[var(--gold)] border border-[var(--border)]/15 shadow-3xs">
                 <ShieldCheck size={18} strokeWidth={2} />
               </div>
-              <h3 className="font-display text-sm font-semibold text-[var(--text-primary)] tracking-tight">Authenticity Guarantee</h3>
+              <h3 className="font-serif text-base font-normal text-[var(--text-primary)] tracking-tight">Authenticity Guarantee</h3>
               <p className="text-[var(--text-secondary)] text-xs font-sans leading-relaxed">
                 Every bag and accessory undergoes a meticulous multi-point inspection of stitching, date codes, hardware engraving, and weight.
               </p>
@@ -326,7 +351,7 @@ export function HomeView({ onViewChange, onAddToCart, showToast, onOpenAskMe }) 
               <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-[var(--bg)] text-[var(--gold)] border border-[var(--border)]/15 shadow-3xs">
                 <Search size={18} strokeWidth={2} />
               </div>
-              <h3 className="font-display text-sm font-semibold text-[var(--text-primary)] tracking-tight">Honest Condition Grading</h3>
+              <h3 className="font-serif text-base font-normal text-[var(--text-primary)] tracking-tight">Honest Condition Grading</h3>
               <p className="text-[var(--text-secondary)] text-xs font-sans leading-relaxed">
                 We assign strict and conservative condition reports. High-definition close-up photography ensures full visual transparency.
               </p>
@@ -336,7 +361,7 @@ export function HomeView({ onViewChange, onAddToCart, showToast, onOpenAskMe }) 
               <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-[var(--bg)] text-[var(--gold)] border border-[var(--border)]/15 shadow-3xs">
                 <Compass size={18} strokeWidth={2} />
               </div>
-              <h3 className="font-display text-sm font-semibold text-[var(--text-primary)] tracking-tight">Sourcing Concierge</h3>
+              <h3 className="font-serif text-base font-normal text-[var(--text-primary)] tracking-tight">Sourcing Concierge</h3>
               <p className="text-[var(--text-secondary)] text-xs font-sans leading-relaxed">
                 Searching for a rare vintage grail or a specific high-end 18K bracelet? Submit your request and our private shopper will find it.
               </p>

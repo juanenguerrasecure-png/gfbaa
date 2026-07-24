@@ -7,15 +7,16 @@ export default function ThemeToggle() {
     <button
       onClick={toggleTheme}
       className={styles.toggle}
+      id="theme_toggle_btn"
       title={theme === 'classic'
-        ? 'Switch to Editorial look'
-        : 'Switch to Classic look'}
+        ? 'Switch to New Look'
+        : 'Switch to Classic Look'}
     >
       <span className={styles.icon}>
-        {theme === 'classic' ? '◐' : '●'}
+        {theme === 'classic' ? '✨' : '🏛️'}
       </span>
       <span className={styles.label}>
-        {theme === 'classic' ? 'Editorial' : 'Classic'}
+        {theme === 'classic' ? 'New Look' : 'Classic Look'}
       </span>
     </button>
   );

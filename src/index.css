@@ -7,6 +7,18 @@
   --color-accent: var(--accent);
   --color-accent-deep: var(--accent-deep);
   --color-accent-soft: var(--accent-soft);
+
+  --animate-fade-in: fadeIn 0.6s ease-out forwards;
+  --animate-fade-in-up: fadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+
+  @keyframes fadeIn {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+  }
+  @keyframes fadeInUp {
+    0% { opacity: 0; transform: translateY(20px) scale(0.98); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+  }
 }
 
 :root {
@@ -87,20 +99,21 @@ html[data-season="classic"], :root[data-season="classic"] {
   --section-spacing: 80px;
 }
 
-/* Editorial / Gamma theme */
+/* Editorial / New Look theme */
 [data-theme="editorial"] {
-  --bg:              #F5F0E8;
-  --surface:         #EDE8E0;
-  --border:          #D8D0C4;
-  --text-primary:    #3D3228;
-  --text-secondary:  #7A6A58;
-  --gold:            #8B7355;
-  --btn-primary-bg:  #6B5744;
-  --btn-primary-fg:  #FAF8F5;
-  --btn-border:      #6B5744;
-  --icon-stroke:     1.2;
-  --card-radius:     4px;
-  --section-spacing: 96px;
+  --bg:              #151713;
+  --surface:         #1C1F19;
+  --border:          #33372E;
+  --text-primary:    #F4F0E8;
+  --text-secondary:  #B8B4AA;
+  --gold:            #C4A269;
+  --accent:          #C4A269;
+  --btn-primary-bg:  #F5F3EE;
+  --btn-primary-fg:  #151713;
+  --btn-border:      #B8A57A;
+  --icon-stroke:     1.5;
+  --card-radius:     0px;
+  --section-spacing: 80px;
 }
 
 body {

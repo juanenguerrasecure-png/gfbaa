@@ -18,8 +18,13 @@ function getMonthKey(dateStr) {
 }
 
 export function ReportsTab({ onSwitchTab }) {
-  const { sales, batches, products, catalogItems, recordManualSale, deleteSale, inventoryValuation, visits } = useStore();
+  const { sales, batches, products, catalogItems, recordManualSale, deleteSale, inventoryValuation, visits, updateVisitsValue } = useStore();
   const [activeSection, setActiveSection] = useState('overview');
+
+  // --- Visits Override States ---
+  const [visitsOverrideVal, setVisitsOverrideVal] = useState('');
+  const [isSubmittingVisits, setIsSubmittingVisits] = useState(false);
+  const [visitsMsg, setVisitsMsg] = useState(null);
 
   // --- Manual Sale Entry States ---
   const [showManualForm, setShowManualForm] = useState(false);
@@ -58,6 +63,26 @@ export function ReportsTab({ onSwitchTab }) {
       setManualPrice(String(Math.round(perUnit * nextQty * 100) / 100));
     }
     setManualQty(nextQty);
+  };
+
+  const handleVisitsOverrideSubmit = async (e) => {
+    e.preventDefault();
+    setVisitsMsg(null);
+    const val = parseInt(visitsOverrideVal, 10);
+    if (isNaN(val) || val < 0) {
+      setVisitsMsg({ type: 'error', text: 'Please enter a valid positive number' });
+      return;
+    }
+    setIsSubmittingVisits(true);
+    const res = await updateVisitsValue(val);
+    setIsSubmittingVisits(false);
+    if (res.ok) {
+      setVisitsMsg({ type: 'success', text: `Successfully updated website visits to ${val.toLocaleString()}!` });
+      setVisitsOverrideVal('');
+      setTimeout(() => setVisitsMsg(null), 4000);
+    } else {
+      setVisitsMsg({ type: 'error', text: res.error || 'Failed to update visits count.' });
+    }
   };
 
   const handleManualSaleSubmit = (e) => {
@@ -270,6 +295,41 @@ export function ReportsTab({ onSwitchTab }) {
               <div className={styles.summaryLabel}>Items in Stock</div>
               <div className={styles.summaryVal}>{batches.reduce((sum, b) => sum + b.remainingQty, 0)}</div>
             </div>
+          </div>
+
+          <div className="bg-stone-50 border border-stone-200 rounded-lg p-5 mt-6" id="admin_visits_override_card">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <h4 className="text-sm font-semibold text-stone-900 flex items-center gap-1.5">
+                  <Users size={16} className="text-[#C9A84C]" />
+                  Website Visits Counter Override
+                </h4>
+                <p className="text-xs text-stone-500 mt-0.5">
+                  Set the cumulative visit counter to show on the storefront. Use this to restore counts or celebrate custom milestones.
+                </p>
+              </div>
+              <form onSubmit={handleVisitsOverrideSubmit} className="flex items-center gap-2 max-w-sm w-full">
+                <input
+                  type="number"
+                  value={visitsOverrideVal}
+                  onChange={(e) => setVisitsOverrideVal(e.target.value)}
+                  placeholder={`Current: ${visits}`}
+                  className="bg-white border border-stone-300 rounded px-3 py-1.5 text-xs outline-none focus:border-[#C9A84C] w-full font-mono"
+                />
+                <button
+                  type="submit"
+                  disabled={isSubmittingVisits}
+                  className="bg-stone-900 text-white hover:bg-stone-800 disabled:opacity-50 text-xs font-semibold uppercase tracking-wider px-4 py-2 rounded transition-colors whitespace-nowrap cursor-pointer"
+                >
+                  {isSubmittingVisits ? 'Applying...' : 'Set Count'}
+                </button>
+              </form>
+            </div>
+            {visitsMsg && (
+              <p className={`text-xs mt-3 font-medium ${visitsMsg.type === 'error' ? 'text-red-600' : 'text-emerald-700'}`}>
+                {visitsMsg.text}
+              </p>
+            )}
           </div>
         </div>
       )}

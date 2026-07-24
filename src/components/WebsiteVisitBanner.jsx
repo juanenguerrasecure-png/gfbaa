@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Sparkles, Trophy, Users, X, Sliders, Settings, Check } from 'lucide-react';
+import { Sparkles, Trophy, Users, X, Check } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
-import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 
 const MILESTONES = [10, 50, 100, 250, 500, 1000, 2500, 5000, 10000];
 
@@ -26,8 +26,8 @@ export function getMilestoneInfo(visits) {
 }
 
 export function WebsiteVisitBanner() {
-  const { visits, updateVisitsValue } = useStore();
-  const { isAdmin } = useAuth();
+  const { visits } = useStore();
+  const { theme } = useTheme() || {};
   
   const [isDismissed, setIsDismissed] = useState(() => {
     return localStorage.getItem('gf_visits_banner_dismissed') === 'true';
@@ -36,10 +36,6 @@ export function WebsiteVisitBanner() {
     return localStorage.getItem('gf_visits_banner_collapsed') === 'true';
   });
   const [showStats, setShowStats] = useState(false);
-  const [adminOpen, setAdminOpen] = useState(false);
-  const [customValue, setCustomValue] = useState('');
-  const [errorMsg, setErrorMsg] = useState('');
-  const [successMsg, setSuccessMsg] = useState('');
 
   const milestoneInfo = getMilestoneInfo(visits);
   const reachedLatestMilestone = milestoneInfo.currentMilestone > 0;
@@ -71,44 +67,25 @@ export function WebsiteVisitBanner() {
     localStorage.setItem('gf_visits_banner_dismissed', 'true');
   };
 
-  const handleAdminUpdate = async (e) => {
-    e.preventDefault();
-    setErrorMsg('');
-    setSuccessMsg('');
-    const val = parseInt(customValue, 10);
-    if (isNaN(val) || val < 0) {
-      setErrorMsg('Please enter a valid positive number');
-      return;
-    }
-    const res = await updateVisitsValue(val);
-    if (res.ok) {
-      setSuccessMsg(`Successfully set counter to ${val}`);
-      setCustomValue('');
-      setTimeout(() => setSuccessMsg(''), 3000);
-    } else {
-      setErrorMsg(res.error || 'Failed to update visits counter');
-    }
-  };
-
-  if (isDismissed && !isAdmin) return null;
-
-  // We show a floating recovery trigger for admins or users if dismissed
-  if (isDismissed) {
+  // Dedicated New Look announcement bar (31px height, #151713 near black bg, #B8B4AA / #F4F0E8 text)
+  if (theme === 'editorial') {
     return (
-      <div className="fixed bottom-4 left-4 z-40">
+      <div className="w-full bg-[#151713] text-[#F4F0E8] select-none h-[31px] min-h-[31px] flex items-center justify-between px-4 sm:px-8 border-b border-[#33372E] relative z-40" id="website_announcement_bar">
+        <div className="flex-1 text-center font-sans font-light text-[7.5px] uppercase tracking-[0.3em] text-[#B8B4AA] line-clamp-1">
+          WORLDWIDE SOURCING &nbsp;·&nbsp; CAREFULLY AUTHENTICATED &nbsp;·&nbsp; PRIVATE CLIENT SERVICE
+        </div>
         <button 
-          onClick={() => {
-            setIsDismissed(false);
-            localStorage.removeItem('gf_visits_banner_dismissed');
-          }}
-          className="bg-stone-900 text-[var(--gold)] border border-stone-800 text-[10px] uppercase font-bold tracking-wider px-3 py-1.5 rounded-full shadow-lg hover:bg-stone-850 flex items-center gap-1.5 transition-all cursor-pointer"
+          onClick={() => setShowStats(!showStats)} 
+          className="text-[8px] uppercase font-mono font-medium tracking-wider text-[#C4A269] hover:text-[#F4F0E8] transition-colors ml-3 shrink-0 cursor-pointer"
+          title="Click to toggle visit statistics"
         >
-          <Users size={12} />
-          Show Counter ({visits})
+          {visits} VISITS
         </button>
       </div>
     );
   }
+
+  if (isDismissed) return null;
 
   return (
     <div className="relative w-full border-b border-[#E5DFD8] bg-[#FAF8F5] select-none text-stone-800 z-40" id="website_visits_banner">
@@ -181,17 +158,6 @@ export function WebsiteVisitBanner() {
               >
                 Stats
               </button>
-
-              {/* Admin Tools Button (If logged in as Admin) */}
-              {isAdmin && (
-                <button
-                  onClick={() => setAdminOpen(!adminOpen)}
-                  className={`text-stone-500 hover:text-stone-900 p-1 rounded hover:bg-stone-100 transition-all cursor-pointer ${adminOpen ? 'text-[var(--gold)] bg-stone-100' : ''}`}
-                  title="Admin Counter Override"
-                >
-                  <Settings size={14} />
-                </button>
-              )}
 
               {/* Dismiss Celebration/Banner Buttons */}
               {celebrateMilestone ? (
@@ -280,51 +246,6 @@ export function WebsiteVisitBanner() {
                     </p>
                   </div>
                 </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Expandable Admin Override Form */}
-        <AnimatePresence>
-          {isAdmin && adminOpen && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="overflow-hidden"
-            >
-              <div className="border-t border-stone-200 mt-2 pt-3 pb-2">
-                <form onSubmit={handleAdminUpdate} className="flex flex-wrap items-center gap-3">
-                  <div className="text-xs font-semibold text-stone-700 uppercase tracking-wider flex items-center gap-1.5">
-                    <Sliders size={13} className="text-[var(--gold)]" />
-                    Admin Counter Override:
-                  </div>
-                  
-                  <div className="flex items-center gap-1.5 min-w-[200px]">
-                    <input
-                      type="number"
-                      value={customValue}
-                      onChange={e => setCustomValue(e.target.value)}
-                      placeholder={`e.g. ${visits + 100}`}
-                      className="bg-white border border-stone-300 rounded px-2.5 py-1 text-xs outline-none focus:border-[var(--gold)] w-full font-mono"
-                    />
-                    <button
-                      type="submit"
-                      className="bg-stone-900 text-white hover:bg-stone-800 text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded transition-all cursor-pointer shrink-0"
-                    >
-                      Apply
-                    </button>
-                  </div>
-
-                  {errorMsg && <span className="text-red-600 text-xs font-medium">{errorMsg}</span>}
-                  {successMsg && <span className="text-emerald-700 text-xs font-medium">{successMsg}</span>}
-                  
-                  <span className="text-[10px] text-stone-400 ml-auto italic">
-                    Useful for syncing historical offline visits or restoring counters.
-                  </span>
-                </form>
               </div>
             </motion.div>
           )}

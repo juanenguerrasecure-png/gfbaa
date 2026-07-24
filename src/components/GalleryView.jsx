@@ -64,11 +64,11 @@ export function GalleryView({ onOpenAskMe }) {
     <div className="bg-[var(--bg)] text-[var(--text-primary)] min-h-screen py-16 px-6 transition-colors duration-500" id="gallery_view_container">
       {/* Header */}
       <div className="max-w-4xl mx-auto text-center mb-14">
-        <span className="text-[10px] uppercase font-sans tracking-[0.3em] font-bold text-accent mb-2 block">
+        <span className="text-[10px] uppercase font-sans tracking-[0.25em] font-semibold text-[var(--accent)] mb-2 block">
           Editorial Gallery
         </span>
-        <h1 className="font-display text-3xl md:text-5xl font-light text-[var(--text-primary)] tracking-tight leading-tight">
-          Visual Curation
+        <h1 className="font-serif text-3xl md:text-5xl font-light text-[var(--text-primary)] tracking-tight leading-tight">
+          Visual <span className="italic font-normal text-[var(--text-secondary)]">Curation</span>
         </h1>
         <p className="text-[var(--text-secondary)] font-sans text-xs md:text-sm max-w-lg mx-auto mt-4 leading-relaxed font-light">
           {siteContent?.galleryIntro || 'A purely visual journal of styling setups, fine-grained details, and lifestyle concepts from our sourcing diaries.'}

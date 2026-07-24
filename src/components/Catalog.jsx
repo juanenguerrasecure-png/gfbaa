@@ -76,8 +76,8 @@ export function Catalog({ items, activeFilter, onAddToCart, onClearFilter, sort,
         </div>
       ) : (
         <div className={styles.grid}>
-          {items.map(item => (
-            <ProductCard key={item.id} item={item} onAddToCart={onAddToCart} />
+          {items.map((item, index) => (
+            <ProductCard key={item.id} item={item} index={index} onAddToCart={onAddToCart} />
           ))}
         </div>
       )}

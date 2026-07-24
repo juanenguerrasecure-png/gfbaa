@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo } from 'react';
+import { useState, useRef, useMemo, useEffect } from 'react';
 import { Heart, ShoppingBag, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import { useAuth } from '../context/AuthContext';
@@ -49,10 +49,37 @@ function openContact(event, href, item) {
   window.location.href = href;
 }
 
-export function ProductCard({ item, onAddToCart }) {
+export function ProductCard({ item, onAddToCart, index = 0 }) {
   const [liked, setLiked] = useState(false);
   const [detailOpen, setDetailOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
+  const cardRef = useRef(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          if (cardRef.current) observer.unobserve(cardRef.current);
+        }
+      },
+      {
+        threshold: 0.08,
+        rootMargin: '0px 0px -20px 0px',
+      }
+    );
+
+    const currentEl = cardRef.current;
+    if (currentEl) {
+      observer.observe(currentEl);
+    }
+
+    return () => {
+      if (currentEl) observer.unobserve(currentEl);
+    };
+  }, []);
+
   const { getCatalogItemStock, isItemReserved, socialLinks = {}, exchangeRate, setInquiryItem, updateCatalogItem } = useStore();
   const { isAdmin } = useAuth();
   const { currency } = useCurrency();
@@ -136,7 +163,16 @@ export function ProductCard({ item, onAddToCart }) {
 
   return (
     <>
-      <article className={`${styles.card} group`} onClick={() => setDetailOpen(true)} id={`product_card_${item.id}`}>
+      <div 
+        ref={cardRef} 
+        style={{ transitionDelay: isVisible ? `${(index % 4) * 60}ms` : '0ms' }}
+        className={`w-full transition-all duration-700 ease-out transform ${
+          isVisible 
+            ? 'opacity-100 translate-y-0 scale-100' 
+            : 'opacity-0 translate-y-8 scale-[0.98]'
+        }`}
+      >
+        <article className={`${styles.card} group`} onClick={() => setDetailOpen(true)} id={`product_card_${item.id}`}>
         <div className={styles.imgWrap} style={{ background: `linear-gradient(135deg, ${bg1}, ${bg2})` }}>
           {hasPhoto ? (
             <>
@@ -262,6 +298,7 @@ export function ProductCard({ item, onAddToCart }) {
           </div>
         </div>
       </article>
+      </div>
       <ProductDetailModal isOpen={detailOpen} onClose={() => setDetailOpen(false)} product={item} onAddToCart={onAddToCart} />
       {isEditing && (
         <CatalogItemEditModal

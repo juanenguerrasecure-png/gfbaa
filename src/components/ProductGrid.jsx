@@ -342,10 +342,11 @@ export function ProductGrid({ activeFilter: externalFilter, onFilterChange: onEx
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10 lg:gap-12 xl:gap-14 animate-fadeIn" id="grid_products_layout">
-          {filteredItems.map(item => (
+          {filteredItems.map((item, index) => (
             <ProductCard 
               key={item.id} 
               item={item} 
+              index={index}
               onAddToCart={onAddToCart} 
             />
           ))}
